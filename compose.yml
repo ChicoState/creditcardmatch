@@ -1,0 +1,20 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    init: true
+    user: "1001:1001"
+    working_dir: /workspace
+    command: sleep infinity
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/workspace
+      - node_modules:/workspace/node_modules
+    env_file:
+      - path: .env
+        required: false
+
+volumes:
+  node_modules:
