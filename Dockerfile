@@ -8,9 +8,10 @@ RUN groupadd --gid 1001 nodejs \
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts
 
-USER nextjs
+COPY scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+RUN chmod 755 /usr/local/bin/docker-entrypoint
 
 EXPOSE 3000
 
-# The application entrypoint is intentionally supplied by the future app bootstrap.
-CMD ["sleep", "infinity"]
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
+CMD ["npm", "run", "dev", "--", "--hostname", "0.0.0.0"]
