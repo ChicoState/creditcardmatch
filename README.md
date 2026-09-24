@@ -1,22 +1,22 @@
 # Credit Card Match
 
-Infrastructure foundation for a personal, account-backed credit-card matching web application. The production Next.js application, its routes, data model, authentication flows, and Supabase migrations have **not** been created yet.
+Infrastructure foundation and preliminary site shell for a personal, account-backed credit-card matching web application. The root page provides empty Dashboard, My Cards, and Matches tabs; data models, authentication flows, Supabase migrations, and card-matching behavior have **not** been created yet.
 
 The stack is TypeScript, Next.js/React, Supabase, npm, and a Node 24 development container. Node 24 is the current LTS line; update the exact image patch and `.nvmrc` together when the project deliberately refreshes its LTS baseline. Next.js requires Node 20.9 or newer.
 
 ## Repository map
 
-| Location | Purpose |
-| --- | --- |
-| `app/` or `src/app/` | Future Next.js UI and server features — not created yet. |
-| `supabase/migrations/` | Future reviewed SQL migrations — not created yet. |
-| `tests/infrastructure/` | Infrastructure-only Vitest harness. |
-| `tests/e2e/` | Future Playwright tests — not created yet. |
-| `scripts/` | Reproducible infrastructure smoke checks. |
-| `Dockerfile`, `compose.yml` | Node 24 development environment. |
-| `.github/workflows/` | Pull-request checks and protected release workflow. |
-| `.agents/skills/` | Project engineering workflows for humans and agents. |
-| `infrastructure_plan.md` | Accepted infrastructure decisions and source of truth. |
+| Location                    | Purpose                                                        |
+| --------------------------- | -------------------------------------------------------------- |
+| `app/`                      | Preliminary Next.js root layout and empty tabbed landing page. |
+| `supabase/migrations/`      | Future reviewed SQL migrations — not created yet.              |
+| `tests/infrastructure/`     | Infrastructure-only Vitest harness.                            |
+| `tests/e2e/`                | Future Playwright tests — not created yet.                     |
+| `scripts/`                  | Reproducible infrastructure smoke checks.                      |
+| `Dockerfile`, `compose.yml` | Node 24 development environment.                               |
+| `.github/workflows/`        | Pull-request checks and protected release workflow.            |
+| `.agents/skills/`           | Project engineering workflows for humans and agents.           |
+| `infrastructure_plan.md`    | Accepted infrastructure decisions and source of truth.         |
 
 ## Getting Started
 
@@ -38,20 +38,28 @@ The stack is TypeScript, Next.js/React, Supabase, npm, and a Node 24 development
 
    `.env` is ignored. Never commit service-role keys, database URLs, or non-production test-user credentials.
 
-4. Install reproducibly in the development container after Docker can fetch the pinned image:
+4. Start the site in the development container after Docker can fetch the pinned image:
 
    ```sh
-   docker compose build app
-   docker compose run --rm --no-deps app npm ci
+   docker compose up --build
    ```
 
-5. Run the infrastructure verification:
+   Then open [http://localhost:3000](http://localhost:3000). Leave this command running while you work; press `Ctrl+C` to stop it.
+
+5. Run the preliminary-site checks in a second terminal:
 
    ```sh
-   docker compose run --rm --no-deps app npm run verify
+   docker compose run --rm --no-deps app npm run test
+   docker compose run --rm --no-deps app npm run coverage
+   docker compose run --rm --no-deps app npm run lint
+   docker compose run --rm --no-deps app npm run typecheck
    ```
 
-   The app container deliberately stays idle because no Next.js entrypoint exists. After application bootstrapping adds the required root layout and page, change its Compose command to `npm run dev`; then visit `http://localhost:3000`.
+   To confirm production compilation, run:
+
+   ```sh
+   docker compose run --rm --no-deps app npm run build
+   ```
 
 6. Clean up local containers and the named dependency volume:
 
@@ -61,15 +69,16 @@ The stack is TypeScript, Next.js/React, Supabase, npm, and a Node 24 development
 
 ## Commands
 
-| Command | Current scope |
-| --- | --- |
-| `npm ci` | Reproducible dependency install with Node 24/npm 11. |
-| `npm run format:check`, `lint`, `typecheck` | Static tooling checks. |
-| `npm run test`, `coverage` | Infrastructure harness now; application tests later. |
-| `npm run test:e2e` | Future Playwright suite; requires its test environment and credentials. |
-| `npm run test:smoke` | Builds and checks the Docker-based development foundation. |
-| `npm run build`, `dev`, `start` | Planned Next.js commands; unavailable until application files exist. |
-| `npm run db:migrate:production` | Protected release-only Supabase command; never run against production from a workstation. |
+| Command                                     | Current scope                                                                                                                     |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `npm ci`                                    | Reproducible dependency install with Node 24/npm 11.                                                                              |
+| `npm run format:check`, `lint`, `typecheck` | Static tooling checks.                                                                                                            |
+| `npm run test`, `coverage`                  | Infrastructure harness now; application tests later.                                                                              |
+| `npm run verify`                            | Full repository baseline. It currently reports pre-existing formatting drift in repository-managed skill and configuration files. |
+| `npm run test:e2e`                          | Future Playwright suite; requires its test environment and credentials.                                                           |
+| `npm run test:smoke`                        | Builds and checks the Docker-based development foundation.                                                                        |
+| `npm run build`, `dev`, `start`             | Next.js production build, development server, and production server commands. Use Node 24 or Docker.                              |
+| `npm run db:migrate:production`             | Protected release-only Supabase command; never run against production from a workstation.                                         |
 
 ## GitHub configuration
 
