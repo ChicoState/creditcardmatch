@@ -2,8 +2,9 @@ FROM node:24.21.0-bookworm-slim
 
 WORKDIR /workspace
 
-RUN groupadd --gid 1001 nodejs \
-  && useradd --uid 1001 --gid nodejs --create-home --shell /bin/bash nextjs
+# Commented out to remove hardcoded user that caused permission errors
+# RUN groupadd --gid 1001 nodejs \
+#  && useradd --uid 1001 --gid nodejs --create-home --shell /bin/bash nextjs
 
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts
