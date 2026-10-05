@@ -101,7 +101,7 @@ These are developer-workstation prerequisites that will not be supplied by the p
 - **Ports:** Publish the Next.js development port only to the developer workstation.
 - **Bind mounts and named volumes:** Bind mount source files for live reload; use a named volume for `node_modules`.
 - **Environment-variable and secret handling:** Read developer-specific values from an ignored local environment file; never bake secrets into the image.
-- **Local database or service containers:** Supabase CLI starts the local PostgreSQL, Auth, API, and supporting service containers through Docker. Migrations are reset and verified only against this local stack.
+- **Local database or service containers:** Supabase CLI starts the local PostgreSQL, Auth, API, and supporting service containers through Docker. Optional local Logflare analytics and log collection are disabled because the MVP and migration verification do not use them. Migrations are reset and verified only against this local stack.
 - **Production image or non-container release path:** Vercel builds and deploys Next.js directly; no production Docker image is planned.
 - **Build stages and hardening:** The development image should pin a supported Node.js LTS base, use a `.dockerignore`, and avoid embedded secrets; production-image hardening is out of scope because no image is released.
 - **Planned future development command:** `docker compose up --build`.
