@@ -2,7 +2,7 @@
 
 ## Status and source of truth
 
-This repository has infrastructure only. `infrastructure_plan.md` records the accepted stack and operational decisions; the files in this repository implement that plan. Application UI, routes, API handlers, domain logic, authentication flows, production schema, and migrations are not created yet.
+This repository has infrastructure, a preliminary application shell, and draft Supabase schema migrations. `infrastructure_plan.md` records the accepted stack and operational decisions; the files in this repository implement that plan. Application routes beyond the shell, API handlers, domain logic, and authentication flows are not created yet. The migrations are drafts and have not been confirmed as applied to a Supabase environment.
 
 Read `infrastructure_plan.md`, this file, and the applicable `.agents/skills/*/SKILL.md` before changing the project. Do not alter plan decisions during implementation; revise the plan through `infra-planner` first.
 
@@ -10,12 +10,12 @@ Read `infrastructure_plan.md`, this file, and the applicable `.agents/skills/*/S
 
 - Application UI/server source: `app/` or `src/app/` — not created yet.
 - API: Next.js routes/server actions — not created yet.
-- Database migrations: `supabase/migrations/` — not created yet.
+- Database migrations: `supabase/migrations/` — draft schema history; do not apply without explicit authorization and protected workflow review.
 - Infrastructure: `Dockerfile`, `compose.yml`, `.env.example`, tool config at root.
 - Scripts and infrastructure tests: `scripts/`, `tests/infrastructure/`.
 - Browser tests: `tests/e2e/` — not created yet.
 - CI: `.github/workflows/pr-checks.yml` and `release.yml`.
-- Documentation: `README.md`, `infrastructure_plan.md`, this file.
+- Documentation: `README.md`, `infrastructure_plan.md`, `docs/`, this file.
 - Agent workflows: `.agents/skills/`.
 
 ## Skills

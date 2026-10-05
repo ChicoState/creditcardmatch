@@ -1,6 +1,6 @@
 # Credit Card Match
 
-Infrastructure foundation and preliminary site shell for a personal, account-backed credit-card matching web application. The root page provides empty Dashboard, My Cards, and Matches tabs; data models, authentication flows, Supabase migrations, and card-matching behavior have **not** been created yet.
+Infrastructure foundation, preliminary site shell, and draft Supabase schema for a credit-card matching web application. The root page still provides empty Dashboard, My Cards, and Matches tabs; authentication flows and card-matching behavior have **not** been created yet. The schema migrations are drafts and have not been confirmed as applied to a Supabase environment.
 
 The stack is TypeScript, Next.js/React, Supabase, npm, and a Node 24 development container. Node 24 is the current LTS line; update the exact image patch and `.nvmrc` together when the project deliberately refreshes its LTS baseline. Next.js requires Node 20.9 or newer.
 
@@ -9,7 +9,7 @@ The stack is TypeScript, Next.js/React, Supabase, npm, and a Node 24 development
 | Location                    | Purpose                                                        |
 | --------------------------- | -------------------------------------------------------------- |
 | `app/`                      | Preliminary Next.js root layout and empty tabbed landing page. |
-| `supabase/migrations/`      | Future reviewed SQL migrations — not created yet.              |
+| `supabase/migrations/`      | Draft, versioned Supabase schema migrations.                    |
 | `tests/infrastructure/`     | Infrastructure-only Vitest harness.                            |
 | `tests/e2e/`                | Future Playwright tests — not created yet.                     |
 | `scripts/`                  | Reproducible infrastructure smoke checks.                      |
@@ -17,6 +17,7 @@ The stack is TypeScript, Next.js/React, Supabase, npm, and a Node 24 development
 | `.github/workflows/`        | Pull-request checks and protected release workflow.            |
 | `.agents/skills/`           | Project engineering workflows for humans and agents.           |
 | `infrastructure_plan.md`    | Accepted infrastructure decisions and source of truth.         |
+| `docs/data-model-plan.md`   | Planned MVP data model, access rules, and open decisions.       |
 
 ## Getting Started
 
