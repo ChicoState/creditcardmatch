@@ -13,7 +13,18 @@ export default function RootLayout({
 }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+
+        <header className="site-header">
+          <div className="site-header__content">
+            <span className="site-title">
+              Credit Card Match
+            </span>
+            <button className="login-button" disabled type="button">Login</button>
+          </div>
+        </header>
+        {children}
+      </body>
     </html>
   );
 }
