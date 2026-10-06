@@ -7,6 +7,12 @@
   --line: #d8ded9;
   --accent: #1f6f50;
   --accent-soft: #e1f0e8;
+  --match-best: #176b43;
+  --match-best-soft: #e1f0e8;
+  --match-okay: #8a4b00;
+  --match-okay-soft: #fff0d8;
+  --match-worst: #9b1c1c;
+  --match-worst-soft: #fde5e3;
 }
 
 * {
