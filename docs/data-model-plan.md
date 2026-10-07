@@ -2,13 +2,14 @@
 
 ## Status
 
-Drafted for review on 2026-09-30. The corresponding migration is additive and must not be applied until the team reviews the open decisions below and validates any existing data.
+Approved for the Credit Card Match MVP. The migrations have been verified with a clean reset of the local CLI-managed Supabase stack; they have not been applied to a remote project. The open decisions below remain intentionally TBD at the application seam described for each item.
 
 ## Confirmed decisions
 
 - Supabase Auth owns user identity and email.
 - Landing, Survey, and Results are available without authentication.
 - Authentication is required only to save survey answers.
+- Names are not collected during MVP sign-up; profile name fields remain nullable.
 - Immediately before saving survey answers, the application upserts the authenticated user's `profiles` row. The Auth trigger remains commented out as a possible future alternative.
 - Filters are rows, not columns, so the filter vocabulary can grow without schema changes.
 - Anonymous and authenticated users can read card-catalog data. Only trusted dashboard or service-role operations can write it.
@@ -16,13 +17,13 @@ Drafted for review on 2026-09-30. The corresponding migration is additive and mu
 
 ## Planned tables
 
-| Area | Tables | Purpose |
-|---|---|---|
-| Identity | `auth.users`, `profiles` | Supabase owns identity and email; `profiles` stores nullable application-specific names. |
-| Card catalog | `credit_cards`, `reward_categories`, `card_rewards`, `card_benefits` | Stores manually entered and verified card facts, rewards, and ordered benefits. |
-| Matching vocabulary | `filters`, `card_filters` | Stores extensible URL filter definitions and their many-to-many card assignments. |
-| Saved survey data | `user_preferences`, `user_category_spend`, `user_filter_preferences` | Stores optional survey answers only for authenticated users. |
-| Future saved results | `recommendations` | Reserved for saved recommendations after the MVP; no MVP flow reads or writes it. |
+| Area                 | Tables                                                               | Purpose                                                                                  |
+| -------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Identity             | `auth.users`, `profiles`                                             | Supabase owns identity and email; `profiles` stores nullable application-specific names. |
+| Card catalog         | `credit_cards`, `reward_categories`, `card_rewards`, `card_benefits` | Stores manually entered and verified card facts, rewards, and ordered benefits.          |
+| Matching vocabulary  | `filters`, `card_filters`                                            | Stores extensible URL filter definitions and their many-to-many card assignments.        |
+| Saved survey data    | `user_preferences`, `user_category_spend`, `user_filter_preferences` | Stores optional survey answers only for authenticated users.                             |
+| Future saved results | `recommendations`                                                    | Reserved for saved recommendations after the MVP; no MVP flow reads or writes it.        |
 
 All user references use the UUID from `auth.users` through `profiles.id`. Email is not duplicated in the public schema. All foreign keys have a supporting index, including indexes supplied by primary-key or unique constraints.
 
@@ -50,7 +51,6 @@ Repository history shows when the initial migration file was added, but contains
 
 ## Open decisions
 
-- Should `first_name` and `last_name` become required during sign-up?
 - Should a future release replace application-driven profile upserts with an `auth.users` trigger, and which metadata keys should that trigger read?
 - What values are allowed for `credit_cards.reward_type`?
 - What values are allowed for `credit_cards.credit_level_required`?

@@ -1,23 +1,24 @@
 # Credit Card Match
 
-Infrastructure foundation, preliminary site shell, and draft Supabase schema for a credit-card matching web application. The root page still provides empty Dashboard, My Cards, and Matches tabs; authentication flows and card-matching behavior have **not** been created yet. The schema migrations reset successfully against the local CLI-managed stack but remain drafts that have not been applied to a remote Supabase environment.
+Infrastructure foundation, Phase 1 MVP pages, pure matching logic, and an approved Supabase schema for a credit-card matching web application. Landing, Survey, Results, Learn, Login, and Signup routes now exist. Phase 1 uses a fictional database-shaped catalog fixture behind the data-access module; Supabase-backed catalog reads, authentication, saving, seed data, and end-to-end tests remain Phase 2 work. The schema migrations reset successfully against the local CLI-managed stack but have not been applied to a remote Supabase environment.
 
 The stack is TypeScript, Next.js/React, Supabase, npm, and a Node 24 development container. Every developer also installs Node 24 LTS and npm 11 on the host so the project-pinned Supabase CLI can manage Docker through `npx`. Update the exact container image patch and `.nvmrc` together when the project deliberately refreshes its LTS baseline.
 
 ## Repository map
 
-| Location                    | Purpose                                                        |
-| --------------------------- | -------------------------------------------------------------- |
-| `app/`                      | Preliminary Next.js root layout and empty tabbed landing page. |
-| `supabase/migrations/`      | Draft, versioned Supabase schema migrations.                   |
-| `tests/infrastructure/`     | Infrastructure-only Vitest harness.                            |
-| `tests/e2e/`                | Future Playwright tests — not created yet.                     |
-| `scripts/`                  | Reproducible infrastructure smoke checks.                      |
-| `Dockerfile`, `compose.yml` | Node 24 development environment.                               |
-| `.github/workflows/`        | Pull-request checks and protected release workflow.            |
-| `.agents/skills/`           | Project engineering workflows for humans and agents.           |
-| `infrastructure_plan.md`    | Accepted infrastructure decisions and source of truth.         |
-| `docs/data-model-plan.md`   | Planned MVP data model, access rules, and open decisions.      |
+| Location                    | Purpose                                                          |
+| --------------------------- | ---------------------------------------------------------------- |
+| `app/`                      | Next.js App Router pages for the Phase 1 MVP.                    |
+| `components/`, `lib/`       | UI components, configuration seams, pure logic, and data access. |
+| `supabase/migrations/`      | Approved, versioned Supabase schema migrations.                  |
+| `tests/`                    | Infrastructure, application, and pure-logic Vitest coverage.     |
+| `tests/e2e/`                | Future Playwright tests — not created yet.                       |
+| `scripts/`                  | Reproducible infrastructure smoke checks.                        |
+| `Dockerfile`, `compose.yml` | Node 24 development environment.                                 |
+| `.github/workflows/`        | Pull-request checks and protected release workflow.              |
+| `.agents/skills/`           | Project engineering workflows for humans and agents.             |
+| `infrastructure_plan.md`    | Accepted infrastructure decisions and source of truth.           |
+| `docs/data-model-plan.md`   | Planned MVP data model, access rules, and open decisions.        |
 
 ## Getting Started
 
@@ -83,7 +84,7 @@ docker compose version
    npm run docker:up
    ```
 
-   Open [http://localhost:3000](http://localhost:3000). The app container is controlled by `compose.yml`; the host CLI independently controls the Supabase containers. Both sets run side by side through Docker Desktop, and the browser reaches their published host ports. The current application shell does not connect to Supabase yet.
+   Open [http://localhost:3000](http://localhost:3000). The app container is controlled by `compose.yml`; the host CLI independently controls the Supabase containers. Both sets run side by side through Docker Desktop, and the browser reaches their published host ports. During Phase 1, the application reads its fictional catalog from the data-access fixture rather than Supabase.
 
 5. To discard local database changes and reapply all migrations:
 
@@ -91,7 +92,7 @@ docker compose version
    npm run supabase:reset
    ```
 
-6. Run the preliminary-site checks:
+6. Run the Phase 1 checks:
 
    ```sh
    docker compose run --rm --no-deps app npm run test
@@ -121,7 +122,7 @@ docker compose version
 | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | `npm ci`                                    | Reproducible dependency install with Node 24/npm 11.                                                                              |
 | `npm run format:check`, `lint`, `typecheck` | Static tooling checks.                                                                                                            |
-| `npm run test`, `coverage`                  | Infrastructure harness now; application tests later.                                                                              |
+| `npm run test`, `coverage`                  | Infrastructure, application-page, and pure matching-logic tests.                                                                  |
 | `npm run verify`                            | Full repository baseline. It currently reports pre-existing formatting drift in repository-managed skill and configuration files. |
 | `npm run test:e2e`                          | Future Playwright suite; requires its test environment and credentials.                                                           |
 | `npm run test:smoke`                        | Builds and checks the Docker-based development foundation.                                                                        |

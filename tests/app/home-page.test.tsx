@@ -1,46 +1,34 @@
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { createElement } from 'react';
 import { describe, expect, it } from 'vitest';
 
 import RootLayout from '../../app/layout';
 import HomePage from '../../app/page';
 
 describe('HomePage', () => {
-  it('shows the dashboard panel by default and lets visitors choose another tab', async () => {
-    const user = userEvent.setup();
-
-    render(createElement(HomePage));
+  it('links the confirmed landing categories and primary journeys', async () => {
+    render(await HomePage());
 
     expect(
-      screen.getByRole('heading', { name: 'Credit Card Match' }),
+      screen.getByRole('heading', {
+        name: "Find the card that's right for you!",
+      }),
     ).toBeVisible();
-    expect(screen.getByRole('tab', { name: 'Dashboard' })).toHaveAttribute(
-      'aria-selected',
-      'true',
+    expect(screen.getByRole('link', { name: /Popular Cards/ })).toHaveAttribute(
+      'href',
+      '/results?filters=popular-cards',
     );
-    expect(screen.getByText('Your dashboard will appear here.')).toBeVisible();
-
-    await user.click(screen.getByRole('tab', { name: 'My Cards' }));
-
-    expect(screen.getByRole('tab', { name: 'My Cards' })).toHaveAttribute(
-      'aria-selected',
-      'true',
+    expect(screen.getByRole('link', { name: /Cashback/ })).toHaveAttribute(
+      'href',
+      '/results?filters=cashback',
     );
-    expect(
-      screen.getByText('Your saved cards will appear here.'),
-    ).toBeVisible();
-
-    await user.keyboard('{ArrowRight}');
-
-    expect(screen.getByRole('tab', { name: 'Matches' })).toHaveAttribute(
-      'aria-selected',
-      'true',
+    expect(screen.getByRole('link', { name: 'SURVEY' })).toHaveAttribute(
+      'href',
+      '/survey',
     );
-    expect(
-      screen.getByText('Your card matches will appear here.'),
-    ).toBeVisible();
-    expect(screen.getByRole('tab', { name: 'Matches' })).toHaveFocus();
+    expect(screen.getByRole('link', { name: 'START FRESH' })).toHaveAttribute(
+      'href',
+      '/results',
+    );
   });
 
   it('sets the document language for assistive technologies', () => {

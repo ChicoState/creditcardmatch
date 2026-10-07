@@ -23,15 +23,15 @@
 
 ## 3. Selected Technology Stack
 
-| Area | Selected technology | Purpose | Version policy |
-|---|---|---|---|
-| Primary language | TypeScript | Typed client and server application code | Current supported TypeScript compatible with Next.js |
-| Application framework | Next.js with React | Full-stack browser UI and server features | Current supported stable release |
-| Runtime or SDK | Node.js | Runs development tooling and Next.js | Active or maintenance LTS |
-| Package manager | npm | Installs and locks JavaScript dependencies | Version bundled with selected Node.js LTS |
-| Build tool | Next.js build system | Produces the deployable web application | Framework-managed |
-| Backend framework | Next.js Route Handlers and Server Actions | Authenticated server-side operations | Framework-managed |
-| Data and auth platform | Supabase | Hosted PostgreSQL, authentication, and access controls | Current compatible hosted service/API |
+| Area                   | Selected technology                       | Purpose                                                | Version policy                                       |
+| ---------------------- | ----------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------- |
+| Primary language       | TypeScript                                | Typed client and server application code               | Current supported TypeScript compatible with Next.js |
+| Application framework  | Next.js with React                        | Full-stack browser UI and server features              | Current supported stable release                     |
+| Runtime or SDK         | Node.js                                   | Runs development tooling and Next.js                   | Active or maintenance LTS                            |
+| Package manager        | npm                                       | Installs and locks JavaScript dependencies             | Version bundled with selected Node.js LTS            |
+| Build tool             | Next.js build system                      | Produces the deployable web application                | Framework-managed                                    |
+| Backend framework      | Next.js Route Handlers and Server Actions | Authenticated server-side operations                   | Framework-managed                                    |
+| Data and auth platform | Supabase                                  | Hosted PostgreSQL, authentication, and access controls | Current compatible hosted service/API                |
 
 ## 4. Storage and Persistence
 
@@ -49,43 +49,43 @@
 
 ## 5. Testing Tools
 
-| Test layer | Tool or library | Planned scope | Planned execution point |
-|---|---|---|---|
-| Unit | Vitest | Pure application logic and utility modules | Local and pull requests |
-| Component | React Testing Library with Vitest | Accessible UI behavior and component states | Local and pull requests |
-| Integration | Vitest with mocked Supabase boundaries; local Supabase when database behavior is required | Server-side data and authorization behavior | Local and pull requests |
-| End-to-end | Playwright with the local Supabase stack | Sign-in and highest-value personal-data workflows | Local, pull requests, and release validation |
+| Test layer  | Tool or library                                                                           | Planned scope                                     | Planned execution point                      |
+| ----------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------- | -------------------------------------------- |
+| Unit        | Vitest                                                                                    | Pure application logic and utility modules        | Local and pull requests                      |
+| Component   | React Testing Library with Vitest                                                         | Accessible UI behavior and component states       | Local and pull requests                      |
+| Integration | Vitest with mocked Supabase boundaries; local Supabase when database behavior is required | Server-side data and authorization behavior       | Local and pull requests                      |
+| End-to-end  | Playwright with the local Supabase stack                                                  | Sign-in and highest-value personal-data workflows | Local, pull requests, and release validation |
 
 ## 6. Test Analysis
 
-| Capability | Tool | Planned policy |
-|---|---|---|
-| Coverage | Vitest V8 coverage | Produce LCOV and text reports on pull requests |
+| Capability                            | Tool                       | Planned policy                                                                                                                          |
+| ------------------------------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Coverage                              | Vitest V8 coverage         | Produce LCOV and text reports on pull requests                                                                                          |
 | Coverage threshold or regression rule | Vitest coverage thresholds | Block merges when tested application code falls below an initial 80% line/function baseline; adjust deliberately as the project matures |
-| Mutation testing | Not selected | Reconsider only for small, critical calculation or matching modules in a scheduled workflow |
-| Reporting | GitHub Actions artifacts | Upload coverage output on failures and when useful for review |
+| Mutation testing                      | Not selected               | Reconsider only for small, critical calculation or matching modules in a scheduled workflow                                             |
+| Reporting                             | GitHub Actions artifacts   | Upload coverage output on failures and when useful for review                                                                           |
 
 ## 7. Static Analysis and Security
 
-| Check | Tool | Planned enforcement |
-|---|---|---|
-| Formatting | Prettier | Verify on every pull request |
-| Linting | ESLint with Next.js rules | Block pull requests on errors |
-| Type checking | TypeScript compiler (`tsc --noEmit`) | Block pull requests on errors |
-| Dependency vulnerability scanning | Dependabot and npm audit in CI | Dependabot opens updates; high-severity audit findings block when actionable |
-| Secret scanning | Gitleaks | Block pull requests and scan history as appropriate |
-| Static security analysis | GitHub CodeQL for JavaScript/TypeScript | Run on pull requests and on a schedule; block confirmed actionable findings |
+| Check                             | Tool                                    | Planned enforcement                                                          |
+| --------------------------------- | --------------------------------------- | ---------------------------------------------------------------------------- |
+| Formatting                        | Prettier                                | Verify on every pull request                                                 |
+| Linting                           | ESLint with Next.js rules               | Block pull requests on errors                                                |
+| Type checking                     | TypeScript compiler (`tsc --noEmit`)    | Block pull requests on errors                                                |
+| Dependency vulnerability scanning | Dependabot and npm audit in CI          | Dependabot opens updates; high-severity audit findings block when actionable |
+| Secret scanning                   | Gitleaks                                | Block pull requests and scan history as appropriate                          |
+| Static security analysis          | GitHub CodeQL for JavaScript/TypeScript | Run on pull requests and on a schedule; block confirmed actionable findings  |
 
 ## 8. Development Technologies Requiring Manual Installation
 
 These are developer-workstation prerequisites that will not be supplied by the planned Docker environment.
 
-| Technology | Why it is needed | Required on which machines | Version policy | Planned installation or verification method | Why Docker does not provide it |
-|---|---|---|---|---|---|
-| Git | Source control and GitHub workflow | Every developer workstation | Current supported release | Future setup documentation: `git --version` | Host credentials and repository access belong on the workstation |
-| Docker Desktop or Docker Engine with Compose | Runs the reproducible development container | Every developer workstation | Current supported release | Future setup documentation: `docker --version` and `docker compose version` | The host must provide the Docker daemon/container runtime |
-| Node.js and npm | Runs the project-pinned Supabase CLI through `npx` on the Docker host | Every developer workstation | Node 24 LTS and npm 11, matching repository pins | Future setup documentation: `node --version` and `npm --version` | The CLI must reach the host Docker daemon to manage the local Supabase stack |
-| Supported browser | Manual exploratory testing and Playwright browser launch support | Every developer workstation | Current stable browser | Future setup documentation: install current Chrome, Edge, Firefox, or equivalent | A development container cannot supply a user's native browser experience |
+| Technology                                   | Why it is needed                                                      | Required on which machines  | Version policy                                   | Planned installation or verification method                                      | Why Docker does not provide it                                               |
+| -------------------------------------------- | --------------------------------------------------------------------- | --------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Git                                          | Source control and GitHub workflow                                    | Every developer workstation | Current supported release                        | Future setup documentation: `git --version`                                      | Host credentials and repository access belong on the workstation             |
+| Docker Desktop or Docker Engine with Compose | Runs the reproducible development container                           | Every developer workstation | Current supported release                        | Future setup documentation: `docker --version` and `docker compose version`      | The host must provide the Docker daemon/container runtime                    |
+| Node.js and npm                              | Runs the project-pinned Supabase CLI through `npx` on the Docker host | Every developer workstation | Node 24 LTS and npm 11, matching repository pins | Future setup documentation: `node --version` and `npm --version`                 | The CLI must reach the host Docker daemon to manage the local Supabase stack |
+| Supported browser                            | Manual exploratory testing and Playwright browser launch support      | Every developer workstation | Current stable browser                           | Future setup documentation: install current Chrome, Edge, Firefox, or equivalent | A development container cannot supply a user's native browser experience     |
 
 ### Host tools intentionally not required
 
@@ -148,16 +148,16 @@ These are developer-workstation prerequisites that will not be supplied by the p
 
 ### GitHub configuration required later
 
-| Name | Type | Purpose |
-|---|---|---|
-| `VERCEL_TOKEN` | Secret | Authenticates the release workflow to Vercel |
-| `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` | Variables | Select the intended Vercel organization and project |
-| `SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Variables | Browser-safe configuration for the selected Supabase project/environment |
-| `SUPABASE_SERVICE_ROLE_KEY` | Secret | Server-only administrative operations; never expose to browser code |
-| `SUPABASE_DB_URL` or migration token | Secret | Authenticates the protected schema-migration job |
-| `E2E_TEST_USER_EMAIL` and `E2E_TEST_USER_PASSWORD` | Secrets | Dedicated non-production account for Playwright |
-| `production` | GitHub Environment | Holds deployment protection rules and production-scoped secrets |
-| Supabase and Vercel accounts | Provider accounts | Host authentication/data and deploy releases |
+| Name                                               | Type               | Purpose                                                                  |
+| -------------------------------------------------- | ------------------ | ------------------------------------------------------------------------ |
+| `VERCEL_TOKEN`                                     | Secret             | Authenticates the release workflow to Vercel                             |
+| `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`            | Variables          | Select the intended Vercel organization and project                      |
+| `SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Variables          | Browser-safe configuration for the selected Supabase project/environment |
+| `SUPABASE_SERVICE_ROLE_KEY`                        | Secret             | Server-only administrative operations; never expose to browser code      |
+| `SUPABASE_DB_URL` or migration token               | Secret             | Authenticates the protected schema-migration job                         |
+| `E2E_TEST_USER_EMAIL` and `E2E_TEST_USER_PASSWORD` | Secrets            | Dedicated non-production account for Playwright                          |
+| `production`                                       | GitHub Environment | Holds deployment protection rules and production-scoped secrets          |
+| Supabase and Vercel accounts                       | Provider accounts  | Host authentication/data and deploy releases                             |
 
 ## 11. Planned Repository Artifacts - Not Created by This Skill
 
@@ -174,4 +174,4 @@ These are developer-workstation prerequisites that will not be supplied by the p
 
 - **Assumptions:** The application needs structured, non-file data; it has no sharing between users, native-device requirements, or offline-first requirement.
 - **Decisions still requiring an external account, credential, certificate, or organizational approval:** Decide whether a shared remote Supabase project is needed after local development and e2e workflows are established; create and fund/approve the production Supabase and Vercel projects; create GitHub Environment protections and the listed secrets/variables.
-- **Items to confirm before implementation begins:** Whether a future release should replace application-driven profile upserts with an `auth.users` trigger; whether profile names are required at sign-up; allowed values for reward type, required credit level, income range, and the no-credit-history credit-score representation; whether `user_preferences.monthly_spend` overlaps with `user_category_spend`; whether `accepts_annual_fee` and `wants_travel_rewards` remain alongside row-based filter preferences; retention/export needs; supported-browser policy; initial coverage thresholds for generated versus application code; and the production domain.
+- **Items to confirm before implementation begins:** Whether a future release should replace application-driven profile upserts with an `auth.users` trigger; allowed values for reward type, required credit level, income range, and the no-credit-history credit-score representation; whether `user_preferences.monthly_spend` overlaps with `user_category_spend`; whether `accepts_annual_fee` and `wants_travel_rewards` remain alongside row-based filter preferences; retention/export needs; supported-browser policy; initial coverage thresholds for generated versus application code; and the production domain. Names are not collected during MVP sign-up.
