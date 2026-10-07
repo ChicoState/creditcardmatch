@@ -1,5 +1,13 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('../../lib/data/catalog', async () => {
+  const { catalogFixture } = await import('../fixtures/catalog');
+
+  return {
+    getCatalogData: vi.fn(async () => catalogFixture),
+  };
+});
 
 import RootLayout from '../../app/layout';
 import HomePage from '../../app/page';

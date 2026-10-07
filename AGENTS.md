@@ -2,7 +2,7 @@
 
 ## Status and source of truth
 
-This repository has infrastructure, Phase 1 MVP pages and pure matching logic, and approved Supabase schema migrations. `infrastructure_plan.md` records the accepted stack and operational decisions; the files in this repository implement that plan. Supabase-backed catalog access, authentication, saving, API handlers, and end-to-end flows remain Phase 2 work. The migrations have been confirmed to reset cleanly against the local CLI-managed Supabase stack, but have not been confirmed as applied to a remote Supabase environment.
+This repository has infrastructure, Phase 1 MVP pages and pure matching logic, and a Phase 2a Supabase-backed fictional catalog with Playwright coverage. The Supabase schema migrations are verified on the local stack; pending team review. `infrastructure_plan.md` records the accepted stack and operational decisions; the files in this repository implement that plan. Authentication, saving, and their server handlers remain Phase 2b work. The migrations and seed have been confirmed to reset cleanly against the local CLI-managed Supabase stack, but have not been confirmed as applied to a remote Supabase environment.
 
 Read `infrastructure_plan.md`, this file, and the applicable `.agents/skills/*/SKILL.md` before changing the project. Do not alter plan decisions during implementation; revise the plan through `infra-planner` first.
 
@@ -10,10 +10,10 @@ Read `infrastructure_plan.md`, this file, and the applicable `.agents/skills/*/S
 
 - Application UI/server source: `app/`, with reusable UI in `components/` and pure application modules in `lib/`.
 - API: Next.js routes/server actions — not created yet.
-- Database migrations: `supabase/migrations/` — approved schema history; do not apply without explicit authorization and protected workflow review.
+- Database migrations: `supabase/migrations/` — verified on the local stack; pending team review. Do not apply without explicit authorization and protected workflow review.
 - Infrastructure: `Dockerfile`, `compose.yml`, `.env.example`, `supabase/config.toml`, and tool config at root.
 - Scripts and infrastructure tests: `scripts/`, `tests/infrastructure/`.
-- Browser tests: `tests/e2e/` — not created yet.
+- Browser tests: `tests/e2e/` — Playwright coverage against the local Supabase stack.
 - CI: `.github/workflows/pr-checks.yml` and `release.yml`.
 - Documentation: `README.md`, `infrastructure_plan.md`, `docs/`, this file.
 - Agent workflows: `.agents/skills/`.

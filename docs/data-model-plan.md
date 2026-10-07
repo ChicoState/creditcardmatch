@@ -2,7 +2,7 @@
 
 ## Status
 
-Approved for the Credit Card Match MVP. The migrations have been verified with a clean reset of the local CLI-managed Supabase stack; they have not been applied to a remote project. The open decisions below remain intentionally TBD at the application seam described for each item.
+Verified on the local stack; pending team review. The migrations have completed a clean reset of the local CLI-managed Supabase stack; they have not been applied to a remote project. The open decisions below remain intentionally TBD at the application seam described for each item.
 
 ## Confirmed decisions
 

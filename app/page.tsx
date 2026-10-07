@@ -4,6 +4,8 @@ import { LANDING_CATEGORY_FILTER_SLUGS } from '../lib/config/landing-categories'
 import { getCatalogData } from '../lib/data/catalog';
 import { buildResultsHref } from '../lib/results/query-string';
 
+export const dynamic = 'force-dynamic';
+
 export default async function HomePage() {
   const { filters } = await getCatalogData();
   const filterBySlug = new Map(filters.map((filter) => [filter.slug, filter]));

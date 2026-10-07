@@ -1,6 +1,6 @@
 # Credit Card Match
 
-Infrastructure foundation, Phase 1 MVP pages, pure matching logic, and an approved Supabase schema for a credit-card matching web application. Landing, Survey, Results, Learn, Login, and Signup routes now exist. Phase 1 uses a fictional database-shaped catalog fixture behind the data-access module; Supabase-backed catalog reads, authentication, saving, seed data, and end-to-end tests remain Phase 2 work. The schema migrations reset successfully against the local CLI-managed stack but have not been applied to a remote Supabase environment.
+Infrastructure foundation, Phase 1 MVP pages and pure matching logic, and Phase 2a Supabase-backed catalog reads, fictional seed data, and Playwright coverage for a credit-card matching web application. Landing, Survey, Results, Learn, Login, and Signup routes exist. Authentication and saving remain Phase 2b work. The Supabase schema migrations are verified on the local stack; pending team review, and they have not been applied to a remote Supabase environment.
 
 The stack is TypeScript, Next.js/React, Supabase, npm, and a Node 24 development container. Every developer also installs Node 24 LTS and npm 11 on the host so the project-pinned Supabase CLI can manage Docker through `npx`. Update the exact container image patch and `.nvmrc` together when the project deliberately refreshes its LTS baseline.
 
@@ -10,9 +10,9 @@ The stack is TypeScript, Next.js/React, Supabase, npm, and a Node 24 development
 | --------------------------- | ---------------------------------------------------------------- |
 | `app/`                      | Next.js App Router pages for the Phase 1 MVP.                    |
 | `components/`, `lib/`       | UI components, configuration seams, pure logic, and data access. |
-| `supabase/migrations/`      | Approved, versioned Supabase schema migrations.                  |
+| `supabase/migrations/`      | Versioned migrations verified locally; pending team review.      |
 | `tests/`                    | Infrastructure, application, and pure-logic Vitest coverage.     |
-| `tests/e2e/`                | Future Playwright tests — not created yet.                       |
+| `tests/e2e/`                | Playwright flows against the local Supabase stack.               |
 | `scripts/`                  | Reproducible infrastructure smoke checks.                        |
 | `Dockerfile`, `compose.yml` | Node 24 development environment.                                 |
 | `.github/workflows/`        | Pull-request checks and protected release workflow.              |
@@ -84,21 +84,29 @@ docker compose version
    npm run docker:up
    ```
 
-   Open [http://localhost:3000](http://localhost:3000). The app container is controlled by `compose.yml`; the host CLI independently controls the Supabase containers. Both sets run side by side through Docker Desktop, and the browser reaches their published host ports. During Phase 1, the application reads its fictional catalog from the data-access fixture rather than Supabase.
+   Open [http://localhost:3000](http://localhost:3000). The app container is controlled by `compose.yml`; the host CLI independently controls the Supabase containers. Both sets run side by side through Docker Desktop, and the browser reaches their published host ports. The application reads its fictional catalog from the local Supabase Data API.
 
-5. To discard local database changes and reapply all migrations:
+5. To discard local database changes, reapply all migrations, and load `supabase/seed.sql`:
 
    ```sh
    npm run supabase:reset
    ```
 
-6. Run the Phase 1 checks:
+6. Run the application checks:
 
    ```sh
    docker compose run --rm --no-deps app npm run test
    docker compose run --rm --no-deps app npm run coverage
    docker compose run --rm --no-deps app npm run lint
    docker compose run --rm --no-deps app npm run typecheck
+   ```
+
+   With the local Supabase stack running and Playwright Chromium installed, run
+   the browser suite from the host. Playwright starts Next.js on port 3001 when
+   no server is already available there:
+
+   ```sh
+   npm run test:e2e
    ```
 
    To confirm production compilation, run:
@@ -124,7 +132,7 @@ docker compose version
 | `npm run format:check`, `lint`, `typecheck` | Static tooling checks.                                                                                                            |
 | `npm run test`, `coverage`                  | Infrastructure, application-page, and pure matching-logic tests.                                                                  |
 | `npm run verify`                            | Full repository baseline. It currently reports pre-existing formatting drift in repository-managed skill and configuration files. |
-| `npm run test:e2e`                          | Future Playwright suite; requires its test environment and credentials.                                                           |
+| `npm run test:e2e`                          | Runs catalog, survey, and filter flows in Chromium against the local Supabase stack.                                              |
 | `npm run test:smoke`                        | Builds and checks the Docker-based development foundation.                                                                        |
 | `npm run build`, `dev`, `start`             | Next.js production build, development server, and production server commands. Use Node 24 or Docker.                              |
 | `npm run supabase:start`                    | Starts the local Supabase stack from the host with the pinned CLI.                                                                |

@@ -7,6 +7,8 @@ interface ResultsPageProps {
   searchParams: Promise<{ filters?: string | string[] }>;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default async function ResultsPage({ searchParams }: ResultsPageProps) {
   const [{ filters: filterQuery }, catalog] = await Promise.all([
     searchParams,

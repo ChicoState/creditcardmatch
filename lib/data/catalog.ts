@@ -1,178 +1,75 @@
-import type { CatalogSnapshot } from '../catalog/types';
+import { createClient } from '@supabase/supabase-js';
 
-const catalogFixture: CatalogSnapshot = {
-  filters: [
-    {
-      filter_id: 1,
-      slug: 'popular-cards',
-      label: 'Popular Cards',
-      description: 'Frequently explored fictional cards.',
-    },
-    {
-      filter_id: 2,
-      slug: 'cashback',
-      label: 'Cashback',
-      description: 'Fictional cards with cashback-style rewards.',
-    },
-    {
-      filter_id: 3,
-      slug: 'new-to-credit',
-      label: 'New-to-Credit',
-      description: 'Fictional cards intended for a newer credit profile.',
-    },
-  ],
-  creditCards: [
-    {
-      card_id: 101,
-      issuer: 'Aurora Community Bank',
-      card_name: 'Aurora Cash Card',
-      annual_fee: 0,
-      intro_offer: null,
-      apply_url: null,
-      is_active: true,
-      image_url: null,
-      description:
-        'A fictional everyday card designed to make a simple catalog easy to compare.',
-      reward_type: 'cashback',
-      credit_level_required: 'good',
-      source_url: null,
-      last_verified_at: '2026-09-15T00:00:00.000Z',
-      is_verified: true,
-    },
-    {
-      card_id: 102,
-      issuer: 'Harborline Financial',
-      card_name: 'Harbor Starter Card',
-      annual_fee: 0,
-      intro_offer: null,
-      apply_url: null,
-      is_active: true,
-      image_url: null,
-      description:
-        'A fictional starter option included to exercise new-to-credit matching.',
-      reward_type: 'points',
-      credit_level_required: 'no_history',
-      source_url: null,
-      last_verified_at: null,
-      is_verified: false,
-    },
-    {
-      card_id: 103,
-      issuer: 'Meadow Mutual',
-      card_name: 'Meadow Cash Starter',
-      annual_fee: 0,
-      intro_offer: null,
-      apply_url: null,
-      is_active: true,
-      image_url: null,
-      description:
-        'A fictional card that demonstrates combined cashback and new-to-credit filters.',
-      reward_type: 'cashback',
-      credit_level_required: 'no_history',
-      source_url: null,
-      last_verified_at: '2026-09-18T00:00:00.000Z',
-      is_verified: true,
-    },
-    {
-      card_id: 104,
-      issuer: 'Summit Grove Credit Union',
-      card_name: 'Summit Flex Card',
-      annual_fee: 0,
-      intro_offer: null,
-      apply_url: null,
-      is_active: true,
-      image_url: null,
-      description:
-        'A fictional popular card with a short, neutral catalog description.',
-      reward_type: 'points',
-      credit_level_required: 'good',
-      source_url: null,
-      last_verified_at: '2026-09-20T00:00:00.000Z',
-      is_verified: true,
-    },
-    {
-      card_id: 105,
-      issuer: 'Old Pine Bank',
-      card_name: 'Archived Sample Card',
-      annual_fee: 0,
-      intro_offer: null,
-      apply_url: null,
-      is_active: false,
-      image_url: null,
-      description: 'An inactive fictional card that must stay out of results.',
-      reward_type: 'cashback',
-      credit_level_required: 'good',
-      source_url: null,
-      last_verified_at: null,
-      is_verified: false,
-    },
-  ],
-  cardFilters: [
-    { card_id: 101, filter_id: 1 },
-    { card_id: 101, filter_id: 2 },
-    { card_id: 102, filter_id: 1 },
-    { card_id: 102, filter_id: 3 },
-    { card_id: 103, filter_id: 2 },
-    { card_id: 103, filter_id: 3 },
-    { card_id: 104, filter_id: 1 },
-    { card_id: 105, filter_id: 1 },
-    { card_id: 105, filter_id: 2 },
-    { card_id: 105, filter_id: 3 },
-  ],
-  cardBenefits: [
-    {
-      card_benefit_id: 1001,
-      card_id: 101,
-      description: 'No fictional annual fee',
-      sort_order: 1,
-    },
-    {
-      card_benefit_id: 1002,
-      card_id: 101,
-      description: 'Simple fictional cashback structure',
-      sort_order: 2,
-    },
-    {
-      card_benefit_id: 1003,
-      card_id: 102,
-      description: 'Designed for the no-history test scenario',
-      sort_order: 1,
-    },
-    {
-      card_benefit_id: 1004,
-      card_id: 102,
-      description: 'No fictional annual fee',
-      sort_order: 2,
-    },
-    {
-      card_benefit_id: 1005,
-      card_id: 103,
-      description: 'Combines two seeded filter examples',
-      sort_order: 1,
-    },
-    {
-      card_benefit_id: 1006,
-      card_id: 103,
-      description: 'Straightforward fictional cash rewards',
-      sort_order: 2,
-    },
-    {
-      card_benefit_id: 1007,
-      card_id: 104,
-      description: 'Flexible fictional points',
-      sort_order: 1,
-    },
-    {
-      card_benefit_id: 1008,
-      card_id: 104,
-      description: 'No fictional annual fee',
-      sort_order: 2,
-    },
-  ],
-};
+import type {
+  CardBenefitRow,
+  CardFilterRow,
+  CatalogSnapshot,
+  CreditCardRow,
+  FilterRow,
+} from '../catalog/types';
+
+interface QueryResult<T> {
+  data: T[] | null;
+  error: { message: string } | null;
+}
+
+function requireEnvironmentVariable(
+  name: 'NEXT_PUBLIC_SUPABASE_URL' | 'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`${name} is required.`);
+  return value;
+}
+
+function rowsOrThrow<T>(table: string, result: QueryResult<T>): T[] {
+  if (result.error) {
+    throw new Error(`Unable to load ${table} from Supabase.`, {
+      cause: result.error,
+    });
+  }
+
+  return result.data ?? [];
+}
 
 export async function getCatalogData(): Promise<CatalogSnapshot> {
-  // Phase 1 fixture boundary: Phase 2 replaces only this implementation with
-  // Supabase reads while callers retain the same database-shaped contract.
-  return catalogFixture;
+  const supabase = createClient(
+    requireEnvironmentVariable('NEXT_PUBLIC_SUPABASE_URL'),
+    requireEnvironmentVariable('NEXT_PUBLIC_SUPABASE_ANON_KEY'),
+    {
+      auth: {
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+        persistSession: false,
+      },
+    },
+  );
+
+  const [filtersResult, creditCardsResult, cardFiltersResult, benefitsResult] =
+    await Promise.all([
+      supabase
+        .from('filters')
+        .select('filter_id, slug, label, description')
+        .order('filter_id'),
+      supabase
+        .from('credit_cards')
+        .select(
+          'card_id, issuer, card_name, annual_fee, intro_offer, apply_url, is_active, image_url, description, reward_type, credit_level_required, source_url, last_verified_at, is_verified',
+        )
+        .order('card_id'),
+      supabase
+        .from('card_filters')
+        .select('card_id, filter_id')
+        .order('card_id'),
+      supabase
+        .from('card_benefits')
+        .select('card_benefit_id, card_id, description, sort_order')
+        .order('card_benefit_id'),
+    ]);
+
+  return {
+    filters: rowsOrThrow<FilterRow>('filters', filtersResult),
+    creditCards: rowsOrThrow<CreditCardRow>('credit_cards', creditCardsResult),
+    cardFilters: rowsOrThrow<CardFilterRow>('card_filters', cardFiltersResult),
+    cardBenefits: rowsOrThrow<CardBenefitRow>('card_benefits', benefitsResult),
+  };
 }
