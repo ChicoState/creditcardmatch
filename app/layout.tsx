@@ -16,7 +16,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <SiteHeader />
+
+        <header className="site-header">
+          <div className="site-header__content">
+            <span className="site-title">
+              Credit Card Match
+            </span>
+            <button className="login-button" disabled type="button">Login</button>
+          </div>
+        </header>
         {children}
       </body>
     </html>
