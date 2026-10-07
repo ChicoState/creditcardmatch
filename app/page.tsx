@@ -1,74 +1,65 @@
-'use client';
+import Link from 'next/link';
 
-import { useState } from 'react';
+import { LANDING_CATEGORY_FILTER_SLUGS } from '../lib/config/landing-categories';
+import { getCatalogData } from '../lib/data/catalog';
+import { buildResultsHref } from '../lib/results/query-string';
 
-const tabs = [
-  { label: 'Dashboard', message: 'Your dashboard will appear here.' },
-  { label: 'My Cards', message: 'Your saved cards will appear here.' },
-  { label: 'Matches', message: 'Your card matches will appear here.' },
-] as const;
+export const dynamic = 'force-dynamic';
 
-export default function HomePage() {
-  const [activeTabIndex, setActiveTabIndex] = useState(0);
-  const activeTab = tabs[activeTabIndex];
+export default async function HomePage() {
+  const { filters } = await getCatalogData();
+  const filterBySlug = new Map(filters.map((filter) => [filter.slug, filter]));
+  const landingCategories = LANDING_CATEGORY_FILTER_SLUGS.flatMap((slug) => {
+    const filter = filterBySlug.get(slug);
+    return filter ? [filter] : [];
+  });
 
   return (
-    <main className="site-shell">
-      <section aria-labelledby="page-title" className="workspace">
-        <p className="eyebrow">Personal finance workspace</p>
-        <h1 id="page-title">Credit Card Match</h1>
-        <p className="intro">Your workspace is ready for its first features.</p>
+    <main className="page-shell landing-page">
+      <section className="landing-hero" aria-labelledby="landing-heading">
+        <p className="eyebrow">A clearer place to begin</p>
+        <h1 id="landing-heading">Find the card that&apos;s right for you!</h1>
+        <p className="landing-intro">
+          Start with a category, answer a few questions, or browse every
+          fictional sample card.
+        </p>
 
-        <div aria-label="Workspace sections" className="tabs" role="tablist">
-          {tabs.map((tab, index) => {
-            const isActive = activeTabIndex === index;
+        <div className="landing-choices">
+          <section className="landing-column">
+            <h2>Popular Categories:</h2>
+            <div className="category-links">
+              {landingCategories.map((filter) => (
+                <Link
+                  className="category-link"
+                  href={buildResultsHref([filter.slug])}
+                  key={filter.slug}
+                >
+                  <span aria-hidden="true" className="category-icon">
+                    ◇
+                  </span>
+                  {filter.label}
+                </Link>
+              ))}
+            </div>
+          </section>
 
-            return (
-              <button
-                aria-controls="workspace-panel"
-                aria-selected={isActive}
-                className="tab"
-                id={`tab-${index}`}
-                key={tab.label}
-                onClick={() => setActiveTabIndex(index)}
-                onKeyDown={(event) => {
-                  const offset =
-                    event.key === 'ArrowRight'
-                      ? 1
-                      : event.key === 'ArrowLeft'
-                        ? -1
-                        : 0;
+          <section className="landing-column landing-survey-column">
+            <h2>Take our survey for personalized recommendations:</h2>
+            <Link className="primary-action" href="/survey">
+              SURVEY
+            </Link>
+            <Link className="learn-link" href="/learn">
+              Learn more about cards!
+            </Link>
+          </section>
 
-                  if (!offset) return;
-
-                  event.preventDefault();
-                  const nextTabIndex =
-                    (activeTabIndex + offset + tabs.length) % tabs.length;
-                  setActiveTabIndex(nextTabIndex);
-                  event.currentTarget.parentElement
-                    ?.querySelector<HTMLButtonElement>(`#tab-${nextTabIndex}`)
-                    ?.focus();
-                }}
-                role="tab"
-                tabIndex={isActive ? 0 : -1}
-                type="button"
-              >
-                {tab.label}
-              </button>
-            );
-          })}
+          <section className="landing-column">
+            <h2>Want a blank slate?</h2>
+            <Link className="secondary-action" href="/results">
+              START FRESH
+            </Link>
+          </section>
         </div>
-
-        <section
-          aria-labelledby={`tab-${activeTabIndex}`}
-          className="empty-panel"
-          id="workspace-panel"
-          role="tabpanel"
-          tabIndex={0}
-        >
-          <h2>{activeTab.label}</h2>
-          <p>{activeTab.message}</p>
-        </section>
       </section>
     </main>
   );
