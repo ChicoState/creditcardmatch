@@ -1,5 +1,9 @@
 # Spec: Preliminary Site Shell
 
+> **Superseded:** The Credit Card Match MVP specification replaces this
+> preliminary shell as of Phase 1. Its restrictions on card data and matching
+> logic no longer apply; this document remains only as historical context.
+
 ## Objective
 
 Provide a local, viewable starting page for Credit Card Match. A visitor can switch between empty Dashboard, My Cards, and Matches tabs to confirm that the application is running. This is a UI shell only: it does not authenticate users, store data, or perform card matching.

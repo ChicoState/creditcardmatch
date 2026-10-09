@@ -20,13 +20,17 @@
     "test:smoke": "bash scripts/smoke-infrastructure.sh",
     "security:audit": "npm audit --audit-level=high",
     "db:migrate:production": "supabase db push",
+    "supabase:start": "npx supabase start",
+    "supabase:stop": "npx supabase stop",
+    "supabase:reset": "npx supabase db reset",
     "docker:up": "docker compose up --build -d",
     "docker:down": "docker compose down --volumes --remove-orphans",
     "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run coverage && npm run test:smoke"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.116.0",
-    "next": "^16.3.5",
+    "next": "^16.3.8",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },
@@ -40,10 +44,10 @@
     "@types/react-dom": "^19.3.0",
     "@vitest/coverage-v8": "^5.0.1",
     "eslint": "^9.39.5",
-    "eslint-config-next": "^16.3.5",
+    "eslint-config-next": "^16.3.8",
     "jsdom": "^30.0.1",
     "prettier": "^3.9.7",
-    "supabase": "^2.117.0",
+    "supabase": "2.117.0",
     "typescript": "^6.0.3",
     "vitest": "^5.0.1"
   }
