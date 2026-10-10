@@ -1,6 +1,6 @@
 import type { SurveySubmission } from '../config/survey';
 
-export const SURVEY_STORAGE_KEY = 'ccm:survey:v1';
+export const SURVEY_STORAGE_KEY = 'ccm:survey:v2';
 
 interface StorageLike {
   getItem(key: string): string | null;
@@ -21,9 +21,15 @@ function looksLikeSurveySubmission(value: unknown): value is SurveySubmission {
 
   const candidate = value as Partial<SurveySubmission>;
   return (
-    Array.isArray(candidate.derived_filter_slugs) &&
+    typeof candidate.accepts_annual_fee === 'boolean' &&
+    Array.isArray(candidate.card_filter_preferences) &&
+    Array.isArray(candidate.category_monthly_spend) &&
+    typeof candidate.credit_score_band === 'string' &&
+    Array.isArray(candidate.extra_benefit_slugs) &&
+    typeof candidate.income_range === 'string' &&
+    typeof candidate.primary_goal === 'string' &&
+    Array.isArray(candidate.priority_category_slugs) &&
     Boolean(candidate.user_preferences) &&
-    Array.isArray(candidate.user_category_spend) &&
     Array.isArray(candidate.user_filter_preferences)
   );
 }

@@ -9,16 +9,19 @@ import {
 } from '../../lib/storage/survey-storage';
 
 const submission: SurveySubmission = {
-  derived_filter_slugs: ['cashback'],
+  accepts_annual_fee: false,
+  card_filter_preferences: [{ filter_slug: 'cashback', preference: 'want' }],
+  category_monthly_spend: [],
+  credit_score_band: 'good',
+  extra_benefit_slugs: [],
+  income_range: '40001_to_60000',
+  primary_goal: 'cash_back',
+  priority_category_slugs: ['groceries'],
   user_preferences: {
-    income_range: null,
-    credit_score_range: null,
-    monthly_spend: null,
-    accepts_annual_fee: null,
-    wants_travel_rewards: null,
+    accepts_annual_fee: false,
+    wants_travel_rewards: false,
   },
-  user_category_spend: [],
-  user_filter_preferences: [],
+  user_filter_preferences: [{ filter_slug: 'cashback', preference: 'want' }],
 };
 
 describe('survey storage', () => {
