@@ -1,5 +1,25 @@
 import { expect, test } from '@playwright/test';
 
+async function completeSurvey(
+  page: import('@playwright/test').Page,
+  {
+    creditScore = 'Good (670–739)',
+    primaryGoal = 'Cash back',
+  }: { creditScore?: string; primaryGoal?: string } = {},
+) {
+  await page.getByLabel('$60,001–$80,000').check();
+  await page.getByRole('button', { name: 'Next question' }).click();
+  await page.getByLabel(creditScore).check();
+  await page.getByRole('button', { name: 'Next question' }).click();
+  await page.getByLabel(primaryGoal).check();
+  await page.getByRole('button', { name: 'Next question' }).click();
+  await page.getByLabel('Groceries').check();
+  await page.getByRole('button', { name: 'Next question' }).click();
+  await page.getByRole('button', { name: 'Next question' }).click();
+  await page.getByLabel('No').check();
+  await page.getByRole('button', { name: 'Review answers' }).click();
+}
+
 test('issue #2: a visitor can browse the active fictional catalog', async ({
   page,
 }) => {
@@ -16,21 +36,17 @@ test('issue #2: a visitor can browse the active fictional catalog', async ({
   await expect(page.getByText('Archived Sample Card')).toHaveCount(0);
 });
 
-test('issue #3: a high-spend survey path returns a focused shortlist', async ({
+test('issue #3: a cash-back survey path returns a focused shortlist', async ({
   page,
 }) => {
   await page.goto('/survey');
-  await page.getByLabel('Income range C (TBD)').check();
-  await page.getByLabel('Credit range B (TBD)').check();
-  await page.getByLabel('Groceries (TBD)').fill('2500');
-  await page.getByLabel('Dining (TBD)').fill('1200');
-  await page.getByLabel('Popular Cards', { exact: true }).check();
+  await completeSurvey(page);
   await page.getByRole('button', { name: 'SEE MY MATCHES' }).click();
 
-  await expect(page).toHaveURL(/\/results\?filters=popular-cards$/);
-  await expect(page.getByText('3 matches')).toBeVisible();
+  await expect(page).toHaveURL(/\/results\?filters=cashback$/);
+  await expect(page.getByText('2 matches')).toBeVisible();
   await expect(
-    page.getByRole('heading', { name: 'Summit Flex Card' }),
+    page.getByRole('heading', { name: 'Aurora Cash Card' }),
   ).toBeVisible();
 });
 
@@ -38,9 +54,10 @@ test('issue #9: survey answers drive personalized card filtering', async ({
   page,
 }) => {
   await page.goto('/survey');
-  await page.getByLabel('Income range B (TBD)').check();
-  await page.getByLabel('No credit history (TBD value)').check();
-  await page.getByLabel('Cashback', { exact: true }).check();
+  await completeSurvey(page, {
+    creditScore: 'Building/no score yet',
+    primaryGoal: 'Cash back',
+  });
   await page.getByRole('button', { name: 'SEE MY MATCHES' }).click();
 
   await expect(page).toHaveURL(/\/results\?filters=new-to-credit,cashback$/);
