@@ -14,6 +14,12 @@
   --radius-small: 0.375rem;
   --radius-medium: 0.75rem;
   --shadow: 0 0.75rem 2rem rgb(23 33 30 / 8%);
+  --match-best: #176b43;
+  --match-best-soft: #e1f0e8;
+  --match-okay: #8a4b00;
+  --match-okay-soft: #fff0d8;
+  --match-worst: #9b1c1c;
+  --match-worst-soft: #fde5e3;
 }
 
 * {
@@ -288,6 +294,64 @@ h1 {
 .survey-form {
   display: grid;
   gap: 1.25rem;
+}
+
+.survey-step,
+.survey-review {
+  display: grid;
+  gap: 1rem;
+}
+
+.survey-step > .eyebrow,
+.survey-review > .eyebrow {
+  margin: 0;
+}
+
+.survey-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.survey-review > p:not(.eyebrow) {
+  color: var(--muted-ink);
+  margin: 0;
+}
+
+.survey-review-list {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.survey-review-list button {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-small);
+  cursor: pointer;
+  display: grid;
+  gap: 0.375rem;
+  padding: 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.survey-review-list button:hover,
+.survey-review-list button:focus-visible {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.survey-review-list strong {
+  color: var(--accent-dark);
+}
+
+.survey-review-list button span:last-child {
+  color: var(--muted-ink);
+  font-size: 0.875rem;
+  font-weight: 700;
 }
 
 .question-block {
