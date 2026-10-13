@@ -1,16 +1,17 @@
 import Link from "next/link";
+import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
 	return (
-		<main className="page-shell landing-page">
-			<section className="landing-hero" aria-labelledby="landing-heading">
+		<main className="page-shell">
+			<section className={styles.landingHero} aria-labelledby="landing-heading">
 				<h1 id="landing-heading">Find the card that&apos;s right for you!</h1>
-				<div className="landing-choices">
-					<section className="landing-column">
+				<div className={styles.landingChoices}>
+					<section className={styles.landingColumn}>
 						<h2>Popular Categories:</h2>
-						<div className="popular-category-buttons">
+						<div className={styles.popularCategoryButtons}>
 							<Link
 								className="secondary-action"
 								href="/results?filters=popular-cards"
@@ -38,14 +39,14 @@ export default async function HomePage() {
 						</div>
 					</section>
 
-					<section className="landing-column landing-survey-column">
+					<section className={styles.landingColumn}>
 						<h2>Take our survey for personalized recommendations:</h2>
 						<Link className="primary-action" href="/survey">
 							SURVEY
 						</Link>
 					</section>
 
-					<section className="landing-column">
+					<section className={styles.landingColumn}>
 						<h2>Want a blank slate?</h2>
 						<Link className="primary-action" href="/results">
 							START FRESH
@@ -53,7 +54,7 @@ export default async function HomePage() {
 					</section>
 				</div>
 
-				<Link className="learn-link" href="/learn">
+				<Link className={styles.learnLink} href="/learn">
 					Learn more about cards!
 				</Link>
 			</section>
