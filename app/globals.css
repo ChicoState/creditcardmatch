@@ -678,3 +678,153 @@ h1 {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
+
+.site-header__content .site-title {
+	color: var(--accent-dark);
+	text-decoration: none;
+}
+
+.site-navigation {
+	align-items: center;
+	display: flex;
+	gap: 1rem;
+}
+
+.site-navigation a,
+.text-link,
+.education-note a {
+	color: var(--accent-dark);
+	font-size: 0.875rem;
+	font-weight: 700;
+	text-underline-offset: 0.25rem;
+}
+
+.learn-page {
+	max-width: 64rem;
+}
+
+.learn-intro h1 {
+	max-width: none;
+}
+
+.learn-section {
+	margin-top: 3rem;
+}
+
+.section-heading {
+	border-bottom: 1px solid var(--line);
+	margin-bottom: 1.25rem;
+	padding-bottom: 1rem;
+}
+
+.section-heading .eyebrow {
+	margin-bottom: 0.5rem;
+}
+
+.section-heading h2 {
+	font-size: clamp(1.75rem, 4vw, 2.5rem);
+	margin-bottom: 0;
+}
+
+.table-scroll {
+	overflow-x: auto;
+}
+
+.tradeoffs-table {
+	border-collapse: collapse;
+	min-width: 38rem;
+	width: 100%;
+}
+
+.tradeoffs-table th,
+.tradeoffs-table td {
+	border: 1px solid var(--line);
+	padding: 1rem;
+	text-align: left;
+	vertical-align: top;
+}
+
+.tradeoffs-table th {
+	background: var(--accent-soft);
+	color: var(--accent-dark);
+	font-family: Georgia, "Times New Roman", serif;
+	font-size: 1.25rem;
+}
+
+.tradeoffs-table td {
+	background: var(--panel);
+	line-height: 1.6;
+}
+
+.terms-list {
+	display: grid;
+	gap: 0;
+	margin: 0;
+}
+
+.terms-list > div {
+	border-top: 1px solid var(--line);
+	display: grid;
+	gap: 0.5rem;
+	padding: 1rem 0;
+}
+
+.terms-list > div:last-child {
+	border-bottom: 1px solid var(--line);
+}
+
+.terms-list dt {
+	color: var(--accent-dark);
+	font-family: Georgia, "Times New Roman", serif;
+	font-size: 1.25rem;
+	font-weight: 700;
+}
+
+.terms-list dd {
+	color: var(--muted-ink);
+	line-height: 1.6;
+	margin: 0;
+}
+
+.faq-list {
+	display: grid;
+	gap: 0.75rem;
+}
+
+.faq-list details {
+	background: var(--panel);
+	border: 1px solid var(--line);
+	border-radius: var(--radius-small);
+	padding: 0 1rem;
+}
+
+.faq-list summary {
+	cursor: pointer;
+	font-family: Georgia, "Times New Roman", serif;
+	font-size: 1.125rem;
+	font-weight: 700;
+	padding: 1rem 1.5rem 1rem 0;
+}
+
+.faq-list p {
+	color: var(--muted-ink);
+	line-height: 1.6;
+	margin-bottom: 1rem;
+}
+
+.education-note {
+	background: var(--warning-soft);
+	border-left: 4px solid var(--warm);
+	margin-top: 3rem;
+	padding: 1.25rem;
+}
+
+.education-note h2 {
+	font-size: 1.25rem;
+	margin-bottom: 0.5rem;
+}
+
+.education-note p {
+	line-height: 1.6;
+	margin-bottom: 0.75rem;
+}

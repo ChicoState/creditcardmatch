@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import { ResultsExplorer } from '../../components/results-explorer';
 import { selectVisibleCatalogCards } from '../../lib/catalog/visibility';
 import { getCatalogData } from '../../lib/data/catalog';
@@ -26,6 +28,9 @@ export default async function ResultsPage({ searchParams }: ResultsPageProps) {
           All active filters combine with AND. Search narrows the matching cards
           further.
         </p>
+        <Link className="text-link" href="/learn">
+          Learn credit card basics
+        </Link>
       </header>
       <ResultsExplorer
         activeFilters={activeFilters}

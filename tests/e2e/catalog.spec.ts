@@ -36,6 +36,24 @@ test('issue #2: a visitor can browse the active fictional catalog', async ({
   await expect(page.getByText('Archived Sample Card')).toHaveCount(0);
 });
 
+test('a visitor can open the credit card FAQ from the home and results pages', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.getByRole('link', { name: 'Credit card FAQ' }).click();
+
+  await expect(
+    page.getByRole('heading', { name: 'Credit card basics' }),
+  ).toBeVisible();
+
+  await page.goto('/results');
+  await page.getByRole('link', { name: 'Learn credit card basics' }).click();
+
+  await expect(
+    page.getByRole('heading', { name: 'Credit card basics' }),
+  ).toBeVisible();
+});
+
 test('issue #3: a cash-back survey path returns a focused shortlist', async ({
   page,
 }) => {
