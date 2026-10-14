@@ -15,6 +15,11 @@ describe('catalog selection', () => {
     ]);
     expect(cards[0]).toMatchObject({
       isVerified: false,
+      annualFeeWaivedFirstYear: true,
+      oneTimeFee: 25,
+      monthlyFee: 5,
+      isSecured: true,
+      securityDepositMin: 49,
       benefits: ['First benefit', 'Second benefit'],
     });
   });

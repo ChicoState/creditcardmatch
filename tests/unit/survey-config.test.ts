@@ -6,7 +6,7 @@ describe('deriveSurveySubmission', () => {
   it('maps configured answers to filters and database-shaped saved fields', () => {
     const submission = deriveSurveySubmission({
       incomeRange: 'income_placeholder_mid',
-      creditHistory: 'no_history',
+      creditHistory: 'none',
       categorySpend: {
         groceries: '425.50',
         dining: '',
@@ -21,7 +21,7 @@ describe('deriveSurveySubmission', () => {
     ]);
     expect(submission.user_preferences).toMatchObject({
       income_range: 'income_placeholder_mid',
-      credit_score_range: 'no_history',
+      credit_score_range: 'none',
     });
     expect(submission.user_category_spend).toEqual([
       { category_slug: 'groceries', monthly_amount: 425.5 },

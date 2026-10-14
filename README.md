@@ -1,6 +1,6 @@
 # Credit Card Match
 
-Infrastructure foundation, Phase 1 MVP pages and pure matching logic, and Phase 2a Supabase-backed catalog reads, fictional seed data, and Playwright coverage for a credit-card matching web application. Landing, Survey, Results, Learn, Login, and Signup routes exist. Authentication and saving remain Phase 2b work. The Supabase schema migrations are verified on the local stack; pending team review, and they have not been applied to a remote Supabase environment.
+Infrastructure foundation, Phase 1 MVP pages and pure matching logic, and Phase 2a Supabase-backed catalog reads and Playwright coverage for a credit-card matching web application. The catalog seed is generated from team-verified CSV exports. Landing, Survey, Results, Learn, Login, and Signup routes exist. Authentication and saving remain Phase 2b work. The Supabase schema migrations and generated catalog seed are verified on a clean local reset and require team review before any protected remote workflow applies them.
 
 The stack is TypeScript, Next.js/React, Supabase, npm, and a Node 24 development container. Every developer also installs Node 24 LTS and npm 11 on the host so the project-pinned Supabase CLI can manage Docker through `npx`. Update the exact container image patch and `.nvmrc` together when the project deliberately refreshes its LTS baseline.
 
@@ -13,7 +13,8 @@ The stack is TypeScript, Next.js/React, Supabase, npm, and a Node 24 development
 | `supabase/migrations/`      | Versioned migrations verified locally; pending team review.      |
 | `tests/`                    | Infrastructure, application, and pure-logic Vitest coverage.     |
 | `tests/e2e/`                | Playwright flows against the local Supabase stack.               |
-| `scripts/`                  | Reproducible infrastructure smoke checks.                        |
+| `data/card-catalog/`        | Team spreadsheet CSV exports used as the only card-fact source.  |
+| `scripts/`                  | Seed generation and reproducible infrastructure smoke checks.    |
 | `Dockerfile`, `compose.yml` | Node 24 development environment.                                 |
 | `.github/workflows/`        | Pull-request checks and protected release workflow.              |
 | `.agents/skills/`           | Project engineering workflows for humans and agents.             |
@@ -84,7 +85,7 @@ docker compose version
    npm run docker:up
    ```
 
-   Open [http://localhost:3000](http://localhost:3000). The app container is controlled by `compose.yml`; the host CLI independently controls the Supabase containers. Both sets run side by side through Docker Desktop, and the browser reaches their published host ports. The application reads its fictional catalog from the local Supabase Data API.
+   Open [http://localhost:3000](http://localhost:3000). The app container is controlled by `compose.yml`; the host CLI independently controls the Supabase containers. Both sets run side by side through Docker Desktop, and the browser reaches their published host ports. The application reads its generated catalog from the local Supabase Data API.
 
 5. To discard local database changes, reapply all migrations, and load `supabase/seed.sql`:
 
@@ -124,6 +125,26 @@ docker compose version
 
    `docker:down` removes the app's named dependency and build volumes. `supabase:stop` stops the local Supabase services while preserving their local data for the next start.
 
+## Updating the card catalog
+
+The team spreadsheet is the source of truth for every card fact. Do not hand-edit generated `supabase/seed.sql` or fill blank cells with assumed values.
+
+1. Edit and verify card facts in the team spreadsheet.
+2. Export the Cards, Rewards, and Benefits tabs to `data/card-catalog/cards.csv`, `rewards.csv`, and `benefits.csv`.
+3. Validate the exports and regenerate the seed:
+
+   ```sh
+   npm run seed:generate
+   ```
+
+4. Recreate the local database and import the generated catalog:
+
+   ```sh
+   npm run supabase:reset
+   ```
+
+The generator reports the CSV file and row for duplicate or unknown slugs, invalid enumerated values, blank required columns, missing `other` reward rows, and incomplete reward-cap pairs. Blank nullable cells are emitted as SQL `NULL`.
+
 ## Commands
 
 | Command                                     | Current scope                                                                                                                     |
@@ -131,6 +152,7 @@ docker compose version
 | `npm ci`                                    | Reproducible dependency install with Node 24/npm 11.                                                                              |
 | `npm run format:check`, `lint`, `typecheck` | Static tooling checks.                                                                                                            |
 | `npm run test`, `coverage`                  | Infrastructure, application-page, and pure matching-logic tests.                                                                  |
+| `npm run seed:generate`                     | Validates the three team CSV exports and regenerates `supabase/seed.sql`.                                                         |
 | `npm run verify`                            | Full repository baseline. It currently reports pre-existing formatting drift in repository-managed skill and configuration files. |
 | `npm run test:e2e`                          | Runs catalog, survey, and filter flows in Chromium against the local Supabase stack.                                              |
 | `npm run test:smoke`                        | Builds and checks the Docker-based development foundation.                                                                        |

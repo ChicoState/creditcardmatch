@@ -44,7 +44,7 @@ export interface SurveySubmission {
 
 const creditHistoryOptions: CreditHistoryOption[] =
   CREDIT_SCORE_RANGE_OPTIONS.map((option) =>
-    option.value === 'no_history'
+    option.value === 'none'
       ? { ...option, filterSlug: 'new-to-credit' }
       : option,
   );
