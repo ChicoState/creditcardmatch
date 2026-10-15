@@ -78,7 +78,15 @@ VALUES
 ALTER TABLE public.user_preferences
     ADD COLUMN carries_balance BOOLEAN,
     ADD CONSTRAINT user_preferences_credit_score_range_check
-        CHECK (credit_score_range IN ('none', 'fair', 'good', 'excellent'));
+        CHECK (credit_score_range IN ('none', 'fair', 'good', 'excellent', 'unsure')),
+    ADD CONSTRAINT user_preferences_income_range_check
+        CHECK (income_range IN (
+            'under_40000',
+            '40001_to_60000',
+            '60001_to_80000',
+            '80001_to_100000',
+            'over_100000'
+        ));
 
 -- Catalog grants remain SELECT-only for browser roles. RLS remains enabled,
 -- and the existing migrations define SELECT policies without write policies.

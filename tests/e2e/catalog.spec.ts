@@ -12,6 +12,27 @@ async function expectEveryCardToExplain(
   }
 }
 
+async function completeSurvey(
+  page: import('@playwright/test').Page,
+  {
+    creditScore = 'Good (670–739)',
+    primaryGoal = 'Cash back',
+  }: { creditScore?: string; primaryGoal?: string } = {},
+) {
+  await page.getByLabel('$60,001–$80,000').check();
+  await page.getByRole('button', { name: 'Next question' }).click();
+  await page.getByLabel(creditScore).check();
+  await page.getByRole('button', { name: 'Next question' }).click();
+  await page.getByLabel(primaryGoal).check();
+  await page.getByRole('button', { name: 'Next question' }).click();
+  await page.getByLabel('Groceries').check();
+  await page.getByRole('button', { name: 'Next question' }).click();
+  await page.getByRole('button', { name: 'Next question' }).click();
+  await page.getByLabel('No').check();
+  await page.getByRole('button', { name: 'Next question' }).click();
+  await page.getByRole('button', { name: 'Review answers' }).click();
+}
+
 test('issue #2: a visitor can browse a non-empty active catalog', async ({
   page,
 }) => {
@@ -38,13 +59,51 @@ test('issue #3: every shown card matches the active filter', async ({
   );
 });
 
+test('a visitor can open the credit card FAQ from the home and results pages', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page
+    .getByRole('main')
+    .getByRole('link', { name: 'Credit card FAQ' })
+    .click();
+
+  await expect(
+    page.getByRole('heading', { name: 'Credit card basics' }),
+  ).toBeVisible();
+
+  await page.goto('/results');
+  await page.getByRole('link', { name: 'Learn credit card basics' }).click();
+
+  await expect(
+    page.getByRole('heading', { name: 'Credit card basics' }),
+  ).toBeVisible();
+});
+
+test('issue #3: a cash-back survey path returns a focused shortlist', async ({
+  page,
+}) => {
+  await page.goto('/survey');
+  await completeSurvey(page);
+  await page.getByRole('button', { name: 'SEE MY MATCHES' }).click();
+
+  await expect(page).toHaveURL(/\/results\?filters=cashback$/);
+  const activeFilters = page.getByLabel('Active filters');
+  await expect(activeFilters.getByText('Cashback')).toBeVisible();
+  await expectEveryCardToExplain(
+    page.locator('article.result-card'),
+    'Matches every active filter: Cashback.',
+  );
+});
+
 test('issue #9: result chips match filters derived from the survey', async ({
   page,
 }) => {
   await page.goto('/survey');
-  await page.getByLabel('Income range B (TBD)').check();
-  await page.getByLabel('No credit history').check();
-  await page.getByLabel('Cashback', { exact: true }).check();
+  await completeSurvey(page, {
+    creditScore: 'Building/no score yet',
+    primaryGoal: 'Cash back',
+  });
   await page.getByRole('button', { name: 'SEE MY MATCHES' }).click();
 
   await expect(page).toHaveURL(/\/results\?filters=new-to-credit,cashback$/);

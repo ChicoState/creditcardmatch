@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
-
-import { SiteHeader } from '../components/site-header';
+import Link from 'next/link';
 
 import './globals.css';
 
@@ -16,7 +15,19 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <SiteHeader />
+        <header className="site-header">
+          <div className="site-header__content">
+            <Link className="site-title" href="/">
+              Credit Card Match
+            </Link>
+            <nav aria-label="Primary navigation" className="site-navigation">
+              <Link href="/learn">Credit card FAQ</Link>
+              <button className="login-button" disabled type="button">
+                Login
+              </button>
+            </nav>
+          </div>
+        </header>
         {children}
       </body>
     </html>

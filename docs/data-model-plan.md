@@ -15,7 +15,8 @@ All migrations, including the card-detail migration, and the generated team cata
 - Anonymous and authenticated users can read card-catalog data. Only trusted dashboard or service-role operations can write it.
 - Authenticated users can read and mutate only their own saved profile and survey data. `recommendations` remains protected by the same owner-only rules but is unused in the MVP.
 - `reward_type` uses `cashback`, `points`, `miles`, or `none`.
-- Required credit level and saved credit-score range use `none`, `fair`, `good`, or `excellent`; `none` means no credit history.
+- Required credit level uses `none`, `fair`, `good`, or `excellent`. Saved credit-score range also permits `unsure`; `none` means no credit history, while `unsure` means the user does not know their score.
+- Income range uses `under_40000`, `40001_to_60000`, `60001_to_80000`, `80001_to_100000`, or `over_100000`.
 - A blank catalog spreadsheet cell means the fact is not confirmed and is imported as `NULL`, never zero.
 
 ## Planned tables
@@ -62,7 +63,6 @@ Card facts are maintained in the team spreadsheet and exported to `data/card-cat
 ## Open decisions
 
 - Should a future release replace application-driven profile upserts with an `auth.users` trigger, and which metadata keys should that trigger read?
-- What values are allowed for `user_preferences.income_range`?
 - Does `user_preferences.monthly_spend` overlap with the category-level amounts in `user_category_spend`, and should it remain?
 - Should `accepts_annual_fee` and `wants_travel_rewards` remain after `user_filter_preferences` is adopted?
 - Has the initial migration been applied to any Supabase environment, and if so, does every legacy user email map uniquely to an Auth user?
