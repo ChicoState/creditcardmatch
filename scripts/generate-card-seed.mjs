@@ -574,14 +574,21 @@ export async function generateSeed(rootDir) {
     };
   });
 
-  const cardFilters = cardRecords.flatMap((record) => {
-    const cardSlug = structuredValue(record.data.card_slug);
-    return [...FILTER_COLUMNS].flatMap(([column, filterSlug]) =>
-      structuredValue(record.data[column]) === 'Y'
-        ? [{ cardSlug, filterSlug }]
+  const cardFilters = [
+    ...cardRecords.flatMap((record) => {
+      const cardSlug = structuredValue(record.data.card_slug);
+      return [...FILTER_COLUMNS].flatMap(([column, filterSlug]) =>
+        structuredValue(record.data[column]) === 'Y'
+          ? [{ cardSlug, filterSlug }]
+          : [],
+      );
+    }),
+    ...cards.flatMap((card) =>
+      card.annualFee !== null && Number(card.annualFee) === 0
+        ? [{ cardSlug: card.slug, filterSlug: 'no-annual-fee' }]
         : [],
-    );
-  });
+    ),
+  ];
 
   if (errors.length > 0) {
     throw new Error(

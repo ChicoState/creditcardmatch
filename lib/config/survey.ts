@@ -91,8 +91,8 @@ export const SURVEY_CONFIG = {
   annualFee: {
     description: 'This helps us avoid cards you would not consider.',
     options: [
-      { label: 'Yes', value: true },
-      { label: 'No', value: false },
+      { filterSlug: null, label: 'Yes', value: true },
+      { filterSlug: 'no-annual-fee', label: 'No', value: false },
     ],
     prompt: 'Would you consider a card with an annual fee?',
   },
@@ -165,6 +165,16 @@ export function deriveSurveySubmission(
     ? [SURVEY_CONFIG.extraBenefits.exclusiveOption]
     : uniqueKnownValues(values.extraBenefits, EXTRA_BENEFIT_OPTIONS);
   const cardFilterPreferences: SurveySubmission['card_filter_preferences'] = [];
+  const annualFeeFilter = SURVEY_CONFIG.annualFee.options.find(
+    (option) => option.value === values.acceptsAnnualFee,
+  )?.filterSlug;
+
+  if (annualFeeFilter) {
+    cardFilterPreferences.push({
+      filter_slug: annualFeeFilter,
+      preference: 'want',
+    });
+  }
 
   if (values.creditScore === 'none') {
     cardFilterPreferences.push({

@@ -44,7 +44,7 @@ describe('deriveSurveySubmission', () => {
     });
 
     expect(submission.card_filter_preferences).toEqual(
-      ['new-to-credit', 'cashback'].map((filter_slug) => ({
+      ['no-annual-fee', 'new-to-credit', 'cashback'].map((filter_slug) => ({
         filter_slug,
         preference: 'want',
       })),
@@ -59,6 +59,7 @@ describe('deriveSurveySubmission', () => {
       { category_slug: 'travel', monthly_amount: 120 },
     ]);
     expect(submission.user_filter_preferences).toEqual([
+      { filter_slug: 'no-annual-fee', preference: 'want' },
       { filter_slug: 'new-to-credit', preference: 'want' },
       { filter_slug: 'cashback', preference: 'want' },
     ]);
@@ -72,6 +73,23 @@ describe('deriveSurveySubmission', () => {
       'purchase-protection',
       'welcome-bonus',
     ]);
+  });
+
+  it('maps declining annual fees to the no-annual-fee filter', () => {
+    const submission = deriveSurveySubmission({
+      acceptsAnnualFee: false,
+      categorySpend: {},
+      creditScore: 'good',
+      extraBenefits: [],
+      incomeRange: '60001_to_80000',
+      primaryGoal: 'travel_rewards',
+      priorityCategories: [],
+    });
+
+    expect(submission.card_filter_preferences).toContainEqual({
+      filter_slug: 'no-annual-fee',
+      preference: 'want',
+    });
   });
 
   it('stores an unknown score as unsure without treating it as no history', () => {
