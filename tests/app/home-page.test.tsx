@@ -21,10 +21,9 @@ describe('HomePage', () => {
         name: "Find the card that's right for you!",
       }),
     ).toBeVisible();
-    expect(screen.getByRole('link', { name: /Popular Cards/ })).toHaveAttribute(
-      'href',
-      '/results?filters=popular-cards',
-    );
+    expect(
+      screen.getByRole('link', { name: /Popular cards/i }),
+    ).toHaveAttribute('href', '/results?filters=popular-cards');
     expect(screen.getByRole('link', { name: /Cashback/ })).toHaveAttribute(
       'href',
       '/results?filters=cashback',

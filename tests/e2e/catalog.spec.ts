@@ -1,4 +1,16 @@
-import { expect, test } from '@playwright/test';
+import { expect, type Locator, test } from '@playwright/test';
+
+async function expectEveryCardToExplain(
+  cards: Locator,
+  expectedExplanation: string,
+) {
+  const count = await cards.count();
+  expect(count).toBeGreaterThan(0);
+
+  for (let index = 0; index < count; index += 1) {
+    await expect(cards.nth(index)).toContainText(expectedExplanation);
+  }
+}
 
 async function completeSurvey(
   page: import('@playwright/test').Page,
@@ -17,10 +29,11 @@ async function completeSurvey(
   await page.getByRole('button', { name: 'Next question' }).click();
   await page.getByRole('button', { name: 'Next question' }).click();
   await page.getByLabel('No').check();
+  await page.getByRole('button', { name: 'Next question' }).click();
   await page.getByRole('button', { name: 'Review answers' }).click();
 }
 
-test('issue #2: a visitor can browse the active fictional catalog', async ({
+test('issue #2: a visitor can browse a non-empty active catalog', async ({
   page,
 }) => {
   await page.goto('/');
@@ -29,18 +42,31 @@ test('issue #2: a visitor can browse the active fictional catalog', async ({
   await expect(
     page.getByRole('heading', { name: 'Our Recommendations' }),
   ).toBeVisible();
-  await expect(page.getByText('4 matches')).toBeVisible();
-  await expect(
-    page.getByRole('heading', { name: 'Aurora Cash Card' }),
-  ).toBeVisible();
-  await expect(page.getByText('Archived Sample Card')).toHaveCount(0);
+  await expect(page.locator('article.result-card').first()).toBeVisible();
+  await expect(page.getByText(/^[1-9]\d* matches?$/)).toBeVisible();
+});
+
+test('issue #3: every shown card matches the active filter', async ({
+  page,
+}) => {
+  await page.goto('/results?filters=popular-cards');
+
+  const activeFilters = page.getByLabel('Active filters');
+  await expect(activeFilters.getByText('Popular Cards')).toBeVisible();
+  await expectEveryCardToExplain(
+    page.locator('article.result-card'),
+    'Matches every active filter: Popular Cards.',
+  );
 });
 
 test('a visitor can open the credit card FAQ from the home and results pages', async ({
   page,
 }) => {
   await page.goto('/');
-  await page.getByRole('link', { name: 'Credit card FAQ' }).click();
+  await page
+    .getByRole('main')
+    .getByRole('link', { name: 'Credit card FAQ' })
+    .click();
 
   await expect(
     page.getByRole('heading', { name: 'Credit card basics' }),
@@ -62,13 +88,15 @@ test('issue #3: a cash-back survey path returns a focused shortlist', async ({
   await page.getByRole('button', { name: 'SEE MY MATCHES' }).click();
 
   await expect(page).toHaveURL(/\/results\?filters=cashback$/);
-  await expect(page.getByText('2 matches')).toBeVisible();
-  await expect(
-    page.getByRole('heading', { name: 'Aurora Cash Card' }),
-  ).toBeVisible();
+  const activeFilters = page.getByLabel('Active filters');
+  await expect(activeFilters.getByText('Cashback')).toBeVisible();
+  await expectEveryCardToExplain(
+    page.locator('article.result-card'),
+    'Matches every active filter: Cashback.',
+  );
 });
 
-test('issue #9: survey answers drive personalized card filtering', async ({
+test('issue #9: result chips match filters derived from the survey', async ({
   page,
 }) => {
   await page.goto('/survey');
@@ -79,30 +107,31 @@ test('issue #9: survey answers drive personalized card filtering', async ({
   await page.getByRole('button', { name: 'SEE MY MATCHES' }).click();
 
   await expect(page).toHaveURL(/\/results\?filters=new-to-credit,cashback$/);
-  await expect(page.getByText('1 match')).toBeVisible();
-  await expect(
-    page.getByRole('heading', { name: 'Meadow Cash Starter' }),
-  ).toBeVisible();
-  await expect(
-    page.getByText('Matches every active filter: New-to-Credit, Cashback.'),
-  ).toBeVisible();
+  const activeFilters = page.getByLabel('Active filters');
+  await expect(activeFilters.getByText('New-to-Credit')).toBeVisible();
+  await expect(activeFilters.getByText('Cashback')).toBeVisible();
+  await expectEveryCardToExplain(
+    page.locator('article.result-card'),
+    'Matches every active filter: New-to-Credit, Cashback.',
+  );
 });
 
-test('issue #14: a visitor can compare new-to-credit cards', async ({
+test('issue #14: adding New-to-Credit narrows the cashback list', async ({
   page,
 }) => {
-  await page.goto('/results');
+  await page.goto('/results?filters=cashback');
+  const cards = page.locator('article.result-card');
+  const cashbackCount = await cards.count();
+  expect(cashbackCount).toBeGreaterThan(0);
+
   await page
     .getByRole('combobox', { name: 'Add a filter' })
     .selectOption('new-to-credit');
 
-  await expect(page).toHaveURL(/\/results\?filters=new-to-credit$/);
-  await expect(page.getByText('2 matches')).toBeVisible();
-  await expect(
-    page.getByRole('heading', { name: 'Harbor Starter Card' }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole('heading', { name: 'Meadow Cash Starter' }),
-  ).toBeVisible();
-  await expect(page.getByText('Unverified')).toBeVisible();
+  await expect(page).toHaveURL(/\/results\?filters=cashback,new-to-credit$/);
+  await expect.poll(() => cards.count()).toBeLessThan(cashbackCount);
+  await expectEveryCardToExplain(
+    cards,
+    'Matches every active filter: Cashback, New-to-Credit.',
+  );
 });

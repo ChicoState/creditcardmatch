@@ -19,6 +19,7 @@
     "test:e2e": "playwright test --pass-with-no-tests",
     "test:smoke": "bash scripts/smoke-infrastructure.sh",
     "security:audit": "npm audit --audit-level=high",
+    "seed:generate": "node scripts/generate-card-seed.mjs",
     "db:migrate:production": "supabase db push",
     "supabase:start": "npx supabase start",
     "supabase:stop": "npx supabase stop",

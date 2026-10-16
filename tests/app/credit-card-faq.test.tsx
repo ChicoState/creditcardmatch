@@ -1,6 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+}));
+
 vi.mock('../../lib/data/catalog', async () => {
   const { catalogFixture } = await import('../fixtures/catalog');
 
@@ -24,11 +28,12 @@ describe('credit card FAQ', () => {
     expect(
       screen.getByRole('table', { name: 'Credit card pros and cons' }),
     ).toBeVisible();
-    expect(screen.getByRole('term', { name: 'APR' })).toBeVisible();
+    expect(screen.getByText('APR', { selector: 'dt' })).toBeVisible();
     expect(
-      screen.getByRole('button', {
-        name: 'What is the difference between a credit card and a debit card?',
-      }),
+      screen.getByText(
+        'What is the difference between a credit card and a debit card?',
+        { selector: 'summary' },
+      ),
     ).toBeVisible();
     expect(
       screen.getByText(/educational information, not financial advice/i),

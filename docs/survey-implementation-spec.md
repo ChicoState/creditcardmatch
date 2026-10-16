@@ -48,7 +48,7 @@ Existing fields continue to carry the values the Phase 2a data model already
 recognizes:
 
 - `income_range` uses a stable range slug;
-- `credit_score_band` uses a stable score-band slug, with `no_history` for
+- `credit_score_band` uses a stable score-band slug, with `none` for
   `Building/no score yet` to preserve the current new-to-credit mapping;
 - `accepts_annual_fee` is the selected yes/no value; and
 - `card_filter_preferences` contains only supported live filters.
