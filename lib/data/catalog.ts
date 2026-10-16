@@ -10,10 +10,23 @@ import type {
   RewardCategoryRow,
 } from '../catalog/types';
 
+interface SupabaseQueryError {
+  code?: string;
+  details?: string;
+  hint?: string;
+  message: string;
+}
+
 interface QueryResult<T> {
   data: T[] | null;
-  error: { message: string } | null;
+  error: SupabaseQueryError | null;
 }
+
+const SCHEMA_ERROR_CODES = new Set(['42703', '42P01']);
+const LOCAL_SCHEMA_HINT =
+  'Your local database schema is out of date. Run `npm run supabase:reset`.';
+const LOCAL_CONNECTION_HINT =
+  'Is local Supabase running? Run `npm run supabase:start`.';
 
 function requireEnvironmentVariable(
   name: 'NEXT_PUBLIC_SUPABASE_URL' | 'NEXT_PUBLIC_SUPABASE_ANON_KEY',
@@ -23,11 +36,42 @@ function requireEnvironmentVariable(
   return value;
 }
 
+function errorDescription(error: SupabaseQueryError): string {
+  return [error.message, error.details, error.hint]
+    .filter((part): part is string => Boolean(part))
+    .join(' ');
+}
+
+function isSchemaError(error: SupabaseQueryError): boolean {
+  return (
+    (error.code !== undefined && SCHEMA_ERROR_CODES.has(error.code)) ||
+    error.code?.startsWith('PGRST2') === true ||
+    /schema cache/iu.test(errorDescription(error))
+  );
+}
+
+function isConnectionError(error: SupabaseQueryError): boolean {
+  return /(?:failed to fetch|fetch failed|network(?:error| request failed)|connection refused|econnrefused|enotfound|load failed)/iu.test(
+    errorDescription(error),
+  );
+}
+
+function catalogQueryError(table: string, error: SupabaseQueryError): Error {
+  const genericMessage = `Unable to load ${table} from Supabase.`;
+  if (process.env.NODE_ENV === 'production') {
+    return new Error(genericMessage, { cause: error });
+  }
+
+  const parts = [genericMessage, error.message];
+  if (isSchemaError(error)) parts.push(LOCAL_SCHEMA_HINT);
+  else if (isConnectionError(error)) parts.push(LOCAL_CONNECTION_HINT);
+
+  return new Error(parts.join(' '), { cause: error });
+}
+
 function rowsOrThrow<T>(table: string, result: QueryResult<T>): T[] {
   if (result.error) {
-    throw new Error(`Unable to load ${table} from Supabase.`, {
-      cause: result.error,
-    });
+    throw catalogQueryError(table, result.error);
   }
 
   return result.data ?? [];

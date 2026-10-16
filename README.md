@@ -125,6 +125,15 @@ docker compose version
 
    `docker:down` removes the app's named dependency and build volumes. `supabase:stop` stops the local Supabase services while preserving their local data for the next start.
 
+### After pulling changes
+
+After pulling a branch, check which project files changed:
+
+- If `package-lock.json` changed, run `npm install`.
+- If anything under `supabase/migrations/` or `data/card-catalog/` changed, run `npm run supabase:reset`.
+
+`supabase:reset` wipes and recreates only the local development database. It does not modify any remote Supabase project.
+
 ## Updating the card catalog
 
 The team spreadsheet is the source of truth for every card fact. Do not hand-edit generated `supabase/seed.sql` or fill blank cells with assumed values.

@@ -85,6 +85,9 @@ function createQueryClient(
     | 'card_rewards'
     | 'card_filters'
     | 'card_benefits',
+  queryError: { code?: string; message: string } = {
+    message: `Unable to query ${errorTable}`,
+  },
 ) {
   const rowsByTable = {
     filters,
@@ -100,10 +103,7 @@ function createQueryClient(
       select: vi.fn(() => ({
         order: vi.fn(async () => ({
           data: errorTable === table ? null : rowsByTable[table],
-          error:
-            errorTable === table
-              ? { message: `Unable to query ${table}` }
-              : null,
+          error: errorTable === table ? queryError : null,
         })),
       })),
     })),
@@ -118,6 +118,7 @@ describe('getCatalogData', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllEnvs();
     delete process.env.NEXT_PUBLIC_SUPABASE_URL;
     delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   });
@@ -144,11 +145,51 @@ describe('getCatalogData', () => {
     ]);
   });
 
-  it('fails closed when a catalog query fails', async () => {
-    createClientMock.mockReturnValue(createQueryClient('credit_cards'));
+  it.each([
+    ['42703', 'column credit_cards.slug does not exist'],
+    ['42P01', 'relation credit_cards does not exist'],
+    ['PGRST204', "Could not find the 'slug' column in the schema cache"],
+  ])(
+    'explains local schema drift for development error %s',
+    async (code, message) => {
+      vi.stubEnv('NODE_ENV', 'development');
+      createClientMock.mockReturnValue(
+        createQueryClient('credit_cards', { code, message }),
+      );
+
+      await expect(getCatalogData()).rejects.toThrow(
+        `Unable to load credit_cards from Supabase. ${message} Your local database schema is out of date. Run \`npm run supabase:reset\`.`,
+      );
+    },
+  );
+
+  it('explains how to start unreachable local Supabase in development', async () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    createClientMock.mockReturnValue(
+      createQueryClient('credit_cards', {
+        message: 'TypeError: fetch failed',
+      }),
+    );
+
+    await expect(getCatalogData()).rejects.toThrow(
+      'Unable to load credit_cards from Supabase. TypeError: fetch failed Is local Supabase running? Run `npm run supabase:start`.',
+    );
+  });
+
+  it('keeps catalog query errors generic in production', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    createClientMock.mockReturnValue(
+      createQueryClient('credit_cards', {
+        code: '42703',
+        message: 'column credit_cards.slug does not exist',
+      }),
+    );
 
     await expect(getCatalogData()).rejects.toThrow(
       'Unable to load credit_cards from Supabase.',
+    );
+    await expect(getCatalogData()).rejects.not.toThrow(
+      'column credit_cards.slug does not exist',
     );
   });
 
