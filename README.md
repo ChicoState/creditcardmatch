@@ -79,10 +79,10 @@ docker compose version
 
    Set `NEXT_PUBLIC_SUPABASE_URL` to the local API URL and `NEXT_PUBLIC_SUPABASE_ANON_KEY` to the local anonymous/publishable key. Add a local server-only key only when a future server feature needs it. Local URLs and keys belong in `.env.local` only; never put them in a tracked file or commit `.env.local`.
 
-4. Start the app separately in Docker:
+4. Start the app separately to load project website:
 
    ```sh
-   npm run docker:up
+   npm run dev
    ```
 
    Open [http://localhost:3000](http://localhost:3000). The app container is controlled by `compose.yml`; the host CLI independently controls the Supabase containers. Both sets run side by side through Docker Desktop, and the browser reaches their published host ports. The application reads its generated catalog from the local Supabase Data API.
