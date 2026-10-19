@@ -80,6 +80,22 @@ test('a visitor can open the credit card FAQ from the home and results pages', a
   ).toBeVisible();
 });
 
+test('a visitor can open the legal page without a gate', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('link', { name: 'Legal' }).first().click();
+
+  await expect(
+    page.getByRole('heading', { name: 'Before you use a credit card' }),
+  ).toBeVisible();
+  await expect(page.getByText(/no acknowledgment/i)).not.toBeVisible();
+
+  await page.goto('/results');
+  await page.getByRole('link', { name: /read the legal page/i }).click();
+  await expect(
+    page.getByRole('heading', { name: 'When debt becomes a legal problem' }),
+  ).toBeVisible();
+});
+
 test('issue #3: a cash-back survey path returns a focused shortlist', async ({
   page,
 }) => {

@@ -57,6 +57,9 @@ export default async function HomePage() {
 				<Link className={styles.learnLink} href="/learn">
 					Credit card FAQ
 				</Link>
+				<Link className={styles.learnLink} href="/legal">
+					Legal
+				</Link>
 			</section>
 		</main>
 	);

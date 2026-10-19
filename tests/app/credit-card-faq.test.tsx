@@ -31,10 +31,21 @@ describe('credit card FAQ', () => {
     ).toBeVisible();
     expect(screen.getByText('APR', { selector: 'dt' })).toBeVisible();
     expect(
+      screen.getByText('Hard credit check', { selector: 'dt' }),
+    ).toBeVisible();
+    expect(
+      screen.getByText('Soft credit check', { selector: 'dt' }),
+    ).toBeVisible();
+    expect(
       screen.getByText(
         'What is the difference between a credit card and a debit card?',
         { selector: 'summary' },
       ),
+    ).toBeVisible();
+    expect(
+      screen.getByText('Will checking my credit hurt my credit score?', {
+        selector: 'summary',
+      }),
     ).toBeVisible();
     expect(
       screen.getByText(/educational information, not financial advice/i),
@@ -45,6 +56,9 @@ describe('credit card FAQ', () => {
       }),
     ).toHaveAttribute('href', expect.stringContaining('consumerfinance.gov'));
     expect(screen.queryByText(/AI-generated/i)).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Read the legal information' }),
+    ).toHaveAttribute('href', '/legal');
   });
 
   it('is linked from the home page, recommendations, and global navigation', async () => {
