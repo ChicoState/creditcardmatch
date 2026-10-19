@@ -166,7 +166,7 @@ export function deriveSurveySubmission(
     : uniqueKnownValues(values.extraBenefits, EXTRA_BENEFIT_OPTIONS);
   const cardFilterPreferences: SurveySubmission['card_filter_preferences'] = [];
 
-  if (values.creditScore === 'no_history') {
+  if (values.creditScore === 'none') {
     cardFilterPreferences.push({
       filter_slug: 'new-to-credit',
       preference: 'want',

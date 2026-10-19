@@ -11,9 +11,18 @@ export function selectVisibleCatalogCards(
     .filter((card) => card.is_active)
     .map((card) => ({
       cardId: card.card_id,
+      slug: card.slug,
       issuer: card.issuer,
       cardName: card.card_name,
+      network: card.network,
+      pointValueCents: card.point_value_cents,
       annualFee: card.annual_fee,
+      annualFeeWaivedFirstYear: card.annual_fee_waived_first_year,
+      oneTimeFee: card.one_time_fee,
+      monthlyFee: card.monthly_fee,
+      foreignTransactionFeePercent: card.foreign_transaction_fee_percent,
+      isSecured: card.is_secured,
+      securityDepositMin: card.security_deposit_min,
       imageUrl: card.image_url,
       description: card.description,
       rewardType: card.reward_type,

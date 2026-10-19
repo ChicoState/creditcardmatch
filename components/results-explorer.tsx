@@ -18,6 +18,21 @@ interface ResultsExplorerProps {
   filters: FilterRow[];
 }
 
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
+
+function formatNetwork(network: CatalogCard['network']): string {
+  if (network === 'amex') return 'American Express';
+  if (!network) return 'Card details';
+  return `${network[0].toUpperCase()}${network.slice(1)}`;
+}
+
 export function ResultsExplorer({
   activeFilters,
   cards,
@@ -139,7 +154,7 @@ export function ResultsExplorer({
                 >
                   <span>{card.issuer}</span>
                   <strong>{card.cardName}</strong>
-                  <small>Fictional sample</small>
+                  <small>{formatNetwork(card.network)}</small>
                 </div>
 
                 <div className="card-heading">
@@ -151,6 +166,45 @@ export function ResultsExplorer({
                     <span className="unverified-label">Unverified</span>
                   )}
                 </div>
+
+                <dl className="card-details">
+                  <div>
+                    <dt>Annual fee</dt>
+                    <dd>
+                      {card.annualFeeWaivedFirstYear
+                        ? '$0 first year'
+                        : formatCurrency(card.annualFee)}
+                    </dd>
+                  </div>
+                  {card.oneTimeFee !== null && card.oneTimeFee !== 0 && (
+                    <div>
+                      <dt>One-time fee</dt>
+                      <dd>{formatCurrency(card.oneTimeFee)}</dd>
+                    </div>
+                  )}
+                  {card.monthlyFee !== null && card.monthlyFee !== 0 && (
+                    <div>
+                      <dt>Monthly fee</dt>
+                      <dd>{formatCurrency(card.monthlyFee)}</dd>
+                    </div>
+                  )}
+                  {card.isSecured && (
+                    <div>
+                      <dt>Card type</dt>
+                      <dd>
+                        Secured
+                        {card.securityDepositMin !== null &&
+                          ` · ${formatCurrency(card.securityDepositMin)} minimum deposit`}
+                      </dd>
+                    </div>
+                  )}
+                  {card.rewardType === 'none' && (
+                    <div>
+                      <dt>Rewards</dt>
+                      <dd>No rewards</dd>
+                    </div>
+                  )}
+                </dl>
 
                 <ul className="benefit-list">
                   {card.benefits.map((benefit) => (
