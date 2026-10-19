@@ -22,6 +22,7 @@ export default function RootLayout({
             </Link>
             <nav aria-label="Primary navigation" className="site-navigation">
               <Link href="/learn">Credit card FAQ</Link>
+              <Link href="/legal">Legal</Link>
               <button className="login-button" disabled type="button">
                 Login
               </button>
