@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import { ComparisonProvider } from '../components/comparison-provider';
+import { ComparisonLink } from '../components/comparison-cart';
 
 import './globals.css';
 
@@ -15,20 +17,23 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <header className="site-header">
-          <div className="site-header__content">
-            <Link className="site-title" href="/">
-              Credit Card Match
-            </Link>
-            <nav aria-label="Primary navigation" className="site-navigation">
-              <Link href="/learn">Credit card FAQ</Link>
-              <button className="login-button" disabled type="button">
-                Login
-              </button>
-            </nav>
-          </div>
-        </header>
-        {children}
+        <ComparisonProvider>
+          <header className="site-header">
+            <div className="site-header__content">
+              <Link className="site-title" href="/">
+                Credit Card Match
+              </Link>
+              <nav aria-label="Primary navigation" className="site-navigation">
+                <ComparisonLink />
+                <Link href="/learn">Credit card FAQ</Link>
+                <button className="login-button" disabled type="button">
+                  Login
+                </button>
+              </nav>
+            </div>
+          </header>
+          {children}
+        </ComparisonProvider>
       </body>
     </html>
   );
