@@ -33,3 +33,13 @@ Every developer runs Node 24/npm 11 and Docker Desktop on the host. Run the pinn
 The normal Node 24 checks are `npm ci`, `npm run verify`, and (after app bootstrap) `npm run build` and `npm run test:e2e`. Pull-request CI is the equivalent quality baseline. Use `npm run docker:down` after Docker smoke checks; it removes the local named dependency volume. Stop the local Supabase stack separately with `npm run supabase:stop`.
 
 Before a change: read the plan and relevant skill. After a change: run the applicable checks, inspect `git diff --check`, check for secrets, update documentation when commands, architecture, or workflows change, and report any unavailable prerequisite rather than marking it verified.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

@@ -11,6 +11,7 @@ import {
   buildResultsHref,
   removeFilterSlug,
 } from '../lib/results/query-string';
+import { CompareButton, ComparisonCart } from './comparison-cart';
 
 interface ResultsExplorerProps {
   activeFilters: string[];
@@ -59,6 +60,7 @@ export function ResultsExplorer({
 
   return (
     <>
+      <ComparisonCart cards={cards} />
       <div aria-label="Active filters" className="filter-chips">
         {activeFilters.length === 0 ? (
           <span className="no-filters">No filters selected</span>
@@ -221,6 +223,7 @@ export function ResultsExplorer({
                       : 'No filters are active, so this card is part of the blank-slate catalog.'}
                   </p>
                 </section>
+                <CompareButton card={card} />
               </article>
             );
           })}

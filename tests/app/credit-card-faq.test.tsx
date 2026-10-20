@@ -17,6 +17,7 @@ import RootLayout from '../../app/layout';
 import LearnPage from '../../app/learn/page';
 import HomePage from '../../app/page';
 import ResultsPage from '../../app/results/page';
+import { ComparisonProvider } from '../../components/comparison-provider';
 
 describe('credit card FAQ', () => {
   it('offers an introductory, source-linked credit-card reference', () => {
@@ -71,6 +72,7 @@ describe('credit card FAQ', () => {
       await ResultsPage({
         searchParams: Promise.resolve({}),
       }),
+      { wrapper: ComparisonProvider },
     );
     expect(
       screen.getByRole('link', { name: 'Learn credit card basics' }),
