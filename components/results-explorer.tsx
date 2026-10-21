@@ -17,6 +17,7 @@ interface ResultsExplorerProps {
   activeFilters: string[];
   cards: CatalogCard[];
   filters: FilterRow[];
+  missingFilterSlugs?: string[];
 }
 
 function formatCurrency(amount: number): string {
@@ -38,6 +39,7 @@ export function ResultsExplorer({
   activeFilters,
   cards,
   filters,
+  missingFilterSlugs = [],
 }: ResultsExplorerProps) {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
@@ -60,6 +62,13 @@ export function ResultsExplorer({
 
   return (
     <>
+      {missingFilterSlugs.length > 0 && (
+        <p className="development-warning" role="status">
+          Your local database is missing filter(s):{' '}
+          {missingFilterSlugs.join(', ')}. Run{' '}
+          <code>npm run supabase:reset</code>.
+        </p>
+      )}
       <ComparisonCart cards={cards} />
       <div aria-label="Active filters" className="filter-chips">
         {activeFilters.length === 0 ? (

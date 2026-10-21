@@ -147,6 +147,59 @@ describe('generateSeed', () => {
       );
     }
   });
+
+  it('derives no-annual-fee membership only from a zero annual fee', async () => {
+    const rootDir = await mkdtemp(path.join(tmpdir(), 'card-seed-'));
+    const cardRow = (
+      slug: string,
+      annualFee: string,
+      annualFeeWaivedFirstYear: 'Y' | 'N',
+    ) =>
+      [
+        slug,
+        'Example Bank',
+        slug,
+        'visa',
+        'cashback',
+        'good',
+        '1',
+        annualFee,
+        annualFeeWaivedFirstYear,
+        '',
+        '',
+        '0',
+        'N',
+        '',
+        '',
+        'https://example.com/apply',
+        'Y',
+        '',
+        '',
+        'https://example.com/source',
+        '2026-10-01',
+        'Y',
+        'N',
+        'N',
+        'N',
+        '',
+        '',
+      ].join(',');
+
+    await writeCatalog(rootDir, {
+      cards: `${cardsHeader}\n${cardRow('free-card', '0', 'N')}\n${cardRow('paid-card', '95', 'N')}\n${cardRow('first-year-waived-card', '95', 'Y')}\n`,
+      rewards:
+        'card_slug,category,reward_rate,spend_cap,cap_period,rate_after_cap,notes,source_url\nfree-card,other,1,,,,,\npaid-card,other,1,,,,,\nfirst-year-waived-card,other,1,,,,,\n',
+      benefits: 'card_slug,sort_order,benefit\n',
+    });
+
+    const result = await generateSeed(rootDir);
+
+    expect(result.sql).toContain("('free-card', 'no-annual-fee')");
+    expect(result.sql).not.toContain("('paid-card', 'no-annual-fee')");
+    expect(result.sql).not.toContain(
+      "('first-year-waived-card', 'no-annual-fee')",
+    );
+  });
 });
 
 describe('generated seed', () => {
