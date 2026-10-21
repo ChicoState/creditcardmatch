@@ -6,6 +6,12 @@ export function selectVisibleCatalogCards(
   const filterSlugById = new Map(
     catalog.filters.map((filter) => [filter.filter_id, filter.slug]),
   );
+  const rewardCategoryById = new Map(
+    catalog.rewardCategories.map((category) => [
+      category.category_id,
+      category,
+    ]),
+  );
 
   return catalog.creditCards
     .filter((card) => card.is_active)
@@ -23,11 +29,29 @@ export function selectVisibleCatalogCards(
       foreignTransactionFeePercent: card.foreign_transaction_fee_percent,
       isSecured: card.is_secured,
       securityDepositMin: card.security_deposit_min,
+      introOffer: card.intro_offer,
       imageUrl: card.image_url,
       description: card.description,
       rewardType: card.reward_type,
       creditLevelRequired: card.credit_level_required,
       isVerified: card.is_verified,
+      rewardCategories: catalog.cardRewards
+        .filter((reward) => reward.card_id === card.card_id)
+        .flatMap((reward) => {
+          const category = rewardCategoryById.get(reward.category_id);
+          return category
+            ? [
+                {
+                  categorySlug: category.slug,
+                  categoryLabel: category.category_name,
+                  rewardRate: reward.reward_rate,
+                  spendCap: reward.spend_cap,
+                  capPeriod: reward.cap_period,
+                  rateAfterCap: reward.rate_after_cap,
+                },
+              ]
+            : [];
+        }),
       benefits: catalog.cardBenefits
         .filter((benefit) => benefit.card_id === card.card_id)
         .sort((left, right) => left.sort_order - right.sort_order)

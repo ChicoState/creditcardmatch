@@ -19,6 +19,7 @@ async function completeRequiredSteps(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole('button', { name: 'Next question' }));
   await user.click(screen.getByLabelText('Groceries'));
   await user.click(screen.getByRole('button', { name: 'Next question' }));
+  await user.type(screen.getByLabelText('Groceries'), '250');
   await user.click(screen.getByRole('button', { name: 'Next question' }));
   await user.click(screen.getByLabelText('No'));
   await user.click(screen.getByRole('button', { name: 'Next question' }));
@@ -54,7 +55,7 @@ describe('SurveyForm', () => {
     expect(screen.getByLabelText('$40,001–$60,000')).toBeChecked();
   });
 
-  it('limits category priorities, keeps optional spend local, and redirects with live filters', async () => {
+  it('requires spend for selected categories and redirects to survey results', async () => {
     const user = userEvent.setup();
 
     render(<SurveyForm />);
@@ -71,8 +72,12 @@ describe('SurveyForm', () => {
     expect(screen.getByLabelText('Shopping')).toBeDisabled();
 
     await user.click(screen.getByRole('button', { name: 'Next question' }));
+    expect(
+      screen.getByRole('button', { name: 'Next question' }),
+    ).toBeDisabled();
     await user.type(screen.getByLabelText('Groceries'), '425.50');
     await user.type(screen.getByLabelText('Gas'), '95');
+    await user.type(screen.getByLabelText('Travel'), '120');
     await user.click(screen.getByRole('button', { name: 'Next question' }));
     await user.click(screen.getByLabelText('No'));
     await user.click(screen.getByRole('button', { name: 'Next question' }));
@@ -82,12 +87,14 @@ describe('SurveyForm', () => {
     expect(
       screen.getByRole('heading', { name: 'Review your answers' }),
     ).toBeVisible();
-    expect(screen.getByText('Groceries: $425.5, Gas: $95')).toBeVisible();
+    expect(
+      screen.getByText('Groceries: $425.5, Gas: $95, Travel: $120'),
+    ).toBeVisible();
 
     await user.click(screen.getByRole('button', { name: 'SEE MY MATCHES' }));
 
     expect(push).toHaveBeenCalledWith(
-      '/results?filters=new-to-credit,cashback',
+      '/results?mode=survey&filters=new-to-credit,cashback',
     );
   });
 

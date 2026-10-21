@@ -1,4 +1,10 @@
-import { cleanup, render, screen, within } from '@testing-library/react';
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('next/navigation', () => ({
@@ -7,10 +13,18 @@ vi.mock('next/navigation', () => ({
 
 import { ResultsExplorer } from '../../components/results-explorer';
 import { ComparisonProvider } from '../../components/comparison-provider';
+import type { SurveySubmission } from '../../lib/config/survey';
 import { selectVisibleCatalogCards } from '../../lib/catalog/visibility';
+import {
+  clearSurveyAnswers,
+  saveSurveyAnswers,
+} from '../../lib/storage/survey-storage';
 import { catalogFixture } from '../fixtures/catalog';
 
-afterEach(cleanup);
+afterEach(() => {
+  clearSurveyAnswers();
+  cleanup();
+});
 
 describe('ResultsExplorer card details', () => {
   it('shows confirmed fees, secured deposit, and no-rewards status compactly', () => {
@@ -57,5 +71,47 @@ describe('ResultsExplorer card details', () => {
     expect(details.queryByText('Monthly fee')).not.toBeInTheDocument();
     expect(details.queryByText(/^Secured/)).not.toBeInTheDocument();
     expect(details.queryByText('No rewards')).not.toBeInTheDocument();
+  });
+
+  it('loads saved answers and labels cards by their relative fit', async () => {
+    const surveyAnswers: SurveySubmission = {
+      accepts_annual_fee: false,
+      card_filter_preferences: [],
+      category_monthly_spend: [],
+      credit_score_band: 'none',
+      extra_benefit_slugs: [],
+      income_range: 'under_40000',
+      primary_goal: 'building_credit',
+      priority_category_slugs: [],
+      user_filter_preferences: [],
+      user_preferences: {
+        accepts_annual_fee: false,
+        wants_travel_rewards: false,
+      },
+    };
+    saveSurveyAnswers(surveyAnswers);
+
+    render(
+      <ResultsExplorer
+        activeFilters={[]}
+        cards={selectVisibleCatalogCards(catalogFixture)}
+        filters={catalogFixture.filters}
+        mode="survey"
+      />,
+      { wrapper: ComparisonProvider },
+    );
+
+    await waitFor(() => {
+      expect(
+        screen
+          .getByRole('heading', { name: 'Harbor Starter Card' })
+          .closest('article'),
+      ).toHaveTextContent('Best match');
+    });
+    expect(
+      screen
+        .getByRole('heading', { name: 'Aurora Everyday Card' })
+        .closest('article'),
+    ).not.toHaveTextContent('Alternative');
   });
 });

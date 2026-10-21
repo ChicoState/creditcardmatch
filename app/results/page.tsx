@@ -3,20 +3,25 @@ import Link from 'next/link';
 import { ResultsExplorer } from '../../components/results-explorer';
 import { selectVisibleCatalogCards } from '../../lib/catalog/visibility';
 import { getCatalogData } from '../../lib/data/catalog';
-import { parseFilterSlugs } from '../../lib/results/query-string';
+import {
+  parseFilterSlugs,
+  parseResultsMode,
+} from '../../lib/results/query-string';
 
 interface ResultsPageProps {
-  searchParams: Promise<{ filters?: string | string[] }>;
+  searchParams: Promise<{
+    filters?: string | string[];
+    mode?: string;
+  }>;
 }
 
 export const dynamic = 'force-dynamic';
 
 export default async function ResultsPage({ searchParams }: ResultsPageProps) {
-  const [{ filters: filterQuery }, catalog] = await Promise.all([
-    searchParams,
-    getCatalogData(),
-  ]);
+  const [{ filters: filterQuery, mode: modeQuery }, catalog] =
+    await Promise.all([searchParams, getCatalogData()]);
   const activeFilters = parseFilterSlugs(filterQuery);
+  const mode = parseResultsMode(modeQuery);
   const cards = selectVisibleCatalogCards(catalog);
 
   return (
@@ -39,6 +44,7 @@ export default async function ResultsPage({ searchParams }: ResultsPageProps) {
         activeFilters={activeFilters}
         cards={cards}
         filters={catalog.filters}
+        mode={mode}
       />
     </main>
   );

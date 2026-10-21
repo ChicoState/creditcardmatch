@@ -4,6 +4,7 @@ import {
   addFilterSlug,
   buildResultsHref,
   parseFilterSlugs,
+  parseResultsMode,
   removeFilterSlug,
 } from '../../lib/results/query-string';
 
@@ -19,6 +20,9 @@ describe('results query-string helpers', () => {
     expect(buildResultsHref(['cashback', 'new-to-credit'])).toBe(
       '/results?filters=cashback,new-to-credit',
     );
+    expect(buildResultsHref(['cashback'], 'survey')).toBe(
+      '/results?mode=survey&filters=cashback',
+    );
   });
 
   it('adds and removes filters without mutating the input', () => {
@@ -30,5 +34,11 @@ describe('results query-string helpers', () => {
     ]);
     expect(removeFilterSlug(original, 'cashback')).toEqual([]);
     expect(original).toEqual(['cashback']);
+  });
+
+  it('defaults unknown result modes to neutral browsing', () => {
+    expect(parseResultsMode(undefined)).toBe('browse');
+    expect(parseResultsMode('anything-else')).toBe('browse');
+    expect(parseResultsMode('survey')).toBe('survey');
   });
 });
