@@ -746,7 +746,9 @@ h1 {
 	}
 
 	.primary-nav {
+		align-items: center;
 		display: flex;
+		margin-left: auto;
 	}
 
 	.page-shell {

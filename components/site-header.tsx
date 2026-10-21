@@ -4,7 +4,7 @@ import { logoutAction } from '../lib/auth/actions';
 import { ComparisonLink } from './comparison-cart';
 
 const navigationItems = [
-  { label: 'Credit card FAQ', href: '/learn' },
+  { label: 'Credit Card FAQ', href: '/learn' },
   { label: 'Legal', href: '/legal' },
 ] as const;
 

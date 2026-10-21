@@ -1,6 +1,6 @@
 # Credit Card Match
 
-Infrastructure foundation, Phase 1 MVP pages and pure matching logic, Phase 2a Supabase-backed catalog reads, and username/password authentication with Playwright coverage for a credit-card matching web application. The catalog seed is generated from team-verified CSV exports. Landing, Survey, Results, Learn, Login, and Signup routes are available; saving survey answers remains future work. The Supabase schema migrations and generated catalog seed are verified on a clean local reset and require team review before any protected remote workflow applies them.
+Infrastructure foundation, Phase 1 MVP pages and pure matching logic, and Phase 2a Supabase-backed catalog reads and Playwright coverage for a credit-card matching web application. The catalog seed is generated from team-verified CSV exports. Landing, Survey, Results, Learn, Login, and Signup routes exist. Authentication and saving remain Phase 2b work. The Supabase schema migrations and generated catalog seed are verified on a clean local reset and require team review before any protected remote workflow applies them.
 
 The stack is TypeScript, Next.js/React, Supabase, npm, and a Node 24 development container. Every developer also installs Node 24 LTS and npm 11 on the host so the project-pinned Supabase CLI can manage Docker through `npx`. Update the exact container image patch and `.nvmrc` together when the project deliberately refreshes its LTS baseline.
 
@@ -77,7 +77,7 @@ docker compose version
    Copy-Item .env.example .env.local
    ```
 
-   Set `NEXT_PUBLIC_SUPABASE_URL` to the local API URL, `NEXT_PUBLIC_SUPABASE_ANON_KEY` to the local anonymous/publishable key, and `SUPABASE_SERVICE_ROLE_KEY` to the local service-role key. The service-role key is required only by server-side account creation and rate limiting; never expose it to browser code. Local URLs and keys belong in `.env.local` only; never put them in a tracked file or commit `.env.local`.
+   Set `NEXT_PUBLIC_SUPABASE_URL` to the local API URL and `NEXT_PUBLIC_SUPABASE_ANON_KEY` to the local anonymous/publishable key. Add a local server-only key only when a future server feature needs it. Local URLs and keys belong in `.env.local` only; never put them in a tracked file or commit `.env.local`.
 
 4. Start the app separately to load project website:
 
@@ -176,12 +176,6 @@ The generator reports the CSV file and row for duplicate or unknown slugs, inval
 Before enabling protected release deployment, create the `production` GitHub Environment with approval rules. Add `VERCEL_TOKEN`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_URL`, `E2E_TEST_USER_EMAIL`, and `E2E_TEST_USER_PASSWORD` as secrets; set `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `E2E_BASE_URL`, and `PRODUCTION_SMOKE_URL` (the future health endpoint) as variables. Create separate Supabase development, test, and production projects; never reuse production values locally.
 
 The release workflow intentionally fails its prerequisite check until Vercel values are configured. Playwright is skipped on pull requests until the dedicated non-production test environment is configured; make that check required once its secrets are available. Dependabot must be enabled in the GitHub repository settings.
-
-### Authentication
-
-Login and signup use Supabase Auth without collecting email addresses. The server encodes each exact ASCII username as lowercase hexadecimal and appends `@accounts.invalid` for Supabase's password identifier. The original case-sensitive username is stored in Auth user metadata and is the only value displayed in the header. Public Auth signup is disabled in `supabase/config.toml`; signup uses the server-only admin create-user API and then signs in through the ordinary cookie-backed Auth client.
-
-The `auth_rate_limits` migration creates a service-role-only table and an atomic PostgreSQL function for separate login and signup limits of 10 attempts per trusted client IP per 15-minute bucket. Production requests must arrive through the configured trusted proxy with `x-forwarded-for` or `x-real-ip`; the limiter fails closed if no client IP or service-role/database access is available. Do not apply the migration to a remote project from a workstation.
 
 ## Troubleshooting
 
