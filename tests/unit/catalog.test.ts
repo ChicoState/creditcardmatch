@@ -30,7 +30,7 @@ describe('filterCards', () => {
     const cards = selectVisibleCatalogCards(catalogFixture);
 
     expect(
-      filterCards(cards, ['cashback', 'new-to-credit']).map(
+      filterCards(cards, ['cashback', 'no-credit-history']).map(
         (card) => card.cardName,
       ),
     ).toEqual(['Harbor Starter Card']);

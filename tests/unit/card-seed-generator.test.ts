@@ -37,7 +37,7 @@ const cardsHeader = [
   'is_verified',
   'filter_popular_cards',
   'filter_cashback',
-  'filter_new_to_credit',
+  'filter_no_credit_history',
   'entered_by',
   'notes',
 ].join(',');
@@ -100,7 +100,7 @@ describe('generateSeed', () => {
     );
     expect(result.sql).toContain('reward.spend_cap::DECIMAL(10,2)');
     expect(result.sql).toContain('reward.rate_after_cap::DECIMAL(4,2)');
-    expect(result.sql).toContain("'new-to-credit'");
+    expect(result.sql).toContain("'no-credit-history'");
     expect(result.sql).not.toContain('entered_by');
     expect(result.sql).not.toContain('Ignored Person');
     expect(result.sql).not.toContain('Internal notes');
