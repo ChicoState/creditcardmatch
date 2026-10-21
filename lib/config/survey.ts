@@ -130,6 +130,12 @@ export const SURVEY_CONFIG = {
   },
 } as const;
 
+export const SURVEY_FILTER_SLUGS = [
+  'new-to-credit',
+  'cashback',
+  'no-annual-fee',
+] as const;
+
 function hasOption(
   options: readonly EnumeratedOption[],
   value: string,
@@ -169,13 +175,6 @@ export function deriveSurveySubmission(
     (option) => option.value === values.acceptsAnnualFee,
   )?.filterSlug;
 
-  if (annualFeeFilter) {
-    cardFilterPreferences.push({
-      filter_slug: annualFeeFilter,
-      preference: 'want',
-    });
-  }
-
   if (values.creditScore === 'none') {
     cardFilterPreferences.push({
       filter_slug: 'new-to-credit',
@@ -190,6 +189,13 @@ export function deriveSurveySubmission(
   if (values.primaryGoal === 'building_credit') {
     cardFilterPreferences.push({
       filter_slug: 'new-to-credit',
+      preference: 'want',
+    });
+  }
+
+  if (annualFeeFilter) {
+    cardFilterPreferences.push({
+      filter_slug: annualFeeFilter,
       preference: 'want',
     });
   }

@@ -2,7 +2,9 @@ import Link from 'next/link';
 
 import { ResultsExplorer } from '../../components/results-explorer';
 import { selectVisibleCatalogCards } from '../../lib/catalog/visibility';
+import { SURVEY_FILTER_SLUGS } from '../../lib/config/survey';
 import { getCatalogData } from '../../lib/data/catalog';
+import { findMissingFilterSlugs } from '../../lib/results/missing-filters';
 import { parseFilterSlugs } from '../../lib/results/query-string';
 
 interface ResultsPageProps {
@@ -18,6 +20,13 @@ export default async function ResultsPage({ searchParams }: ResultsPageProps) {
   ]);
   const activeFilters = parseFilterSlugs(filterQuery);
   const cards = selectVisibleCatalogCards(catalog);
+  const missingFilterSlugs =
+    process.env.NODE_ENV === 'production'
+      ? []
+      : findMissingFilterSlugs(
+          [...SURVEY_FILTER_SLUGS, ...activeFilters],
+          catalog.filters,
+        );
 
   return (
     <main className="page-shell results-page">
@@ -39,6 +48,7 @@ export default async function ResultsPage({ searchParams }: ResultsPageProps) {
         activeFilters={activeFilters}
         cards={cards}
         filters={catalog.filters}
+        missingFilterSlugs={missingFilterSlugs}
       />
     </main>
   );
