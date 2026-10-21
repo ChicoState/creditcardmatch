@@ -62,7 +62,7 @@ describe('credit card FAQ', () => {
       screen.getByRole('link', { name: 'Learn credit card basics' }),
     ).toHaveAttribute('href', '/learn');
 
-    const layout = RootLayout({ children: 'Content' });
+    const layout = await RootLayout({ children: 'Content' });
     render(layout);
     expect(
       screen.getByRole('link', { name: 'Credit card FAQ' }),

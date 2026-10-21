@@ -1,16 +1,16 @@
 import Link from 'next/link';
 
+import { logoutAction } from '../lib/auth/actions';
+
 // TODO(TBD): Replace these labels and destinations when the team defines the
 // three global navigation links.
-const navigationItems = [
-  { label: 'Navigation 1 (TBD)', href: '/' },
-  { label: 'Navigation 2 (TBD)', href: '/' },
-  { label: 'Navigation 3 (TBD)', href: '/' },
-] as const;
+const navigationItems = [{ label: 'Credit card FAQ', href: '/learn' }] as const;
 
-// TODO(TBD): Define the help icon behavior.
+interface SiteHeaderProps {
+  username?: string;
+}
 
-export function SiteHeader() {
+export function SiteHeader({ username }: SiteHeaderProps) {
   return (
     <header className="site-header">
       <div className="header-inner">
@@ -25,16 +25,18 @@ export function SiteHeader() {
           ))}
         </nav>
         <div className="account-nav">
-          <button
-            aria-label="Help (behavior to be decided)"
-            className="help-button"
-            disabled
-            title="Help behavior is TBD"
-            type="button"
-          >
-            (?)
-          </button>
-          <Link href="/login">Log in</Link>
+          {username ? (
+            <>
+              <span className="account-username">{username}</span>
+              <form action={logoutAction}>
+                <button className="header-link-button" type="submit">
+                  Log out
+                </button>
+              </form>
+            </>
+          ) : (
+            <Link href="/login">Login</Link>
+          )}
         </div>
       </div>
     </header>
