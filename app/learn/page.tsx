@@ -196,6 +196,32 @@ export default function LearnPage() {
               </SourceLink>
             </dd>
           </div>
+          <div>
+            <dt>Hard credit check</dt>
+            <dd>
+              An inquiry a lender typically makes after you apply for credit. It
+              can affect your credit score and may be visible to others who
+              review your credit report.{' '}
+              <SourceLink
+                href={`${cfpb}/ask-cfpb/what-is-a-credit-inquiry-en-1317/`}
+              >
+                CFPB explains hard inquiries
+              </SourceLink>
+            </dd>
+          </div>
+          <div>
+            <dt>Soft credit check</dt>
+            <dd>
+              A review of your credit file that does not affect your credit
+              score, such as checking your own report or a lender&apos;s
+              prescreening review.{' '}
+              <SourceLink
+                href={`${cfpb}/ask-cfpb/what-is-a-credit-inquiry-en-1317/`}
+              >
+                CFPB explains soft inquiries
+              </SourceLink>
+            </dd>
+          </div>
         </dl>
       </section>
 
@@ -230,6 +256,22 @@ export default function LearnPage() {
                 href={`${experian}/blogs/ask-experian/how-credit-cards-can-affect-your-credit-score/`}
               >
                 Experian explains this common misconception
+              </SourceLink>
+              .
+            </p>
+          </details>
+          <details>
+            <summary>Will checking my credit hurt my credit score?</summary>
+            <p>
+              Checking your own credit report is a soft inquiry and does not
+              affect your score. Applying for a credit card usually leads to a
+              hard inquiry, which can affect your score. If you are comparing
+              cards, ask whether a prequalification check is soft and whether a
+              full application will create a hard inquiry.{' '}
+              <SourceLink
+                href={`${cfpb}/ask-cfpb/what-is-a-credit-inquiry-en-1317/`}
+              >
+                Read the CFPB&apos;s credit-inquiry guidance
               </SourceLink>
               .
             </p>
@@ -284,7 +326,8 @@ export default function LearnPage() {
         <p>
           This page provides educational information, not financial advice.
           Consider your budget and read the issuer&apos;s current terms before
-          choosing or applying for a card.
+          choosing or applying for a card.{' '}
+          <Link href="/legal">Read the legal information.</Link>
         </p>
         <Link href="/results">Return to card matches</Link>
       </aside>

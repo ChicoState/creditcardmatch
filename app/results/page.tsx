@@ -31,6 +31,9 @@ export default async function ResultsPage({ searchParams }: ResultsPageProps) {
         <Link className="text-link" href="/learn">
           Learn credit card basics
         </Link>
+        <Link className="text-link" href="/legal">
+          Read the legal page
+        </Link>
       </header>
       <ResultsExplorer
         activeFilters={activeFilters}

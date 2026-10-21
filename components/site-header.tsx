@@ -1,10 +1,12 @@
 import Link from 'next/link';
 
 import { logoutAction } from '../lib/auth/actions';
+import { ComparisonLink } from './comparison-cart';
 
-// TODO(TBD): Replace these labels and destinations when the team defines the
-// three global navigation links.
-const navigationItems = [{ label: 'Credit card FAQ', href: '/learn' }] as const;
+const navigationItems = [
+  { label: 'Credit card FAQ', href: '/learn' },
+  { label: 'Legal', href: '/legal' },
+] as const;
 
 interface SiteHeaderProps {
   username?: string;
@@ -18,6 +20,7 @@ export function SiteHeader({ username }: SiteHeaderProps) {
           CreditCardMatch
         </Link>
         <nav aria-label="Primary navigation" className="primary-nav">
+          <ComparisonLink />
           {navigationItems.map((item) => (
             <Link href={item.href} key={item.label}>
               {item.label}

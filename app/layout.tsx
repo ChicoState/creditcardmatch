@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
+import { ComparisonProvider } from '../components/comparison-provider';
 import { SiteHeader } from '../components/site-header';
 import { getCurrentUsername } from '../lib/auth/server';
 import './globals.css';
@@ -18,8 +19,10 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body>
-        <SiteHeader username={username} />
-        {children}
+        <ComparisonProvider>
+          <SiteHeader username={username} />
+          {children}
+        </ComparisonProvider>
       </body>
     </html>
   );
