@@ -15,9 +15,14 @@ async function expectEveryCardToExplain(
 async function completeSurvey(
   page: import('@playwright/test').Page,
   {
+    annualFee = 'Yes',
     creditScore = 'Good (670–739)',
     primaryGoal = 'Cash back',
-  }: { creditScore?: string; primaryGoal?: string } = {},
+  }: {
+    annualFee?: 'Yes' | 'No';
+    creditScore?: string;
+    primaryGoal?: string;
+  } = {},
 ) {
   await page.getByLabel('$60,001–$80,000').check();
   await page.getByRole('button', { name: 'Next question' }).click();
@@ -28,7 +33,7 @@ async function completeSurvey(
   await page.getByLabel('Groceries').check();
   await page.getByRole('button', { name: 'Next question' }).click();
   await page.getByRole('button', { name: 'Next question' }).click();
-  await page.getByLabel('No').check();
+  await page.getByLabel(annualFee, { exact: true }).check();
   await page.getByRole('button', { name: 'Next question' }).click();
   await page.getByRole('button', { name: 'Review answers' }).click();
 }
@@ -150,4 +155,46 @@ test('issue #14: adding New-to-Credit narrows the cashback list', async ({
     cards,
     'Matches every active filter: Cashback, New-to-Credit.',
   );
+});
+
+test('adding No Annual Fee shows only cards with a $0 annual fee', async ({
+  page,
+}) => {
+  await page.goto('/results');
+  await page
+    .getByRole('combobox', { name: 'Add a filter' })
+    .selectOption('no-annual-fee');
+
+  await expect(page).toHaveURL(/\/results\?filters=no-annual-fee$/);
+  await expect(
+    page.getByLabel('Active filters').getByText('No Annual Fee'),
+  ).toBeVisible();
+
+  const cards = page.locator('article.result-card');
+  const count = await cards.count();
+  expect(count).toBeGreaterThan(0);
+
+  for (let index = 0; index < count; index += 1) {
+    const annualFee = cards
+      .nth(index)
+      .locator('.card-details > div')
+      .filter({ hasText: 'Annual fee' })
+      .locator('dd');
+    await expect(annualFee).toHaveText('$0');
+  }
+});
+
+test('declining annual fees in the survey shows the No Annual Fee chip', async ({
+  page,
+}) => {
+  await page.goto('/survey');
+  await completeSurvey(page, {
+    annualFee: 'No',
+    primaryGoal: 'Travel rewards',
+  });
+  await page.getByRole('button', { name: 'SEE MY MATCHES' }).click();
+
+  await expect(
+    page.getByLabel('Active filters').getByText('No Annual Fee'),
+  ).toBeVisible();
 });

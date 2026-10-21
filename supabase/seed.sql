@@ -118,7 +118,22 @@ FROM (
     ('discover-it-student-cash-back', 'cashback'),
     ('discover-it-student-cash-back', 'new-to-credit'),
     ('capital-one-savor-student', 'cashback'),
-    ('capital-one-savor-student', 'new-to-credit')
+    ('capital-one-savor-student', 'new-to-credit'),
+    ('citi-double-cash', 'no-annual-fee'),
+    ('chase-freedom-unlimited', 'no-annual-fee'),
+    ('wells-fargo-active-cash', 'no-annual-fee'),
+    ('amex-blue-cash-everyday', 'no-annual-fee'),
+    ('capital-one-savor', 'no-annual-fee'),
+    ('discover-it-cash-back', 'no-annual-fee'),
+    ('chase-freedom-flex', 'no-annual-fee'),
+    ('bofa-customized-cash-rewards', 'no-annual-fee'),
+    ('capital-one-ventureone', 'no-annual-fee'),
+    ('capital-one-platinum-secured', 'no-annual-fee'),
+    ('discover-it-secured', 'no-annual-fee'),
+    ('capital-one-quicksilver-secured', 'no-annual-fee'),
+    ('chase-freedom-rise', 'no-annual-fee'),
+    ('discover-it-student-cash-back', 'no-annual-fee'),
+    ('capital-one-savor-student', 'no-annual-fee')
 ) AS assignment(card_slug, filter_slug)
 JOIN public.credit_cards AS card ON card.slug = assignment.card_slug
 JOIN public.filters AS filter ON filter.slug = assignment.filter_slug;

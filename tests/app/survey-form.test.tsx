@@ -87,7 +87,7 @@ describe('SurveyForm', () => {
     await user.click(screen.getByRole('button', { name: 'SEE MY MATCHES' }));
 
     expect(push).toHaveBeenCalledWith(
-      '/results?filters=new-to-credit,cashback',
+      '/results?filters=new-to-credit,cashback,no-annual-fee',
     );
   });
 
