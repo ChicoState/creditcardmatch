@@ -17,6 +17,7 @@ import RootLayout from '../../app/layout';
 import LearnPage from '../../app/learn/page';
 import HomePage from '../../app/page';
 import ResultsPage from '../../app/results/page';
+import { ComparisonProvider } from '../../components/comparison-provider';
 
 describe('credit card FAQ', () => {
   it('offers an introductory, source-linked credit-card reference', () => {
@@ -30,10 +31,21 @@ describe('credit card FAQ', () => {
     ).toBeVisible();
     expect(screen.getByText('APR', { selector: 'dt' })).toBeVisible();
     expect(
+      screen.getByText('Hard credit check', { selector: 'dt' }),
+    ).toBeVisible();
+    expect(
+      screen.getByText('Soft credit check', { selector: 'dt' }),
+    ).toBeVisible();
+    expect(
       screen.getByText(
         'What is the difference between a credit card and a debit card?',
         { selector: 'summary' },
       ),
+    ).toBeVisible();
+    expect(
+      screen.getByText('Will checking my credit hurt my credit score?', {
+        selector: 'summary',
+      }),
     ).toBeVisible();
     expect(
       screen.getByText(/educational information, not financial advice/i),
@@ -44,6 +56,9 @@ describe('credit card FAQ', () => {
       }),
     ).toHaveAttribute('href', expect.stringContaining('consumerfinance.gov'));
     expect(screen.queryByText(/AI-generated/i)).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Read the legal information' }),
+    ).toHaveAttribute('href', '/legal');
   });
 
   it('is linked from the home page, recommendations, and global navigation', async () => {
@@ -57,6 +72,7 @@ describe('credit card FAQ', () => {
       await ResultsPage({
         searchParams: Promise.resolve({}),
       }),
+      { wrapper: ComparisonProvider },
     );
     expect(
       screen.getByRole('link', { name: 'Learn credit card basics' }),

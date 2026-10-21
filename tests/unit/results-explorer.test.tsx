@@ -6,6 +6,7 @@ vi.mock('next/navigation', () => ({
 }));
 
 import { ResultsExplorer } from '../../components/results-explorer';
+import { ComparisonProvider } from '../../components/comparison-provider';
 import { selectVisibleCatalogCards } from '../../lib/catalog/visibility';
 import { catalogFixture } from '../fixtures/catalog';
 
@@ -19,6 +20,7 @@ describe('ResultsExplorer card details', () => {
         cards={selectVisibleCatalogCards(catalogFixture)}
         filters={catalogFixture.filters}
       />,
+      { wrapper: ComparisonProvider },
     );
 
     const card = screen
@@ -42,6 +44,7 @@ describe('ResultsExplorer card details', () => {
         cards={selectVisibleCatalogCards(catalogFixture)}
         filters={catalogFixture.filters}
       />,
+      { wrapper: ComparisonProvider },
     );
 
     const card = screen
