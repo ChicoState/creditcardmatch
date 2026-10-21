@@ -422,6 +422,12 @@ h1 {
 	margin-bottom: 1.5rem;
 }
 
+.results-links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem;
+}
+
 .filter-chips {
 	align-items: center;
 	display: flex;
@@ -621,6 +627,14 @@ h1 {
 	font-size: 0.75rem;
 	font-weight: 800;
 	padding: 0.25rem 0.5rem;
+}
+
+.development-warning {
+	background: var(--warning-soft);
+	border: 1px solid var(--warning);
+	color: var(--warning);
+	margin: 0 0 1.5rem;
+	padding: 0.75rem 1rem;
 }
 
 .card-details {

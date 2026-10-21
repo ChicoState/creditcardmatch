@@ -2,7 +2,9 @@ import Link from 'next/link';
 
 import { ResultsExplorer } from '../../components/results-explorer';
 import { selectVisibleCatalogCards } from '../../lib/catalog/visibility';
+import { SURVEY_FILTER_SLUGS } from '../../lib/config/survey';
 import { getCatalogData } from '../../lib/data/catalog';
+import { findMissingFilterSlugs } from '../../lib/results/missing-filters';
 import {
   parseFilterSlugs,
   parseResultsMode,
@@ -23,6 +25,13 @@ export default async function ResultsPage({ searchParams }: ResultsPageProps) {
   const activeFilters = parseFilterSlugs(filterQuery);
   const mode = parseResultsMode(modeQuery);
   const cards = selectVisibleCatalogCards(catalog);
+  const missingFilterSlugs =
+    process.env.NODE_ENV === 'production'
+      ? []
+      : findMissingFilterSlugs(
+          [...SURVEY_FILTER_SLUGS, ...activeFilters],
+          catalog.filters,
+        );
 
   return (
     <main className="page-shell results-page">
@@ -33,18 +42,21 @@ export default async function ResultsPage({ searchParams }: ResultsPageProps) {
           All active filters combine with AND. Search narrows the matching cards
           further.
         </p>
-        <Link className="text-link" href="/learn">
-          Learn credit card basics
-        </Link>
-        <Link className="text-link" href="/legal">
-          Read the legal page
-        </Link>
+        <div className="results-links">
+          <Link className="text-link" href="/learn">
+            Learn credit card basics
+          </Link>
+          <Link className="text-link" href="/legal">
+            Read the legal page
+          </Link>
+        </div>
       </header>
       <ResultsExplorer
         activeFilters={activeFilters}
         cards={cards}
         filters={catalog.filters}
         mode={mode}
+        missingFilterSlugs={missingFilterSlugs}
       />
     </main>
   );

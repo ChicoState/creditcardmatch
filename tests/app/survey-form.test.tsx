@@ -32,6 +32,35 @@ describe('SurveyForm', () => {
     push.mockReset();
   });
 
+  it('opens a question hint and closes it when clicking elsewhere', async () => {
+    const user = userEvent.setup();
+
+    render(<SurveyForm />);
+
+    const hint = screen.getByText(
+      'An estimate is enough. This is collected for future matching.',
+    );
+    expect(hint).not.toBeVisible();
+
+    await user.click(
+      screen.getByLabelText('Explain: What is your annual income?'),
+    );
+    expect(hint).toBeVisible();
+
+    await user.click(hint);
+    expect(hint).toBeVisible();
+
+    await user.click(screen.getByText('Question 1 of 7'));
+    expect(hint).not.toBeVisible();
+
+    await user.click(
+      screen.getByLabelText('Explain: What is your annual income?'),
+    );
+    await user.click(screen.getByLabelText('$40,001–$60,000'));
+    await user.click(screen.getByRole('button', { name: 'Next question' }));
+    expect(hint).not.toBeVisible();
+  });
+
   it('shows one question at a time and preserves an answer when moving back', async () => {
     const user = userEvent.setup();
 
@@ -94,7 +123,7 @@ describe('SurveyForm', () => {
     await user.click(screen.getByRole('button', { name: 'SEE MY MATCHES' }));
 
     expect(push).toHaveBeenCalledWith(
-      '/results?mode=survey&filters=new-to-credit,cashback',
+      '/results?mode=survey&filters=new-to-credit,cashback,no-annual-fee',
     );
   });
 
