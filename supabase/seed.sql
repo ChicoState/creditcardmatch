@@ -1,6 +1,6 @@
 -- generated — do not edit
 -- Source: data/card-catalog/{cards,rewards,benefits}.csv
--- Imported: 20 cards, 45 reward rows, 60 benefits
+-- Imported: 30 cards, 55 reward rows, 80 benefits
 
 BEGIN;
 
@@ -29,9 +29,19 @@ VALUES
     ('capital-one-platinum-secured', 'Capital One', 'Platinum Secured', NULL, 'none', 'none', NULL, 0, FALSE, NULL, NULL, 0, TRUE, 49, NULL, 'https://www.capitalone.com/credit-cards/platinum-secured/', TRUE, NULL, 'Secured card to build credit with a refundable deposit; no rewards.', 'https://www.capitalone.com/credit-cards/platinum-secured/', '2026-10-11', TRUE),
     ('discover-it-secured', 'Discover', 'Discover it Secured Credit Card', NULL, 'cashback', 'none', 1, 0, FALSE, NULL, NULL, NULL, TRUE, 49, 'Cashback Match: first-year cash back matched, no cap.', 'https://www.discover.com/credit-cards/secured/', TRUE, NULL, 'Secured card that also earns cash back, with a path to an unsecured card.', 'https://www.discover.com/credit-cards/secured/', '2026-10-11', TRUE),
     ('capital-one-quicksilver-secured', 'Capital One', 'Quicksilver Secured', NULL, 'cashback', 'fair', 1, 0, FALSE, NULL, NULL, 0, TRUE, 200, NULL, 'https://www.capitalone.com/credit-cards/quicksilver-secured/', TRUE, NULL, 'Secured card that earns a flat 1.5% cash back.', 'https://www.capitalone.com/credit-cards/quicksilver-secured/', '2026-10-11', TRUE),
-    ('chase-freedom-rise', 'Chase', 'Chase Freedom Rise', NULL, 'cashback', 'none', 1, 0, FALSE, NULL, NULL, NULL, FALSE, NULL, '$25 statement credit for enrolling in autopay within 3 months (stay enrolled 90 days).', 'https://creditcards.chase.com/cash-back-credit-cards/freedom/rise', TRUE, NULL, 'Starter card for people new to credit that earns 1.5% on everything.', 'https://creditcards.chase.com/cash-back-credit-cards/freedom/rise', '2026-10-11', TRUE),
+    ('chase-freedom-rise', 'Chase', 'Chase Freedom Rise', NULL, 'cashback', 'none', 1, 0, FALSE, NULL, NULL, NULL, FALSE, NULL, '$25 statement credit for enrolling in autopay within 3 months (stay enrolled 90 days).', 'https://creditcards.chase.com/cash-back-credit-cards/freedom/rise', TRUE, NULL, 'Starter card for people with no credit history that earns 1.5% on everything.', 'https://creditcards.chase.com/cash-back-credit-cards/freedom/rise', '2026-10-11', TRUE),
     ('discover-it-student-cash-back', 'Discover', 'Discover it Student Cash Back', NULL, 'cashback', 'none', 1, 0, FALSE, NULL, NULL, NULL, FALSE, NULL, 'Cashback Match: first-year cash back matched, no cap; 0% intro APR on purchases for 6 months.', 'https://www.discover.com/credit-cards/student/it-card.html', TRUE, NULL, 'Student card with 5% rotating categories and 1% elsewhere.', 'https://www.discover.com/credit-cards/student/it-card.html', '2026-10-11', TRUE),
-    ('capital-one-savor-student', 'Capital One', 'Savor Rewards for Students', NULL, 'cashback', NULL, 1, 0, FALSE, NULL, NULL, 0, FALSE, NULL, '$50 after $100 in purchases in the first 3 months.', 'https://www.capitalone.com/credit-cards/savor-student/', TRUE, NULL, 'Student version of Savor with 3% on groceries, dining, entertainment and streaming.', 'https://www.capitalone.com/credit-cards/savor-student/', '2026-10-11', TRUE);
+    ('capital-one-savor-student', 'Capital One', 'Savor Rewards for Students', NULL, 'cashback', NULL, 1, 0, FALSE, NULL, NULL, 0, FALSE, NULL, '$50 after $100 in purchases in the first 3 months.', 'https://www.capitalone.com/credit-cards/savor-student/', TRUE, NULL, 'Student version of Savor with 3% on groceries, dining, entertainment and streaming.', 'https://www.capitalone.com/credit-cards/savor-student/', '2026-10-11', TRUE),
+    ('capital-one-platinum', 'Capital One', 'Capital One Platinum', NULL, 'none', 'none', NULL, 0, FALSE, NULL, NULL, 0, FALSE, NULL, NULL, 'https://www.capitalone.com/credit-cards/platinum/', TRUE, NULL, 'Unsecured card designed by Capital One for people with no credit history; no rewards.', 'https://www.capitalone.com/learn-grow/money-management/capital-one-platinum-vs-quicksilver/', '2026-10-21', TRUE),
+    ('opensky-secured', 'OpenSky', 'Opensky Secured Visa', 'visa', 'none', 'none', NULL, 35, FALSE, NULL, NULL, 3, TRUE, 200, NULL, 'https://www.openskycc.com/secured-credit-cards', TRUE, NULL, 'Secured Visa with no credit check required and a refundable deposit equal to the credit limit.', 'https://www.openskycc.com/secured-credit-cards', '2026-10-21', TRUE),
+    ('opensky-plus-secured', 'OpenSky', 'Opensky Plus Secured Visa', 'visa', 'none', 'none', NULL, 0, FALSE, NULL, NULL, 3, TRUE, 300, NULL, 'https://www.openskycc.com/secured-credit-cards', TRUE, NULL, 'No-annual-fee secured Visa with no credit check required and a refundable deposit.', 'https://www.openskycc.com/secured-credit-cards', '2026-10-21', TRUE),
+    ('opensky-launch-secured', 'OpenSky', 'Opensky Launch Secured Visa', 'visa', 'none', 'none', NULL, 24, FALSE, 0, 2, 3, TRUE, 100, NULL, 'https://www.openskycc.com/secured-credit-cards', TRUE, NULL, 'Starter secured Visa with no credit check required and a refundable deposit starting at $100.', 'https://www.openskycc.com/secured-credit-cards', '2026-10-21', TRUE),
+    ('first-progress-platinum-prestige', 'First Progress', 'First Progress Platinum Prestige Secured Mastercard', 'mastercard', 'cashback', 'none', 1, 49, FALSE, NULL, NULL, 3, TRUE, 200, NULL, 'https://firstprogress.com/?page=more_cards', TRUE, NULL, 'Secured Mastercard with 1% cash back and no minimum credit history or credit score required.', 'https://firstprogress.com/?page=more_cards', '2026-10-21', TRUE),
+    ('first-progress-platinum-select', 'First Progress', 'First Progress Platinum Select Secured Mastercard', 'mastercard', 'cashback', 'none', 1, 39, FALSE, NULL, NULL, 3, TRUE, 200, NULL, 'https://firstprogress.com/?page=more_cards', TRUE, NULL, 'Secured Mastercard with 1% cash back and no minimum credit history or credit score required.', 'https://firstprogress.com/?page=more_cards', '2026-10-21', TRUE),
+    ('self-secured-visa', 'Self', 'Self Secured Visa Credit Card', 'visa', 'none', 'none', NULL, 25, FALSE, NULL, NULL, 0, TRUE, 100, NULL, 'https://www.self.inc/visa-secured-credit-card', TRUE, NULL, 'Secured Visa with no hard credit inquiry and a refundable deposit starting at $100.', 'https://www.self.inc/visa-secured-credit-card', '2026-10-21', TRUE),
+    ('chime-card', 'Chime', 'Chime Card', 'visa', 'cashback', 'none', 1, 0, FALSE, NULL, NULL, 0, TRUE, NULL, '5% cash back on a category of choice with qualifying direct deposits.', 'https://www.chime.com/credit/credit-builder/', TRUE, NULL, 'Secured Visa credit card with no credit check, no annual fee, and no minimum security deposit.', 'https://www.chime.com/credit/credit-builder/', '2026-10-21', TRUE),
+    ('step-visa-card', 'Step', 'Step Visa Card', 'visa', 'none', 'none', NULL, 0, FALSE, NULL, NULL, 0, TRUE, NULL, NULL, 'https://step.com/build-credit', TRUE, NULL, 'No-credit-check Visa card that uses Smart Pay to build credit with on-time payments.', 'https://step.com/build-credit', '2026-10-21', TRUE),
+    ('current-build-card', 'Current', 'Current Build Card', 'visa', 'points', 'none', 1, 0, FALSE, NULL, NULL, 3, TRUE, NULL, NULL, 'https://current.com/spend/', TRUE, NULL, 'Secured Visa charge card with no credit check or credit history required and no annual fee.', 'https://current.com/spend/', '2026-10-21', TRUE);
 
 INSERT INTO public.card_rewards (
     card_id, category_id, reward_rate, spend_cap, cap_period, rate_after_cap, notes
@@ -85,7 +95,17 @@ FROM (
     ('capital-one-savor-student', 'groceries', 3, NULL, NULL, NULL, 'Excludes superstores like Walmart and Target'),
     ('capital-one-savor-student', 'dining', 3, NULL, NULL, NULL, NULL),
     ('capital-one-savor-student', 'streaming', 3, NULL, NULL, NULL, 'Popular streaming services'),
-    ('capital-one-savor-student', 'other', 1, NULL, NULL, NULL, NULL)
+    ('capital-one-savor-student', 'other', 1, NULL, NULL, NULL, NULL),
+    ('capital-one-platinum', 'other', 0, NULL, NULL, NULL, 'Card earns no rewards'),
+    ('opensky-secured', 'other', 0, NULL, NULL, NULL, 'Card earns no rewards'),
+    ('opensky-plus-secured', 'other', 0, NULL, NULL, NULL, 'Card earns no rewards'),
+    ('opensky-launch-secured', 'other', 0, NULL, NULL, NULL, 'Card earns no rewards'),
+    ('first-progress-platinum-prestige', 'other', 1, NULL, NULL, NULL, '1% cash back'),
+    ('first-progress-platinum-select', 'other', 1, NULL, NULL, NULL, '1% cash back'),
+    ('self-secured-visa', 'other', 0, NULL, NULL, NULL, 'Card earns no rewards'),
+    ('chime-card', 'other', 0, NULL, NULL, NULL, 'Rewards vary by qualifying offer'),
+    ('step-visa-card', 'other', 0, NULL, NULL, NULL, 'Card earns no rewards'),
+    ('current-build-card', 'other', 1, NULL, NULL, NULL, 'Points redeemable for cash back')
 ) AS reward(card_slug, category_slug, reward_rate, spend_cap, cap_period, rate_after_cap, notes)
 JOIN public.credit_cards AS card ON card.slug = reward.card_slug
 JOIN public.reward_categories AS category ON category.slug = reward.category_slug;
@@ -108,17 +128,28 @@ FROM (
     ('bofa-customized-cash-rewards', 'cashback'),
     ('chase-sapphire-preferred', 'popular-cards'),
     ('capital-one-venture', 'popular-cards'),
-    ('capital-one-platinum-secured', 'new-to-credit'),
+    ('capital-one-platinum-secured', 'no-credit-history'),
     ('discover-it-secured', 'cashback'),
-    ('discover-it-secured', 'new-to-credit'),
+    ('discover-it-secured', 'no-credit-history'),
     ('capital-one-quicksilver-secured', 'cashback'),
-    ('capital-one-quicksilver-secured', 'new-to-credit'),
+    ('capital-one-quicksilver-secured', 'no-credit-history'),
     ('chase-freedom-rise', 'cashback'),
-    ('chase-freedom-rise', 'new-to-credit'),
+    ('chase-freedom-rise', 'no-credit-history'),
     ('discover-it-student-cash-back', 'cashback'),
-    ('discover-it-student-cash-back', 'new-to-credit'),
     ('capital-one-savor-student', 'cashback'),
-    ('capital-one-savor-student', 'new-to-credit')
+    ('capital-one-platinum', 'no-credit-history'),
+    ('opensky-secured', 'no-credit-history'),
+    ('opensky-plus-secured', 'no-credit-history'),
+    ('opensky-launch-secured', 'no-credit-history'),
+    ('first-progress-platinum-prestige', 'cashback'),
+    ('first-progress-platinum-prestige', 'no-credit-history'),
+    ('first-progress-platinum-select', 'cashback'),
+    ('first-progress-platinum-select', 'no-credit-history'),
+    ('self-secured-visa', 'no-credit-history'),
+    ('chime-card', 'cashback'),
+    ('chime-card', 'no-credit-history'),
+    ('step-visa-card', 'no-credit-history'),
+    ('current-build-card', 'no-credit-history')
 ) AS assignment(card_slug, filter_slug)
 JOIN public.credit_cards AS card ON card.slug = assignment.card_slug
 JOIN public.filters AS filter ON filter.slug = assignment.filter_slug;
@@ -186,7 +217,27 @@ FROM (
     ('discover-it-student-cash-back', '$0 fraud liability', 3),
     ('capital-one-savor-student', 'No foreign transaction fees', 1),
     ('capital-one-savor-student', 'Rewards never expire', 2),
-    ('capital-one-savor-student', 'Open to students at 4-year and community colleges', 3)
+    ('capital-one-savor-student', 'Open to students at 4-year and community colleges', 3),
+    ('capital-one-platinum', 'Designed for people with no credit history', 1),
+    ('capital-one-platinum', 'Reports to all three credit bureaus', 2),
+    ('opensky-secured', 'No traditional credit check', 1),
+    ('opensky-secured', 'Refundable deposit sets the credit limit', 2),
+    ('opensky-plus-secured', 'No annual fee', 1),
+    ('opensky-plus-secured', 'No traditional credit check', 2),
+    ('opensky-launch-secured', '$100 minimum refundable deposit', 1),
+    ('opensky-launch-secured', 'No traditional credit check', 2),
+    ('first-progress-platinum-prestige', '1% cash back rewards', 1),
+    ('first-progress-platinum-prestige', 'No minimum credit history or score required', 2),
+    ('first-progress-platinum-select', '1% cash back rewards', 1),
+    ('first-progress-platinum-select', 'No minimum credit history or score required', 2),
+    ('self-secured-visa', 'No hard credit inquiry', 1),
+    ('self-secured-visa', '$100 minimum refundable deposit', 2),
+    ('chime-card', 'No credit check to apply', 1),
+    ('chime-card', 'No annual fee or interest', 2),
+    ('step-visa-card', 'No credit score required', 1),
+    ('step-visa-card', 'Automatic monthly payment through Smart Pay', 2),
+    ('current-build-card', 'No credit check or credit history required', 1),
+    ('current-build-card', 'No annual fee or interest', 2)
 ) AS benefit(card_slug, description, sort_order)
 JOIN public.credit_cards AS card ON card.slug = benefit.card_slug;
 

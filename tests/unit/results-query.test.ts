@@ -10,23 +10,23 @@ import {
 describe('results query-string helpers', () => {
   it('parses valid comma-separated slugs and removes duplicates', () => {
     expect(
-      parseFilterSlugs('cashback,new-to-credit,cashback,NOT VALID'),
-    ).toEqual(['cashback', 'new-to-credit']);
+      parseFilterSlugs('cashback,no-credit-history,cashback,NOT VALID'),
+    ).toEqual(['cashback', 'no-credit-history']);
   });
 
   it('builds the unfiltered and filtered results URLs', () => {
     expect(buildResultsHref([])).toBe('/results');
-    expect(buildResultsHref(['cashback', 'new-to-credit'])).toBe(
-      '/results?filters=cashback,new-to-credit',
+    expect(buildResultsHref(['cashback', 'no-credit-history'])).toBe(
+      '/results?filters=cashback,no-credit-history',
     );
   });
 
   it('adds and removes filters without mutating the input', () => {
     const original = ['cashback'];
 
-    expect(addFilterSlug(original, 'new-to-credit')).toEqual([
+    expect(addFilterSlug(original, 'no-credit-history')).toEqual([
       'cashback',
-      'new-to-credit',
+      'no-credit-history',
     ]);
     expect(removeFilterSlug(original, 'cashback')).toEqual([]);
     expect(original).toEqual(['cashback']);
