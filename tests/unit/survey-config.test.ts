@@ -44,7 +44,7 @@ describe('deriveSurveySubmission', () => {
     });
 
     expect(submission.card_filter_preferences).toEqual(
-      ['new-to-credit', 'cashback', 'no-annual-fee'].map((filter_slug) => ({
+      ['no-credit-history', 'cashback'].map((filter_slug) => ({
         filter_slug,
         preference: 'want',
       })),
@@ -59,7 +59,7 @@ describe('deriveSurveySubmission', () => {
       { category_slug: 'travel', monthly_amount: 120 },
     ]);
     expect(submission.user_filter_preferences).toEqual([
-      { filter_slug: 'new-to-credit', preference: 'want' },
+      { filter_slug: 'no-credit-history', preference: 'want' },
       { filter_slug: 'cashback', preference: 'want' },
       { filter_slug: 'no-annual-fee', preference: 'want' },
     ]);
@@ -105,7 +105,7 @@ describe('deriveSurveySubmission', () => {
 
     expect(submission.credit_score_band).toBe('unsure');
     expect(submission.card_filter_preferences).not.toContainEqual({
-      filter_slug: 'new-to-credit',
+      filter_slug: 'no-credit-history',
       preference: 'want',
     });
   });

@@ -23,7 +23,7 @@ const CATEGORIES = [
 const FILTER_COLUMNS = new Map([
   ['filter_popular_cards', 'popular-cards'],
   ['filter_cashback', 'cashback'],
-  ['filter_new_to_credit', 'new-to-credit'],
+  ['filter_no_credit_history', 'no-credit-history'],
 ]);
 
 const CARD_COLUMNS = [

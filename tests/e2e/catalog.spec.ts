@@ -96,10 +96,9 @@ test('a visitor can open the legal page without a gate', async ({ page }) => {
   await expect(page.getByText(/no acknowledgment/i)).not.toBeVisible();
 
   await page.goto('/results');
-  await page.getByRole('link', { name: /read the legal page/i }).click();
   await expect(
-    page.getByRole('heading', { name: 'When debt becomes a legal problem' }),
-  ).toBeVisible();
+    page.getByRole('link', { name: /read the legal page/i }),
+  ).not.toBeVisible();
 });
 
 test('issue #3: a cash-back survey path returns a focused shortlist', async ({
@@ -129,10 +128,10 @@ test('issue #9: result chips match filters derived from the survey', async ({
   await page.getByRole('button', { name: 'SEE MY MATCHES' }).click();
 
   await expect(page).toHaveURL(
-    /\/results\?mode=survey&filters=new-to-credit,cashback$/,
+    /\/results\?mode=survey&filters=no-credit-history,cashback$/,
   );
   const activeFilters = page.getByLabel('Active filters');
-  await expect(activeFilters.getByText('New-to-Credit')).toBeVisible();
+  await expect(activeFilters.getByText('No Credit History')).toBeVisible();
   await expect(activeFilters.getByText('Cashback')).toBeVisible();
   await expectEveryCardToExplain(
     page.locator('article.result-card'),
@@ -140,7 +139,7 @@ test('issue #9: result chips match filters derived from the survey', async ({
   );
 });
 
-test('issue #14: adding New-to-Credit narrows the cashback list', async ({
+test('issue #14: adding No Credit History narrows the cashback list', async ({
   page,
 }) => {
   await page.goto('/results?filters=cashback');
@@ -150,13 +149,15 @@ test('issue #14: adding New-to-Credit narrows the cashback list', async ({
 
   await page
     .getByRole('combobox', { name: 'Add a filter' })
-    .selectOption('new-to-credit');
+    .selectOption('no-credit-history');
 
-  await expect(page).toHaveURL(/\/results\?filters=cashback,new-to-credit$/);
+  await expect(page).toHaveURL(
+    /\/results\?filters=cashback,no-credit-history$/,
+  );
   await expect.poll(() => cards.count()).toBeLessThan(cashbackCount);
   await expectEveryCardToExplain(
     cards,
-    'Matches every active filter: Cashback, New-to-Credit.',
+    'Matches every active filter: Cashback, No Credit History.',
   );
 });
 

@@ -123,7 +123,7 @@ describe('SurveyForm', () => {
     await user.click(screen.getByRole('button', { name: 'SEE MY MATCHES' }));
 
     expect(push).toHaveBeenCalledWith(
-      '/results?mode=survey&filters=new-to-credit,cashback,no-annual-fee',
+      '/results?mode=survey&filters=no-credit-history,cashback,no-annual-fee',
     );
   });
 

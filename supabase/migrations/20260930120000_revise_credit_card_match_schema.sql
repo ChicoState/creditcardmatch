@@ -134,7 +134,7 @@ INSERT INTO public.filters (slug, label, description)
 VALUES
     ('popular-cards', 'Popular Cards', NULL),
     ('cashback', 'Cashback', NULL),
-    ('new-to-credit', 'New-to-Credit', NULL);
+    ('no-credit-history', 'No Credit History', NULL);
 
 ALTER TABLE public.credit_cards
     ADD COLUMN image_url TEXT,
