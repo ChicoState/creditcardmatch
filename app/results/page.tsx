@@ -5,20 +5,25 @@ import { selectVisibleCatalogCards } from '../../lib/catalog/visibility';
 import { SURVEY_FILTER_SLUGS } from '../../lib/config/survey';
 import { getCatalogData } from '../../lib/data/catalog';
 import { findMissingFilterSlugs } from '../../lib/results/missing-filters';
-import { parseFilterSlugs } from '../../lib/results/query-string';
+import {
+  parseFilterSlugs,
+  parseResultsMode,
+} from '../../lib/results/query-string';
 
 interface ResultsPageProps {
-  searchParams: Promise<{ filters?: string | string[] }>;
+  searchParams: Promise<{
+    filters?: string | string[];
+    mode?: string;
+  }>;
 }
 
 export const dynamic = 'force-dynamic';
 
 export default async function ResultsPage({ searchParams }: ResultsPageProps) {
-  const [{ filters: filterQuery }, catalog] = await Promise.all([
-    searchParams,
-    getCatalogData(),
-  ]);
+  const [{ filters: filterQuery, mode: modeQuery }, catalog] =
+    await Promise.all([searchParams, getCatalogData()]);
   const activeFilters = parseFilterSlugs(filterQuery);
+  const mode = parseResultsMode(modeQuery);
   const cards = selectVisibleCatalogCards(catalog);
   const missingFilterSlugs =
     process.env.NODE_ENV === 'production'
@@ -37,14 +42,20 @@ export default async function ResultsPage({ searchParams }: ResultsPageProps) {
           All active filters combine with AND. Search narrows the matching cards
           further.
         </p>
-        <Link className="text-link" href="/learn">
-          Learn credit card basics
-        </Link>
+        <div className="results-links">
+          <Link className="text-link" href="/learn">
+            Learn credit card basics
+          </Link>
+          <Link className="text-link" href="/legal">
+            Read the legal page
+          </Link>
+        </div>
       </header>
       <ResultsExplorer
         activeFilters={activeFilters}
         cards={cards}
         filters={catalog.filters}
+        mode={mode}
         missingFilterSlugs={missingFilterSlugs}
       />
     </main>

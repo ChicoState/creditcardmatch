@@ -97,7 +97,8 @@ export const SURVEY_CONFIG = {
     prompt: 'Would you consider a card with an annual fee?',
   },
   categorySpend: {
-    description: 'Optional. Enter a typical monthly amount for any category.',
+    description:
+      'Enter a typical monthly amount for every category you selected.',
     prompt: 'About how much do you spend each month?',
   },
   creditScore: {
@@ -132,7 +133,7 @@ export const SURVEY_CONFIG = {
 } as const;
 
 export const SURVEY_FILTER_SLUGS = [
-  'new-to-credit',
+  'no-credit-history',
   'cashback',
   'no-annual-fee',
 ] as const;

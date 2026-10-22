@@ -59,6 +59,11 @@ function isStepComplete(step: number, values: SurveyValues): boolean {
       return Boolean(values.primaryGoal);
     case 3:
       return values.priorityCategories.length > 0;
+    case 4:
+      return values.priorityCategories.every((categorySlug) => {
+        const amount = Number(values.categorySpend[categorySlug]);
+        return Number.isFinite(amount) && amount > 0;
+      });
     case 5:
       return values.acceptsAnnualFee !== null;
     default:
@@ -143,6 +148,7 @@ export function SurveyForm() {
         submission.card_filter_preferences.map(
           ({ filter_slug }) => filter_slug,
         ),
+        'survey',
       ),
     );
   }

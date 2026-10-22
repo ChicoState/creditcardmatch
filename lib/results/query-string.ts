@@ -1,5 +1,7 @@
 const FILTER_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+export type ResultsMode = 'browse' | 'survey';
+
 function uniqueValidSlugs(slugs: string[]): string[] {
   return [
     ...new Set(
@@ -17,11 +19,23 @@ export function parseFilterSlugs(
   return uniqueValidSlugs(values.flatMap((part) => part.split(',')));
 }
 
-export function buildResultsHref(filterSlugs: string[]): string {
-  const normalizedSlugs = uniqueValidSlugs(filterSlugs);
-  if (normalizedSlugs.length === 0) return '/results';
+export function parseResultsMode(
+  value: string | null | undefined,
+): ResultsMode {
+  return value === 'survey' ? 'survey' : 'browse';
+}
 
-  return `/results?filters=${normalizedSlugs.map(encodeURIComponent).join(',')}`;
+export function buildResultsHref(
+  filterSlugs: string[],
+  mode: ResultsMode = 'browse',
+): string {
+  const normalizedSlugs = uniqueValidSlugs(filterSlugs);
+  const modeQuery = mode === 'survey' ? 'mode=survey' : '';
+  if (normalizedSlugs.length === 0) {
+    return modeQuery ? `/results?${modeQuery}` : '/results';
+  }
+
+  return `/results?${modeQuery ? `${modeQuery}&` : ''}filters=${normalizedSlugs.map(encodeURIComponent).join(',')}`;
 }
 
 export function addFilterSlug(
