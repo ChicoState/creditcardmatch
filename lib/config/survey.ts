@@ -133,7 +133,7 @@ export const SURVEY_CONFIG = {
 } as const;
 
 export const SURVEY_FILTER_SLUGS = [
-  'new-to-credit',
+  'no-credit-history',
   'cashback',
   'no-annual-fee',
 ] as const;

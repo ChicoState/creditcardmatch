@@ -44,7 +44,7 @@ describe('deriveSurveySubmission', () => {
     });
 
     expect(submission.card_filter_preferences).toEqual(
-      ['no-credit-history', 'cashback'].map((filter_slug) => ({
+      ['no-credit-history', 'cashback', 'no-annual-fee'].map((filter_slug) => ({
         filter_slug,
         preference: 'want',
       })),

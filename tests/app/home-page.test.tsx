@@ -28,6 +28,14 @@ describe('HomePage', () => {
       'href',
       '/results?filters=cashback',
     );
+    expect(screen.getByRole('link', { name: /Travel cards/i })).toHaveAttribute(
+      'href',
+      '/results?filters=travel-cards',
+    );
+    expect(screen.getByRole('link', { name: /Gas cards/i })).toHaveAttribute(
+      'href',
+      '/results?filters=gas-cards',
+    );
     expect(screen.getByRole('link', { name: 'SURVEY' })).toHaveAttribute(
       'href',
       '/survey',

@@ -26,10 +26,6 @@ export function QuestionHelp({
       document.removeEventListener('pointerdown', closeWhenClickingOutsideHint);
   }, []);
 
-  useEffect(() => {
-    setIsOpen(false);
-  }, [label]);
-
   return (
     <details
       className="question-help"
