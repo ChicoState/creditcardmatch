@@ -1,13 +1,20 @@
-import Link from 'next/link';
+import { AuthForm } from '../../components/auth-form';
+import { createAuthServerClient } from '../../lib/auth/server';
+import { redirect } from 'next/navigation';
 
-export default function SignupPage() {
+export default async function SignupPage() {
+  const { data } = await (await createAuthServerClient()).auth.getUser();
+  if (data.user) redirect('/');
+
   return (
     <main className="page-shell narrow-page">
-      <section className="placeholder-page">
+      <section className="auth-page">
         <p className="eyebrow">Account</p>
-        <h1>Sign up</h1>
-        <p>Email and password signup will be connected in Phase 2.</p>
-        <Link href="/login">Already have an account? Log in</Link>
+        <h1>Create account</h1>
+        <p className="auth-page__intro">
+          Choose a username for your CreditCardMatch account.
+        </p>
+        <AuthForm mode="signup" />
       </section>
     </main>
   );

@@ -117,7 +117,7 @@ SMS-first (not app-first) is likely the right channel. A text saying "Hey, want 
 - **Customer acquisition/discovery** — that's the platform's game. Competing on discovery means competing with DoorDash's budget. We compete on retention instead.
 - **Branded restaurant apps/websites** — commodity. Square and Toast already do this. Another branded channel doesn't solve the behavioral problem.
 - **Menu management, POS integration** — scope creep. "Your usual" doesn't need a dynamic menu. Start with static orders.
-- **Analytics dashboards** — the owner is in the kitchen. Build reporting that's passive (weekly text summary) not active (log in and look at charts).
+- **Analytics dashboards** — the owner is in the kitchen. Build reporting that's passive (weekly text summary) not active (login and look at charts).
 
 ## Open Questions
 - What's the legal/compliance landscape for SMS marketing to restaurant customers?

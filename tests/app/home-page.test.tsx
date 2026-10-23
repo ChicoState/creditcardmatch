@@ -38,8 +38,8 @@ describe('HomePage', () => {
     );
   });
 
-  it('sets the document language for assistive technologies', () => {
-    const layout = RootLayout({ children: 'Content' });
+  it('sets the document language for assistive technologies', async () => {
+    const layout = await RootLayout({ children: 'Content' });
 
     expect(layout.props.lang).toBe('en');
   });
