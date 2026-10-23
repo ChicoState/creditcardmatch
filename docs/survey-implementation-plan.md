@@ -36,7 +36,7 @@ submission mapping, then wizard UI and regression coverage.
 
 - Acceptance:
   - Map `Building/no score yet` and primary goal `Building credit` to
-    `new-to-credit`.
+    `no-credit-history`.
   - Map primary goal `Cash back` to `cashback`.
   - Do not emit filters for income, annual-fee preference, travel, 0% APR,
     category priorities, monthly amounts, or extra benefits.

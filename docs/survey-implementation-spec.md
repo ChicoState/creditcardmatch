@@ -7,16 +7,16 @@ at-a-time wizard that uses the agreed prototype question set where it improves
 visitor clarity. Keep anonymous survey completion, local persistence, and the
 current catalog-results flow working without a schema migration.
 
-The survey must support visitors who are new to credit, comparing a better card,
-or broadly exploring options. New-to-credit is inferred from the selected credit
+The survey must support visitors who have no credit history, comparing a better card,
+or broadly exploring options. No-credit-history is inferred from the selected credit
 score band; no separate visitor-journey question is added.
 
 ## Current Constraints
 
-- Only `cashback` and `new-to-credit` affect survey-driven results today.
+- Only `cashback` and `no-credit-history` affect survey-driven results today.
 - The catalog has no ranking policy; results are alphabetically ordered after
   active-filter intersection.
-- Only `popular-cards`, `cashback`, and `new-to-credit` exist as catalog
+- Only `popular-cards`, `cashback`, and `no-credit-history` exist as catalog
   filters.
 - The local catalog currently has `Groceries`, `Dining`, and `Travel` reward
   categories. A migration to add more category rows is explicitly out of scope.
@@ -28,8 +28,8 @@ score band; no separate visitor-journey question is added.
 | Step | Question and response                                                                                                                                               | Required | Current Phase 2a behavior                                                                                                                            |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1    | Annual income: `$40,000 or less`, `$40,001–$60,000`, `$60,001–$80,000`, `$80,001–$100,000`, or `More than $100,000`                                                 | Yes      | Save a stable `income_range` value; do not filter results.                                                                                           |
-| 2    | Estimated credit score: `Excellent (740+)`, `Good (670–739)`, `Fair (580–669)`, `Building/no score yet`, or `I'm not sure`                                          | Yes      | Save `credit_score_band`. `Building/no score yet` adds `new-to-credit`; all other answers add no score filter.                                       |
-| 3    | Primary goal: cash back, travel rewards, building credit, low/no annual fee, or introductory 0% APR                                                                 | Yes      | Cash back adds `cashback`; building credit adds `new-to-credit`; retain all other selections without changing results.                               |
+| 2    | Estimated credit score: `Excellent (740+)`, `Good (670–739)`, `Fair (580–669)`, `Building/no score yet`, or `I'm not sure`                                          | Yes      | Save `credit_score_band`. `Building/no score yet` adds `no-credit-history`; all other answers add no score filter.                                   |
+| 3    | Primary goal: cash back, travel rewards, building credit, low/no annual fee, or introductory 0% APR                                                                 | Yes      | Cash back adds `cashback`; building credit adds `no-credit-history`; retain all other selections without changing results.                           |
 | 4    | Up to three priority spending categories: groceries, dining/food delivery, gas, travel, shopping, transit/rideshare, streaming/entertainment, or everyday purchases | Yes      | Retain the selected priorities locally. No direct filter or ranking behavior yet.                                                                    |
 | 5    | Optional monthly amounts for the selected priority categories                                                                                                       | No       | Retain values locally. Only `groceries`, `dining`, and `travel` enter the compatible `category_monthly_spend` collection without a future migration. |
 | 6    | Comfortable paying an annual fee? Yes or no                                                                                                                         | Yes      | Save `accepts_annual_fee`; do not filter results.                                                                                                    |
@@ -49,7 +49,7 @@ recognizes:
 
 - `income_range` uses a stable range slug;
 - `credit_score_band` uses a stable score-band slug, with `none` for
-  `Building/no score yet` to preserve the current new-to-credit mapping;
+  `Building/no score yet` to preserve the current no-credit-history mapping;
 - `accepts_annual_fee` is the selected yes/no value; and
 - `card_filter_preferences` contains only supported live filters.
 

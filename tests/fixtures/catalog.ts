@@ -23,8 +23,8 @@ const filters: FilterRow[] = [
   },
   {
     filter_id: 3,
-    slug: 'new-to-credit',
-    label: 'New-to-Credit',
+    slug: 'no-credit-history',
+    label: 'No Credit History',
     description: null,
   },
 ];

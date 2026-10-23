@@ -41,7 +41,7 @@ Only these confirmed filters are seeded:
 
 - `popular-cards` — Popular Cards
 - `cashback` — Cashback
-- `new-to-credit` — New-to-Credit
+- `no-credit-history` — No Credit History
 
 ## Migration strategy
 

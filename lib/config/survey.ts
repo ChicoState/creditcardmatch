@@ -101,7 +101,8 @@ export const SURVEY_CONFIG = {
     prompt: 'About how much do you spend each month?',
   },
   creditScore: {
-    description: 'Choose “Building/no score yet” if you are new to credit.',
+    description:
+      'Choose “Building/no score yet” if you have no credit history yet.',
     options: CREDIT_SCORE_OPTIONS,
     prompt: 'What is your credit score range?',
   },
@@ -177,7 +178,7 @@ export function deriveSurveySubmission(
 
   if (values.creditScore === 'none') {
     cardFilterPreferences.push({
-      filter_slug: 'new-to-credit',
+      filter_slug: 'no-credit-history',
       preference: 'want',
     });
   }
@@ -188,7 +189,7 @@ export function deriveSurveySubmission(
 
   if (values.primaryGoal === 'building_credit') {
     cardFilterPreferences.push({
-      filter_slug: 'new-to-credit',
+      filter_slug: 'no-credit-history',
       preference: 'want',
     });
   }
