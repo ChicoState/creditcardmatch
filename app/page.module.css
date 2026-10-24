@@ -25,14 +25,6 @@
 	text-align: center;
 	min-height: 16rem;
 	padding: 2rem;
-}
-
-.landingColumn {
-	margin-top: auto;
-	align-self: center;
-}
-
-.landingColumn + .landingColumn {
 	border-top: 1px solid var(--line);
 }
 
@@ -65,4 +57,23 @@
 
 .landingColumn :global(.primary-action) {
 	margin-top: auto;
+}
+
+.landingHeading {
+	font-size: 4vw;
+}
+
+@media (max-width: 1200px) {
+	.landingChoices {
+		flex-direction: column;
+	}
+
+	.landingColumn {
+		width: 100%;
+	}
+
+	.landingColumn + .landingColumn {
+		border-top: 1px solid var(--line);
+		border-left: 0;
+	}
 }
