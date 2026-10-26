@@ -20,7 +20,6 @@ export function SiteHeader({ username }: SiteHeaderProps) {
           CreditCardMatch
         </Link>
         <nav aria-label="Primary navigation" className="primary-nav">
-          <ComparisonLink />
           {navigationItems.map((item) => (
             <Link href={item.href} key={item.label}>
               {item.label}
