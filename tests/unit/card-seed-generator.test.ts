@@ -85,6 +85,17 @@ describe('parseCsv', () => {
 });
 
 describe('generateSeed', () => {
+  it('rejects non-HTTPS apply URLs with the source row', async () => {
+    const rootDir = await mkdtemp(path.join(tmpdir(), 'card-seed-'));
+    await writeCatalog(rootDir, {
+      cards: `${cardsHeader}\ncapital-one-platinum-secured,Example Bank,Example Secured,mastercard,,none,,0,N,,,0,Y,49,,http://example.com/apply,Y,,\"An example\",https://example.com/source,2026-10-01,Y,Y,N,Y,,\n`,
+    });
+
+    await expect(generateSeed(rootDir)).rejects.toThrow(
+      'data/card-catalog/cards.csv row 2: apply_url must start with https://',
+    );
+  });
+
   it('maps validated CSV rows, applies the approved no-rewards override, and escapes strings', async () => {
     const rootDir = await mkdtemp(path.join(tmpdir(), 'card-seed-'));
     await writeCatalog(rootDir);

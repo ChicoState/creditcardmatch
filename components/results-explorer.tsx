@@ -12,6 +12,7 @@ import {
   removeFilterSlug,
 } from '../lib/results/query-string';
 import { CompareButton, ComparisonCart } from './comparison-cart';
+import { ApplyLink } from './apply-link';
 
 interface ResultsExplorerProps {
   activeFilters: string[];
@@ -232,6 +233,7 @@ export function ResultsExplorer({
                       : 'No filters are active, so this card is part of the blank-slate catalog.'}
                   </p>
                 </section>
+                <ApplyLink card={card} />
                 <CompareButton card={card} />
               </article>
             );

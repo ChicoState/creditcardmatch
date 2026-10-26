@@ -7,6 +7,7 @@ import type {
   ComparisonReward,
 } from '../lib/catalog/comparison';
 import { ComparisonCart } from './comparison-cart';
+import { ApplyLink } from './apply-link';
 import { useComparison } from './comparison-provider';
 import styles from './comparison.module.css';
 
@@ -220,6 +221,7 @@ export function ComparisonView({ cards }: { cards: ComparisonCard[] }) {
                       {!card.isVerified && (
                         <span className="unverified-label">Unverified</span>
                       )}
+                      <ApplyLink card={card} />
                       <button
                         className={styles.textButton}
                         onClick={() => toggle(card.cardId)}

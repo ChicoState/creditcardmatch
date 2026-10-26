@@ -164,7 +164,12 @@ FROM (
     ('capital-one-quicksilver-secured', 'no-annual-fee'),
     ('chase-freedom-rise', 'no-annual-fee'),
     ('discover-it-student-cash-back', 'no-annual-fee'),
-    ('capital-one-savor-student', 'no-annual-fee')
+    ('capital-one-savor-student', 'no-annual-fee'),
+    ('capital-one-platinum', 'no-annual-fee'),
+    ('opensky-plus-secured', 'no-annual-fee'),
+    ('chime-card', 'no-annual-fee'),
+    ('step-visa-card', 'no-annual-fee'),
+    ('current-build-card', 'no-annual-fee')
 ) AS assignment(card_slug, filter_slug)
 JOIN public.credit_cards AS card ON card.slug = assignment.card_slug
 JOIN public.filters AS filter ON filter.slug = assignment.filter_slug;
