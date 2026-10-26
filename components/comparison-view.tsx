@@ -7,8 +7,8 @@ import type {
 	ComparisonReward,
 } from "../lib/catalog/comparison";
 import styles from "./comparison.module.css";
-import { ComparisonCart } from "./comparison-cart";
 import { useComparison } from "./comparison-provider";
+import { ApplyLink } from "./apply-link";
 
 function money(value: number | null): string {
 	return value === null
