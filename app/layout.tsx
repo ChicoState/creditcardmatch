@@ -7,8 +7,8 @@ import { getCurrentUsername } from '../lib/auth/server';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'CreditCardMatch',
-  description: 'Find fictional card matches based on what matters to you.',
+	title: "CreditCardMatch",
+	description: "Find fictional card matches based on what matters to you.",
 };
 
 export default async function RootLayout({
