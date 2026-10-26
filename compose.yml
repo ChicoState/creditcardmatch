@@ -15,6 +15,10 @@ services:
     env_file:
       - path: .env
         required: false
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      NEXT_PUBLIC_SUPABASE_URL: ${DOCKER_SUPABASE_URL:-http://host.docker.internal:54321}
 
 volumes:
   node_modules:

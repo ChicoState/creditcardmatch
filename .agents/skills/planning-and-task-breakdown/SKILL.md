@@ -69,7 +69,7 @@ Task 4: Connect everything
 **Good (vertical slicing):**
 ```
 Task 1: User can create an account (schema + API + UI for registration)
-Task 2: User can log in (auth schema + API + UI for login)
+Task 2: User can login (auth schema + API + UI for login)
 Task 3: User can create a task (task schema + API + UI for creation)
 Task 4: User can view task list (query + API + UI for list view)
 ```
