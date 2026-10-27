@@ -7,7 +7,9 @@ export default async function HomePage() {
 	return (
 		<main className="page-shell">
 			<section className={styles.landingHero} aria-labelledby="landing-heading">
-				<h1 id="landing-heading">Find the card that&apos;s right for you!</h1>
+				<h1 className={styles.landingHeading}>
+					Find the card that&apos;s right for you!
+				</h1>
 				<div className={styles.landingChoices}>
 					<section className={styles.landingColumn}>
 						<h2>Popular Categories:</h2>
@@ -55,7 +57,7 @@ export default async function HomePage() {
 				</div>
 
 				<Link className={styles.learnLink} href="/learn">
-					Credit card FAQ
+					Credit Card FAQ
 				</Link>
 				<Link className={styles.learnLink} href="/legal">
 					Legal
