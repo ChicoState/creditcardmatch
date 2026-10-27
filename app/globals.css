@@ -280,6 +280,14 @@ h1 {
 	background: var(--accent-soft);
 }
 
+.apply-link {
+	align-self: flex-start;
+	font-size: 0.8rem;
+	margin-top: 1rem;
+	min-height: 2.75rem;
+	padding: 0.625rem 1rem;
+}
+
 .page-intro {
 	border-bottom: 1px solid var(--line);
 	margin-bottom: 2rem;

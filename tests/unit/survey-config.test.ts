@@ -6,12 +6,37 @@ import {
   CREDIT_SCORE_RANGE_VALUES,
   INCOME_RANGE_VALUES,
 } from '../../lib/config/enumerated-values';
-import { deriveSurveySubmission, SURVEY_CONFIG } from '../../lib/config/survey';
+import {
+  deriveSurveySubmission,
+  SURVEY_CONFIG,
+  SURVEY_FILTER_SLUGS,
+} from '../../lib/config/survey';
 
 const migration = readFileSync(
   'supabase/migrations/20261014120000_card_details.sql',
   'utf8',
 );
+const filterMigrations = [
+  readFileSync(
+    'supabase/migrations/20260930120000_revise_credit_card_match_schema.sql',
+    'utf8',
+  ),
+  readFileSync(
+    'supabase/migrations/20261015120000_no_annual_fee_filter.sql',
+    'utf8',
+  ),
+];
+
+function seededFilterSlugs(): string[] {
+  return filterMigrations.flatMap((source) => {
+    const values = source.match(
+      /INSERT INTO public\.filters[\s\S]*?VALUES\s*([\s\S]*?);/u,
+    );
+    return [...(values?.[1].matchAll(/\(\s*'([^']+)'/gu) ?? [])].map(
+      (match) => match[1],
+    );
+  });
+}
 
 function valuesFromCheckConstraint(constraintName: string): string[] {
   const constraint = migration.match(
@@ -112,6 +137,14 @@ describe('deriveSurveySubmission', () => {
 });
 
 describe('survey database enum compatibility', () => {
+  it('derives only filter slugs present in the seeded catalog', () => {
+    const filters = new Set(seededFilterSlugs());
+
+    for (const slug of SURVEY_FILTER_SLUGS) {
+      expect(filters).toContain(slug);
+    }
+  });
+
   it('keeps every credit-score and income option within its database CHECK list', () => {
     const creditScoreCheckValues = valuesFromCheckConstraint(
       'user_preferences_credit_score_range_check',

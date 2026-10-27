@@ -101,6 +101,7 @@ export interface CatalogCard {
   isSecured: boolean;
   securityDepositMin: number | null;
   introOffer: string | null;
+  applyUrl: string | null;
   imageUrl: string | null;
   description: string | null;
   rewardType: RewardType | null;

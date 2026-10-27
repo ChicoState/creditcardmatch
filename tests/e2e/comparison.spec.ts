@@ -75,6 +75,28 @@ test('select, filter, compare, refresh and remove cards with keyboard controls',
   expect(errors).toEqual([]);
 });
 
+test('compared cards expose their issuer Apply links', async ({ page }) => {
+  await page.goto('/results');
+  const card = page
+    .locator('article.result-card')
+    .filter({
+      has: page.locator('a.apply-link'),
+    })
+    .first();
+  await expect(card).toBeVisible();
+  await card.getByRole('button', { name: /^Add to compare:/ }).click();
+  await page
+    .getByRole('region', { name: 'Comparison cart' })
+    .getByRole('link', { name: /Compare cards/ })
+    .click();
+
+  await expect(
+    page
+      .getByRole('table', { name: 'Card comparison' })
+      .locator('a.apply-link'),
+  ).toHaveCount(1);
+});
+
 test('limits selection to four and keeps selected controls available', async ({
   page,
 }) => {

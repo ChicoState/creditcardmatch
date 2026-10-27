@@ -21,6 +21,7 @@ import {
   type ResultsMode,
 } from '../lib/results/query-string';
 import { CompareButton, ComparisonCart } from './comparison-cart';
+import { ApplyLink } from './apply-link';
 
 interface ResultsExplorerProps {
   activeFilters: string[];
@@ -323,6 +324,7 @@ export function ResultsExplorer({
                     </p>
                   )}
                 </section>
+                <ApplyLink card={card} />
                 <CompareButton card={card} />
               </article>
             );

@@ -27,6 +27,65 @@ afterEach(() => {
 });
 
 describe('ResultsExplorer card details', () => {
+  it('shows a secure issuer apply link with an accessible new-tab name', () => {
+    render(
+      <ResultsExplorer
+        activeFilters={[]}
+        cards={selectVisibleCatalogCards(catalogFixture)}
+        filters={catalogFixture.filters}
+      />,
+      { wrapper: ComparisonProvider },
+    );
+
+    const link = screen.getByRole('link', {
+      name: "Apply for Harbor Starter Card on Fictional Harbor Bank's site (opens in a new tab)",
+    });
+    expect(link).toHaveAttribute('href', 'https://harbor.example/apply');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('hides apply links when the catalog does not provide a URL', () => {
+    render(
+      <ResultsExplorer
+        activeFilters={[]}
+        cards={selectVisibleCatalogCards({
+          ...catalogFixture,
+          creditCards: catalogFixture.creditCards.map((card) => ({
+            ...card,
+            apply_url: null,
+          })),
+        })}
+        filters={catalogFixture.filters}
+      />,
+      { wrapper: ComparisonProvider },
+    );
+
+    expect(
+      screen.queryByRole('link', { name: /Apply for/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('does not render non-HTTPS apply URLs', () => {
+    render(
+      <ResultsExplorer
+        activeFilters={[]}
+        cards={[
+          {
+            ...selectVisibleCatalogCards(catalogFixture)[0],
+            applyUrl: 'http://harbor.example/apply',
+          },
+        ]}
+        filters={catalogFixture.filters}
+      />,
+      { wrapper: ComparisonProvider },
+    );
+
+    expect(
+      screen.queryByRole('link', { name: /Apply for/ }),
+    ).not.toBeInTheDocument();
+  });
+
   it('shows confirmed fees, secured deposit, and no-rewards status compactly', () => {
     render(
       <ResultsExplorer

@@ -30,6 +30,7 @@ export function selectVisibleCatalogCards(
       isSecured: card.is_secured,
       securityDepositMin: card.security_deposit_min,
       introOffer: card.intro_offer,
+      applyUrl: card.apply_url,
       imageUrl: card.image_url,
       description: card.description,
       rewardType: card.reward_type,
