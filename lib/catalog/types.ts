@@ -91,6 +91,7 @@ export interface CatalogCard {
   foreignTransactionFeePercent: number | null;
   isSecured: boolean;
   securityDepositMin: number | null;
+  applyUrl: string | null;
   imageUrl: string | null;
   description: string | null;
   rewardType: RewardType | null;

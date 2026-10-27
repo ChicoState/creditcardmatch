@@ -51,6 +51,22 @@ test('issue #2: a visitor can browse a non-empty active catalog', async ({
   await expect(page.getByText(/^[1-9]\d* matches?$/)).toBeVisible();
 });
 
+test('every visible Apply link uses a secure new-tab destination', async ({
+  page,
+}) => {
+  await page.goto('/results');
+
+  const applyLinks = page.locator('article.result-card a.apply-link');
+  const count = await applyLinks.count();
+  expect(count).toBeGreaterThan(0);
+  for (let index = 0; index < count; index += 1) {
+    const link = applyLinks.nth(index);
+    await expect(link).toHaveAttribute('href', /^https:\/\//);
+    await expect(link).toHaveAttribute('target', '_blank');
+    await expect(link).toHaveAttribute('rel', /noopener/);
+  }
+});
+
 test('issue #3: every shown card matches the active filter', async ({
   page,
 }) => {

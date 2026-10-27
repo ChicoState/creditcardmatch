@@ -91,8 +91,8 @@ export const SURVEY_CONFIG = {
   annualFee: {
     description: 'This helps us avoid cards you would not consider.',
     options: [
-      { filterSlug: null, label: 'Yes', value: true },
-      { filterSlug: 'no-annual-fee', label: 'No', value: false },
+      { label: 'Yes', value: true },
+      { label: 'No', value: false },
     ],
     prompt: 'Would you consider a card with an annual fee?',
   },
@@ -129,13 +129,21 @@ export const SURVEY_CONFIG = {
     options: SURVEY_CATEGORIES,
     prompt: 'Where do you spend the most?',
   },
+  filterMappings: {
+    annualFee: { false: 'no-annual-fee' },
+    creditScore: { none: 'no-credit-history' },
+    primaryGoal: {
+      building_credit: 'no-credit-history',
+      cash_back: 'cashback',
+    },
+  },
 } as const;
 
 export const SURVEY_FILTER_SLUGS = [
-  'new-to-credit',
-  'cashback',
-  'no-annual-fee',
-] as const;
+  ...new Set(
+    Object.values(SURVEY_CONFIG.filterMappings).flatMap(Object.values),
+  ),
+];
 
 function hasOption(
   options: readonly EnumeratedOption[],
@@ -159,6 +167,13 @@ function uniqueKnownValues(
   ];
 }
 
+function filterForAnswer(
+  mapping: Readonly<Record<string, string>>,
+  answer: string | boolean | null,
+): string | undefined {
+  return mapping[String(answer)];
+}
+
 export function deriveSurveySubmission(
   values: SurveyFormValues,
 ): SurveySubmission {
@@ -172,24 +187,29 @@ export function deriveSurveySubmission(
     ? [SURVEY_CONFIG.extraBenefits.exclusiveOption]
     : uniqueKnownValues(values.extraBenefits, EXTRA_BENEFIT_OPTIONS);
   const cardFilterPreferences: SurveySubmission['card_filter_preferences'] = [];
-  const annualFeeFilter = SURVEY_CONFIG.annualFee.options.find(
-    (option) => option.value === values.acceptsAnnualFee,
-  )?.filterSlug;
+  const annualFeeFilter = filterForAnswer(
+    SURVEY_CONFIG.filterMappings.annualFee,
+    values.acceptsAnnualFee,
+  );
 
-  if (values.creditScore === 'none') {
+  const creditScoreFilter = filterForAnswer(
+    SURVEY_CONFIG.filterMappings.creditScore,
+    values.creditScore,
+  );
+  if (creditScoreFilter) {
     cardFilterPreferences.push({
-      filter_slug: 'no-credit-history',
+      filter_slug: creditScoreFilter,
       preference: 'want',
     });
   }
 
-  if (values.primaryGoal === 'cash_back') {
-    cardFilterPreferences.push({ filter_slug: 'cashback', preference: 'want' });
-  }
-
-  if (values.primaryGoal === 'building_credit') {
+  const primaryGoalFilter = filterForAnswer(
+    SURVEY_CONFIG.filterMappings.primaryGoal,
+    values.primaryGoal,
+  );
+  if (primaryGoalFilter) {
     cardFilterPreferences.push({
-      filter_slug: 'no-credit-history',
+      filter_slug: primaryGoalFilter,
       preference: 'want',
     });
   }

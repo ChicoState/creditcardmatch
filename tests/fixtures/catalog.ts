@@ -45,7 +45,7 @@ const creditCards: CreditCardRow[] = [
     is_secured: true,
     security_deposit_min: 49,
     intro_offer: null,
-    apply_url: null,
+    apply_url: 'https://harbor.example/apply',
     is_active: true,
     image_url: null,
     description: 'A fictional starter card for unit tests.',

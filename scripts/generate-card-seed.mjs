@@ -426,6 +426,13 @@ export async function generateSeed(rootDir) {
       parseBoolean(record, column, CARD_FILE, errors);
     }
 
+    const applyUrl = nullableText(record.data.apply_url);
+    if (applyUrl && !applyUrl.startsWith('https://')) {
+      errors.push(
+        `${location(CARD_FILE, record.row)}: apply_url must start with https://`,
+      );
+    }
+
     return {
       slug,
       issuer: requireValue(record, 'issuer', CARD_FILE, errors),
@@ -475,7 +482,7 @@ export async function generateSeed(rootDir) {
         { minimum: 0 },
       ),
       introOffer: nullableText(record.data.intro_offer),
-      applyUrl: nullableText(record.data.apply_url),
+      applyUrl,
       isActive: parseBoolean(record, 'is_active', CARD_FILE, errors),
       imageUrl: nullableText(record.data.image_url),
       description: nullableText(record.data.description),

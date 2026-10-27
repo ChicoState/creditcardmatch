@@ -23,6 +23,7 @@ export function selectVisibleCatalogCards(
       foreignTransactionFeePercent: card.foreign_transaction_fee_percent,
       isSecured: card.is_secured,
       securityDepositMin: card.security_deposit_min,
+      applyUrl: card.apply_url,
       imageUrl: card.image_url,
       description: card.description,
       rewardType: card.reward_type,

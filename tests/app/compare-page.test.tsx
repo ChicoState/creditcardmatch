@@ -43,6 +43,12 @@ describe('compare page', () => {
     ).toBeVisible();
     expect(within(table).getByText('First benefit')).toBeVisible();
     expect(within(table).getByText('Unverified')).toBeVisible();
+    const applyLink = within(table).getByRole('link', {
+      name: "Apply for Harbor Starter Card on Fictional Harbor Bank's site (opens in a new tab)",
+    });
+    expect(applyLink).toHaveAttribute('href', 'https://harbor.example/apply');
+    expect(applyLink).toHaveAttribute('target', '_blank');
+    expect(applyLink).toHaveAttribute('rel', 'noopener noreferrer');
     const foreignFee = within(table).getByRole('row', {
       name: /Foreign transaction fee/,
     });

@@ -7,8 +7,8 @@ import type {
 	ComparisonReward,
 } from "../lib/catalog/comparison";
 import styles from "./comparison.module.css";
-import { ComparisonCart } from "./comparison-cart";
 import { useComparison } from "./comparison-provider";
+import { ApplyLink } from "./apply-link";
 
 function money(value: number | null): string {
 	return value === null
@@ -169,98 +169,117 @@ export function ComparisonView({ cards }: { cards: ComparisonCard[] }) {
 				.map((reward) => [reward.categoryId, reward]),
 		).values(),
 	].sort((a, b) => a.displayOrder - b.displayOrder);
+  return (
+    <>
+      {!ready ? (
+        <p role="status">Loading your comparison…</p>
+      ) : selected.length === 0 ? (
+        <section className={styles.empty}>
+          <h2>Start with a card that interests you.</h2>
+          <p>
+            Add up to four cards from the catalog to compare rewards, fees, and
+            benefits.
+          </p>
+          <Link className="primary-action" href="/results">
+            Browse all cards
+          </Link>
+        </section>
+      ) : (
+        <>
+          <div className={styles.compareToolbar}>
+            <p>
+              {selected.length === 1
+                ? 'Add another card to see the differences side by side.'
+                : `${selected.length} cards. See where each one fits.`}
+            </p>
+            <Link className="secondary-action" href="/results">
+              Add more cards
+            </Link>
+          </div>
 
-	return (
-		<>
-			{!ready ? (
-				<p role="status">Loading your comparison…</p>
-			) : selected.length === 0 ? (
-				<section className={styles.empty}>
-					<h2>
-						Empty cart. Select some cards from the catalog to compare them
-					</h2>
-				</section>
-			) : (
-				<>
-					<div className={styles.compareToolbar}></div>
-					<p className={styles.hint} id="comparison-scroll-hint">
-						On smaller screens, scroll the table sideways to see every card.
-					</p>
-					<div
-						aria-label="Scrollable card comparison"
-						aria-describedby="comparison-scroll-hint"
-						className={styles.tableScroll}
-						role="region"
-						tabIndex={0}
-					>
-						<table className={styles.table}>
-							<caption className={styles.caption}>Card comparison</caption>
-							<thead>
-								<tr>
-									<th scope="col">At a glance</th>
-									{selected.map((card) => (
-										<th key={card.cardId} scope="col">
-											<div className={styles.cardIssuerRow}>
-												<p className={styles.issuer}>{card.issuer}</p>
-												<button
-													className={styles.removeButton}
-													onClick={() => toggle(card.cardId)}
-													aria-label={`Remove ${card.cardName}`}
-													type="button"
-												>
-													X
-												</button>
-											</div>
-											<h2>{card.cardName}</h2>
-											{!card.isVerified && (
-												<span className="unverified-label">Unverified</span>
-											)}
-										</th>
-									))}
-								</tr>
-							</thead>
-							<tbody>
-								{details.slice(0, 3).map(({ label, render }) => (
-									<tr key={label}>
-										<th scope="row">{label}</th>
-										{selected.map((card) => (
-											<td key={card.cardId}>{render(card)}</td>
-										))}
-									</tr>
-								))}
-								{categories.map((category) => (
-									<tr key={category.categoryId}>
-										<th scope="row">{category.categoryName}</th>
-										{selected.map((card) => (
-											<td key={card.cardId}>
-												<RewardTerms
-													card={card}
-													reward={card.rewards.find(
-														(reward) =>
-															reward.categoryId === category.categoryId,
-													)}
-												/>
-											</td>
-										))}
-									</tr>
-								))}
-								{details.slice(3).map(({ label, render }) => (
-									<tr key={label}>
-										<th scope="row">{label}</th>
-										{selected.map((card) => (
-											<td key={card.cardId}>{render(card)}</td>
-										))}
-									</tr>
-								))}
-							</tbody>
-						</table>
-					</div>
-					<p className={styles.hint}>
-						“Not listed” means the catalog does not include that detail. It does
-						not mean a fee is $0 or a benefit is unavailable.
-					</p>
-				</>
-			)}
-		</>
-	);
+          <p className={styles.hint} id="comparison-scroll-hint">
+            On smaller screens, scroll the table sideways to see every card.
+          </p>
+
+          <div
+            aria-label="Scrollable card comparison"
+            aria-describedby="comparison-scroll-hint"
+            className={styles.tableScroll}
+            role="region"
+            tabIndex={0}
+          >
+            <table className={styles.table}>
+              <caption className={styles.caption}>Card comparison</caption>
+              <thead>
+                <tr>
+                  <th scope="col">At a glance</th>
+                  {selected.map((card) => (
+                    <th key={card.cardId} scope="col">
+                      <div className={styles.cardIssuerRow}>
+                        <p className={styles.issuer}>{card.issuer}</p>
+                        <button
+                          className={styles.removeButton}
+                          onClick={() => toggle(card.cardId)}
+                          aria-label={`Remove ${card.cardName}`}
+                          type="button"
+                        >
+                          X
+                        </button>
+                      </div>
+                      <h2>{card.cardName}</h2>
+                      {!card.isVerified && (
+                        <span className="unverified-label">Unverified</span>
+                      )}
+                      <ApplyLink card={card} />
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {details.slice(0, 3).map(({ label, render }) => (
+                  <tr key={label}>
+                    <th scope="row">{label}</th>
+                    {selected.map((card) => (
+                      <td key={card.cardId}>{render(card)}</td>
+                    ))}
+                  </tr>
+                ))}
+
+                {categories.map((category) => (
+                  <tr key={category.categoryId}>
+                    <th scope="row">{category.categoryName}</th>
+                    {selected.map((card) => (
+                      <td key={card.cardId}>
+                        <RewardTerms
+                          card={card}
+                          reward={card.rewards.find(
+                            (reward) =>
+                              reward.categoryId === category.categoryId,
+                          )}
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+
+                {details.slice(3).map(({ label, render }) => (
+                  <tr key={label}>
+                    <th scope="row">{label}</th>
+                    {selected.map((card) => (
+                      <td key={card.cardId}>{render(card)}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <p className={styles.hint}>
+            “Not listed” means the catalog does not include that detail. It does
+            not mean a fee is $0 or a benefit is unavailable.
+          </p>
+        </>
+      )}
+    </>
+  );
 }

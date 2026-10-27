@@ -6,10 +6,10 @@ describe('findMissingFilterSlugs', () => {
   it('returns unique missing references in their original order', () => {
     expect(
       findMissingFilterSlugs(
-        ['cashback', 'no-annual-fee', 'cashback', 'new-to-credit'],
+        ['cashback', 'no-annual-fee', 'cashback', 'no-credit-history'],
         [{ slug: 'cashback' }],
       ),
-    ).toEqual(['no-annual-fee', 'new-to-credit']);
+    ).toEqual(['no-annual-fee', 'no-credit-history']);
   });
 
   it('returns no missing slugs when every reference is in the catalog', () => {
