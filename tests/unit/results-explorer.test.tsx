@@ -173,4 +173,92 @@ describe('ResultsExplorer card details', () => {
         .closest('article'),
     ).not.toHaveTextContent('Alternative');
   });
+
+  it('explains survey ordering, badges, and broader fallback results', async () => {
+    const surveyAnswers: SurveySubmission = {
+      accepts_annual_fee: false,
+      card_filter_preferences: [],
+      category_monthly_spend: [
+        { category_slug: 'dining', monthly_amount: 400 },
+      ],
+      credit_score_band: 'good',
+      extra_benefit_slugs: [],
+      income_range: 'under_40000',
+      primary_goal: 'cash_back',
+      priority_category_slugs: ['dining'],
+      user_filter_preferences: [],
+      user_preferences: {
+        accepts_annual_fee: false,
+        wants_travel_rewards: false,
+      },
+    };
+    saveSurveyAnswers(surveyAnswers);
+
+    render(
+      <ResultsExplorer
+        activeFilters={[]}
+        cards={selectVisibleCatalogCards(catalogFixture)}
+        filters={catalogFixture.filters}
+        mode="survey"
+      />,
+      { wrapper: ComparisonProvider },
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', {
+          name: 'Cards ranked by how well they fit your answers',
+        }),
+      ).toBeVisible();
+    });
+    expect(
+      screen.getByText(
+        'We could not find a card that directly rewards your selected categories. These broader options are shown so you still have cards to compare.',
+      ),
+    ).toBeVisible();
+    expect(screen.getByText('Best match')).toBeVisible();
+    expect(screen.getByText('Okay')).toBeVisible();
+    expect(screen.queryByText('Control TBD')).not.toBeInTheDocument();
+  });
+
+  it('explains when survey filters leave no cards to recommend', async () => {
+    saveSurveyAnswers({
+      accepts_annual_fee: false,
+      card_filter_preferences: [],
+      category_monthly_spend: [],
+      credit_score_band: 'good',
+      extra_benefit_slugs: [],
+      income_range: 'under_40000',
+      primary_goal: 'cash_back',
+      priority_category_slugs: [],
+      user_filter_preferences: [],
+      user_preferences: {
+        accepts_annual_fee: false,
+        wants_travel_rewards: false,
+      },
+    });
+
+    render(
+      <ResultsExplorer
+        activeFilters={['popular-cards', 'no-credit-history']}
+        cards={selectVisibleCatalogCards(catalogFixture)}
+        filters={catalogFixture.filters}
+        mode="survey"
+      />,
+      { wrapper: ComparisonProvider },
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', {
+          name: 'No cards match all of these choices yet',
+        }),
+      ).toBeVisible();
+    });
+    expect(
+      screen.getByText(
+        'Try removing a filter or changing your search to see more cards.',
+      ),
+    ).toBeVisible();
+  });
 });

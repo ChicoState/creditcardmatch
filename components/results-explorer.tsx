@@ -152,6 +152,45 @@ export function ResultsExplorer({
         )}
       </div>
 
+      {surveyMode && (
+        <section
+          aria-labelledby="results-explanation-heading"
+          className="results-explanation"
+        >
+          <p className="eyebrow">How to read your results</p>
+          <h2 id="results-explanation-heading">
+            Cards ranked by how well they fit your answers
+          </h2>
+          <p>
+            Cards are listed from the strongest overall fit to the weakest
+            available fit. We compare your spending categories, reward fit,
+            credit range, annual-fee preference, and primary goal.
+          </p>
+          <dl className="match-legend">
+            <div>
+              <dt>Best match</dt>
+              <dd>Strong fit across your answers.</dd>
+            </div>
+            <div>
+              <dt>Okay</dt>
+              <dd>Some fit, with tradeoffs to review.</dd>
+            </div>
+            <div>
+              <dt>No badge</dt>
+              <dd>Review the reasons before deciding if it fits.</dd>
+            </div>
+          </dl>
+        </section>
+      )}
+
+      {showingBroaderOptions && (
+        <p className="broader-results-notice" role="status">
+          We could not find a card that directly rewards your selected
+          categories. These broader options are shown so you still have cards to
+          compare.
+        </p>
+      )}
+
       <div className="results-toolbar">
         <label className="search-control">
           <span aria-hidden="true">⌕</span>
@@ -189,11 +228,6 @@ export function ResultsExplorer({
             ))}
           </select>
         </label>
-
-        {/* TODO(TBD): Define the second results control. */}
-        <button className="tbd-control" disabled type="button">
-          Control TBD
-        </button>
       </div>
 
       <p aria-live="polite" className="result-count">
@@ -204,8 +238,16 @@ export function ResultsExplorer({
       {displayedCards.length === 0 ? (
         <section className="empty-state" role="status">
           <p className="eyebrow">No matches yet</p>
-          <h2>Try removing a filter or changing your search.</h2>
-          <p>The catalog has no active card matching every current choice.</p>
+          <h2>
+            {surveyMode
+              ? 'No cards match all of these choices yet'
+              : 'Try removing a filter or changing your search.'}
+          </h2>
+          <p>
+            {surveyMode
+              ? 'Try removing a filter or changing your search to see more cards.'
+              : 'The catalog has no active card matching every current choice.'}
+          </p>
         </section>
       ) : (
         <div className="results-grid" id="cards">
@@ -304,12 +346,6 @@ export function ResultsExplorer({
                   <h3>{surveyMode ? 'Why this rating' : 'Why we show this'}</h3>
                   {surveyMode ? (
                     <>
-                      {showingBroaderOptions && (
-                        <p className="broader-option-note">
-                          Shown as a broader option because no selected-category
-                          matches were available.
-                        </p>
-                      )}
                       <ul className="score-reasons">
                         {cardMatch.reasons.map((reason) => (
                           <li key={reason}>{reason}</li>
