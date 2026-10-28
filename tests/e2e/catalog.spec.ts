@@ -80,6 +80,24 @@ test('issue #3: every shown card matches the active filter', async ({
   );
 });
 
+test('spending focus filters return cards with the matching reward category', async ({
+  page,
+}) => {
+  for (const focus of [
+    { slug: 'travel-focus', label: 'Travel Focus' },
+    { slug: 'gas-focus', label: 'Gas Focus' },
+    { slug: 'dining-food-focus', label: 'Dining & Food Focus' },
+  ]) {
+    await page.goto(`/results?filters=${focus.slug}`);
+
+    await expect(page.getByLabel('Active filters').getByText(focus.label)).toBeVisible();
+    await expectEveryCardToExplain(
+      page.locator('article.result-card'),
+      `Matches every active filter: ${focus.label}.`,
+    );
+  }
+});
+
 test('a visitor can open the credit card FAQ from the home and results pages', async ({
   page,
 }) => {
