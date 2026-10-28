@@ -211,6 +211,20 @@ describe('generateSeed', () => {
       "('first-year-waived-card', 'no-annual-fee')",
     );
   });
+
+  it('derives focus filters from modeled reward categories', async () => {
+    const rootDir = await mkdtemp(path.join(tmpdir(), 'card-seed-'));
+    await writeCatalog(rootDir, {
+      rewards:
+        'card_slug,category,reward_rate,spend_cap,cap_period,rate_after_cap,notes,source_url\ncapital-one-platinum-secured,dining,2,,,,,\ncapital-one-platinum-secured,gas,3,,,,,\ncapital-one-platinum-secured,travel,4,,,,,\ncapital-one-platinum-secured,other,1,,,,,\n',
+    });
+
+    const result = await generateSeed(rootDir);
+
+    expect(result.sql).toContain("('capital-one-platinum-secured', 'dining-food-focus')");
+    expect(result.sql).toContain("('capital-one-platinum-secured', 'gas-focus')");
+    expect(result.sql).toContain("('capital-one-platinum-secured', 'travel-focus')");
+  });
 });
 
 describe('generated seed', () => {

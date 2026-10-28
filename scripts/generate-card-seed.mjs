@@ -25,6 +25,11 @@ const FILTER_COLUMNS = new Map([
   ['filter_cashback', 'cashback'],
   ['filter_no_credit_history', 'no-credit-history'],
 ]);
+const REWARD_CATEGORY_FILTERS = new Map([
+  ['dining', 'dining-food-focus'],
+  ['gas', 'gas-focus'],
+  ['travel', 'travel-focus'],
+]);
 
 const CARD_COLUMNS = [
   'card_slug',
@@ -595,6 +600,12 @@ export async function generateSeed(rootDir) {
         ? [{ cardSlug: card.slug, filterSlug: 'no-annual-fee' }]
         : [],
     ),
+    ...rewards.flatMap((reward) => {
+      const filterSlug = REWARD_CATEGORY_FILTERS.get(reward.category);
+      return filterSlug
+        ? [{ cardSlug: reward.cardSlug, filterSlug }]
+        : [];
+    }),
   ];
 
   if (errors.length > 0) {

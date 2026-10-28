@@ -169,7 +169,20 @@ FROM (
     ('opensky-plus-secured', 'no-annual-fee'),
     ('chime-card', 'no-annual-fee'),
     ('step-visa-card', 'no-annual-fee'),
-    ('current-build-card', 'no-annual-fee')
+    ('current-build-card', 'no-annual-fee'),
+    ('chase-freedom-unlimited', 'dining-food-focus'),
+    ('amex-blue-cash-everyday', 'gas-focus'),
+    ('amex-blue-cash-preferred', 'gas-focus'),
+    ('capital-one-savor', 'dining-food-focus'),
+    ('chase-freedom-flex', 'dining-food-focus'),
+    ('chase-sapphire-preferred', 'dining-food-focus'),
+    ('chase-sapphire-preferred', 'gas-focus'),
+    ('chase-sapphire-preferred', 'travel-focus'),
+    ('amex-gold', 'dining-food-focus'),
+    ('citi-strata-premier', 'dining-food-focus'),
+    ('citi-strata-premier', 'gas-focus'),
+    ('citi-strata-premier', 'travel-focus'),
+    ('capital-one-savor-student', 'dining-food-focus')
 ) AS assignment(card_slug, filter_slug)
 JOIN public.credit_cards AS card ON card.slug = assignment.card_slug
 JOIN public.filters AS filter ON filter.slug = assignment.filter_slug;

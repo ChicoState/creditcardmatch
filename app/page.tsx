@@ -22,13 +22,13 @@ export default async function HomePage() {
 							</Link>
 							<Link
 								className="secondary-action"
-								href="/results?filters=travel-cards"
+								href="/results?filters=travel-focus"
 							>
 								✈️ Travel cards
 							</Link>
 							<Link
 								className="secondary-action"
-								href="/results?filters=gas-cards"
+								href="/results?filters=gas-focus"
 							>
 								⛽ Gas cards
 							</Link>
