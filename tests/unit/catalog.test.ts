@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { filterCards, searchCards } from '../../lib/catalog/filter-cards';
-import { getCardMatchRating, rankCards } from '../../lib/catalog/rank-cards';
+import {
+  getCardMatch,
+  getCardMatchRating,
+  rankCards,
+} from '../../lib/catalog/rank-cards';
 import type { SurveySubmission } from '../../lib/config/survey';
 import { selectVisibleCatalogCards } from '../../lib/catalog/visibility';
 import { catalogFixture } from '../fixtures/catalog';
@@ -146,5 +150,41 @@ describe('rankCards', () => {
     expect(
       getCardMatchRating(cards[1], { activeFilters: [], surveyAnswers }),
     ).toBe('Best match');
+  });
+
+  it('maps survey shopping to the catalog online-shopping reward category', () => {
+    const card = selectVisibleCatalogCards(catalogFixture)[1];
+    const surveyAnswers: SurveySubmission = {
+      accepts_annual_fee: true,
+      card_filter_preferences: [],
+      category_monthly_spend: [],
+      credit_score_band: 'good',
+      extra_benefit_slugs: [],
+      income_range: '60001_to_80000',
+      primary_goal: 'low_or_no_annual_fee',
+      priority_category_slugs: ['shopping'],
+      user_filter_preferences: [],
+      user_preferences: {
+        accepts_annual_fee: true,
+        wants_travel_rewards: false,
+      },
+    };
+
+    const match = getCardMatch(
+      {
+        ...card,
+        rewardCategories: [
+          {
+            ...card.rewardCategories[0],
+            categorySlug: 'online_shopping',
+            categoryLabel: 'Online shopping',
+          },
+        ],
+      },
+      { activeFilters: [], surveyAnswers },
+    );
+
+    expect(match.hasCategoryOverlap).toBe(true);
+    expect(match.reasons[0]).toBe('Shopping: category match');
   });
 });

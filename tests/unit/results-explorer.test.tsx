@@ -218,6 +218,7 @@ describe('ResultsExplorer card details', () => {
     ).toBeVisible();
     expect(screen.getByText('Best match')).toBeVisible();
     expect(screen.getByText('Okay')).toBeVisible();
+    expect(screen.getAllByText('Broader option').length).toBeGreaterThan(0);
     expect(screen.queryByText('Control TBD')).not.toBeInTheDocument();
   });
 

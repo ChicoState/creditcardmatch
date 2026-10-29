@@ -736,6 +736,13 @@ h1 {
 	color: var(--match-okay);
 }
 
+.match-label-review-fit,
+.match-label-broader-option {
+	background: var(--panel);
+	border-color: var(--line);
+	color: var(--muted-ink);
+}
+
 .card-heading h2 {
 	font-size: 1.5rem;
 	margin-bottom: 0.75rem;

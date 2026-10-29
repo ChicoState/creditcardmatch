@@ -49,6 +49,9 @@ Category matching follows these rules:
 
 - Reward categories must use normalized slugs such as `groceries`, `dining`,
   and `travel`.
+- Survey category labels may use aliases that resolve to one or more catalog
+  slugs. The current aliases include `shopping` → `online_shopping`,
+  `streaming-entertainment` → `streaming`, and `everyday-purchases` → `other`.
 - Structured reward-category data determines ranking; free-form descriptions
   and benefit text do not.
 - Any overlap between a user category and a card reward category keeps the card
@@ -115,8 +118,10 @@ representative catalog fixtures before being treated as product policy.
 - `Okay`: the card has some useful fit, but has weaker category, spending,
   credit, or preference alignment. Unknown credit range belongs here rather
   than in `Best match`.
-- Lower-scoring cards: remain available when the visibility rules permit them,
-  but receive no `Alternative` badge.
+- `Review fit`: the card remains available but does not meet the `Okay`
+  threshold; the reason bullets explain the tradeoffs.
+- `Broader option`: no direct category match was available, so the card is
+  shown for comparison based on other supported signals.
 
 Multiple cards may receive `Best match` when they tie or all meet the approved
 threshold. The system should not arbitrarily label only one card as best.

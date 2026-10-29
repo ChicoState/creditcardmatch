@@ -1,4 +1,5 @@
-import type { SurveySubmission } from '../config/survey';
+import { SURVEY_CATEGORIES, type SurveySubmission } from '../config/survey';
+import { getCatalogCategorySlugs } from './filter-definitions';
 import type { CardRewardCategory, CatalogCard, CreditLevel } from './types';
 
 export interface RankingContext {
@@ -91,16 +92,31 @@ function categoryCriteria(
       total + (spendingByCategory.get(categorySlug) ?? 0),
     0,
   );
+  const matchedSurveyCategories = selectedCategories.filter((categorySlug) =>
+    card.rewardCategories.some((reward) =>
+      getCatalogCategorySlugs(categorySlug).includes(reward.categorySlug),
+    ),
+  );
   const matchedRewards = card.rewardCategories.filter((reward) =>
-    selectedCategories.includes(reward.categorySlug),
+    selectedCategories.some((categorySlug) =>
+      getCatalogCategorySlugs(categorySlug).includes(reward.categorySlug),
+    ),
   );
-  const matchedSpend = matchedRewards.reduce(
-    (total, reward) =>
-      total + (spendingByCategory.get(reward.categorySlug) ?? 0),
-    0,
+  const matchedSpend = matchedRewards.reduce((total, reward) => {
+    const matchedCategory = selectedCategories.find((categorySlug) =>
+      getCatalogCategorySlugs(categorySlug).includes(reward.categorySlug),
+    );
+    return total + (spendingByCategory.get(matchedCategory ?? '') ?? 0);
+  }, 0);
+  const overlapRatio =
+    totalSpend === 0
+      ? matchedSurveyCategories.length / selectedCategories.length
+      : matchedSpend / totalSpend;
+  const matchedLabels = matchedSurveyCategories.map(
+    (categorySlug) =>
+      SURVEY_CATEGORIES.find((category) => category.slug === categorySlug)
+        ?.label ?? categorySlug,
   );
-  const overlapRatio = totalSpend === 0 ? 0 : matchedSpend / totalSpend;
-  const matchedLabels = matchedRewards.map((reward) => reward.categoryLabel);
 
   const rewardValue = matchedRewards.reduce(
     (total, reward) =>
@@ -130,9 +146,11 @@ function categoryCriteria(
         maximumScore: SPENDING_WEIGHT,
         score: spendingFit * SPENDING_WEIGHT,
         reason:
-          matchedRewards.length > 0
-            ? 'Monthly spending: fits this card’s reward structure'
-            : 'Monthly spending: no selected-category rewards to estimate',
+          matchedRewards.length === 0
+            ? 'Monthly spending: no selected-category rewards to estimate'
+            : totalSpend === 0
+              ? 'Monthly spending: not used for this category yet'
+              : 'Monthly spending: fits this card’s reward structure',
       },
     ],
   };

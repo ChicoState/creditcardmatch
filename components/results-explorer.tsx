@@ -22,6 +22,7 @@ import {
 } from '../lib/results/query-string';
 import { CompareButton, ComparisonCart } from './comparison-cart';
 import { ApplyLink } from './apply-link';
+import { ResultsFilterControls } from './results-filter-controls';
 
 interface ResultsExplorerProps {
   activeFilters: string[];
@@ -131,26 +132,16 @@ export function ResultsExplorer({
         </p>
       )}
       <ComparisonCart cards={cards} />
-      <div aria-label="Active filters" className="filter-chips">
-        {activeFilters.length === 0 ? (
-          <span className="no-filters">No filters selected</span>
-        ) : (
-          activeFilters.map((filterSlug) => (
-            <span className="filter-chip" key={filterSlug}>
-              {filterBySlug.get(filterSlug)?.label ?? filterSlug}
-              <button
-                aria-label={`Remove ${filterBySlug.get(filterSlug)?.label ?? filterSlug} filter`}
-                onClick={() =>
-                  navigateToFilters(removeFilterSlug(activeFilters, filterSlug))
-                }
-                type="button"
-              >
-                ×
-              </button>
-            </span>
-          ))
-        )}
-      </div>
+      <ResultsFilterControls
+        activeFilters={activeFilters}
+        filters={filters}
+        onAddFilter={(filterSlug) =>
+          navigateToFilters(addFilterSlug(activeFilters, filterSlug))
+        }
+        onRemoveFilter={(filterSlug) =>
+          navigateToFilters(removeFilterSlug(activeFilters, filterSlug))
+        }
+      />
 
       {surveyMode && (
         <section
@@ -176,8 +167,15 @@ export function ResultsExplorer({
               <dd>Some fit, with tradeoffs to review.</dd>
             </div>
             <div>
-              <dt>No badge</dt>
-              <dd>Review the reasons before deciding if it fits.</dd>
+              <dt>Review fit</dt>
+              <dd>Some alignment, but not enough for an Okay rating.</dd>
+            </div>
+            <div>
+              <dt>Broader option</dt>
+              <dd>
+                No direct category match; shown so you still have cards to
+                compare.
+              </dd>
             </div>
           </dl>
         </section>
@@ -201,32 +199,6 @@ export function ResultsExplorer({
             type="search"
             value={searchTerm}
           />
-        </label>
-
-        <label className="filter-select">
-          <span className="visually-hidden">Add a filter</span>
-          <select
-            aria-label="Add a filter"
-            key={activeFilters.join(',')}
-            onChange={(event) => {
-              if (!event.target.value) return;
-              navigateToFilters(
-                addFilterSlug(activeFilters, event.target.value),
-              );
-            }}
-            value=""
-          >
-            <option value="">+ Add filter</option>
-            {filters.map((filter) => (
-              <option
-                disabled={activeFilters.includes(filter.slug)}
-                key={filter.slug}
-                value={filter.slug}
-              >
-                {filter.label}
-              </option>
-            ))}
-          </select>
         </label>
       </div>
 
@@ -281,13 +253,21 @@ export function ResultsExplorer({
                     <h2>{card.cardName}</h2>
                   </div>
                   <div className="card-labels">
-                    {surveyMode && cardMatch.rating && (
+                    {surveyMode && (
                       <span
-                        className={`match-label match-label-${cardMatch.rating
+                        className={`match-label match-label-${(
+                          cardMatch.rating ??
+                          (showingBroaderOptions
+                            ? 'Broader option'
+                            : 'Review fit')
+                        )
                           .toLocaleLowerCase()
                           .replaceAll(' ', '-')}`}
                       >
-                        {cardMatch.rating}
+                        {cardMatch.rating ??
+                          (showingBroaderOptions
+                            ? 'Broader option'
+                            : 'Review fit')}
                       </span>
                     )}
                     {!card.isVerified && (
