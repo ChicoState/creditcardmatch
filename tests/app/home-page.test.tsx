@@ -30,12 +30,15 @@ describe('HomePage', () => {
     );
     expect(screen.getByRole('link', { name: /Travel cards/i })).toHaveAttribute(
       'href',
-      '/results?filters=travel-cards',
+      '/results?filters=travel-focus',
     );
     expect(screen.getByRole('link', { name: /Gas cards/i })).toHaveAttribute(
       'href',
-      '/results?filters=gas-cards',
+      '/results?filters=gas-focus',
     );
+    expect(
+      screen.getByRole('link', { name: /Dining & food cards/i }),
+    ).toHaveAttribute('href', '/results?filters=dining-food-focus');
     expect(screen.getByRole('link', { name: 'SURVEY' })).toHaveAttribute(
       'href',
       '/survey',
