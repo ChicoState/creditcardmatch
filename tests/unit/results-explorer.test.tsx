@@ -1,5 +1,6 @@
 import {
   cleanup,
+  fireEvent,
   render,
   screen,
   waitFor,
@@ -216,9 +217,50 @@ describe('ResultsExplorer card details', () => {
         'We could not find a card that directly rewards your selected categories. These broader options are shown so you still have cards to compare.',
       ),
     ).toBeVisible();
-    expect(screen.getByText('Best match')).toBeVisible();
-    expect(screen.getByText('Okay')).toBeVisible();
     expect(screen.getAllByText('Broader option').length).toBeGreaterThan(0);
+    const readingGuide = screen
+      .getByText('How to read your results')
+      .closest('details');
+    expect(readingGuide).not.toBeNull();
+    expect(
+      within(readingGuide as HTMLElement).getByText('Best match'),
+    ).not.toBeVisible();
+    fireEvent.click(screen.getByText('How to read your results'));
+    expect(
+      within(readingGuide as HTMLElement).getByText('Best match'),
+    ).toBeVisible();
+    expect(
+      within(readingGuide as HTMLElement).getByText('Best match'),
+    ).toHaveClass('match-label-best-match');
+    expect(within(readingGuide as HTMLElement).getByText('Okay')).toHaveClass(
+      'match-label-okay',
+    );
+    expect(
+      within(readingGuide as HTMLElement).getByText('Review fit'),
+    ).toHaveClass('match-label-review-fit');
+    expect(
+      within(readingGuide as HTMLElement).getByText('Broader option'),
+    ).toHaveClass('match-label-broader-option');
+
+    const answersGuide = screen.getByText('Your answers').closest('details');
+    expect(answersGuide).not.toBeNull();
+    expect(
+      within(answersGuide as HTMLElement).getByRole('heading', {
+        name: 'What we used for matching',
+      }),
+    ).not.toBeVisible();
+    fireEvent.click(screen.getByText('Your answers'));
+    expect(
+      within(answersGuide as HTMLElement).getByText(
+        'Dining & food delivery · $400/month',
+      ),
+    ).toBeVisible();
+    expect(
+      within(answersGuide as HTMLElement).getByText('Good (670–739)'),
+    ).toBeVisible();
+    expect(
+      within(answersGuide as HTMLElement).getByText('Cash back'),
+    ).toBeVisible();
     expect(screen.queryByText('Control TBD')).not.toBeInTheDocument();
   });
 

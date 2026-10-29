@@ -23,6 +23,7 @@ import {
 import { CompareButton, ComparisonCart } from './comparison-cart';
 import { ApplyLink } from './apply-link';
 import { ResultsFilterControls } from './results-filter-controls';
+import { SurveyAnswerSummary } from './survey-answer-summary';
 
 interface ResultsExplorerProps {
   activeFilters: string[];
@@ -148,36 +149,56 @@ export function ResultsExplorer({
           aria-labelledby="results-explanation-heading"
           className="results-explanation"
         >
-          <p className="eyebrow">How to read your results</p>
+          <p className="eyebrow">Your results</p>
           <h2 id="results-explanation-heading">
             Cards ranked by how well they fit your answers
           </h2>
-          <p>
-            Cards are listed from the strongest overall fit to the weakest
-            available fit. We compare your spending categories, reward fit,
-            credit range, annual-fee preference, and primary goal.
-          </p>
-          <dl className="match-legend">
-            <div>
-              <dt>Best match</dt>
-              <dd>Strong fit across your answers.</dd>
+          <details className="results-guide">
+            <summary>How to read your results</summary>
+            <div className="results-guide-content">
+              <p>
+                Cards are listed from the strongest overall fit to the weakest
+                available fit. We compare your spending categories, reward fit,
+                credit range, annual-fee preference, and primary goal.
+              </p>
+              <dl className="match-legend">
+                <div>
+                  <dt>
+                    <span className="match-label match-label-best-match">
+                      Best match
+                    </span>
+                  </dt>
+                  <dd>Strong fit across your answers.</dd>
+                </div>
+                <div>
+                  <dt>
+                    <span className="match-label match-label-okay">Okay</span>
+                  </dt>
+                  <dd>Some fit, with tradeoffs to review.</dd>
+                </div>
+                <div>
+                  <dt>
+                    <span className="match-label match-label-review-fit">
+                      Review fit
+                    </span>
+                  </dt>
+                  <dd>Some alignment, but not enough for an Okay rating.</dd>
+                </div>
+                <div>
+                  <dt>
+                    <span className="match-label match-label-broader-option">
+                      Broader option
+                    </span>
+                  </dt>
+                  <dd>
+                    No direct category match; shown so you still have cards to
+                    compare.
+                  </dd>
+                </div>
+              </dl>
             </div>
-            <div>
-              <dt>Okay</dt>
-              <dd>Some fit, with tradeoffs to review.</dd>
-            </div>
-            <div>
-              <dt>Review fit</dt>
-              <dd>Some alignment, but not enough for an Okay rating.</dd>
-            </div>
-            <div>
-              <dt>Broader option</dt>
-              <dd>
-                No direct category match; shown so you still have cards to
-                compare.
-              </dd>
-            </div>
-          </dl>
+          </details>
+          {surveyAnswers && <SurveyAnswerSummary answers={surveyAnswers} />}
         </section>
       )}
 

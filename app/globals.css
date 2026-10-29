@@ -544,11 +544,72 @@ h1 {
 	font-weight: 800;
 }
 
+.match-legend .match-label {
+	display: inline-block;
+}
+
 .match-legend dd {
 	color: var(--muted-ink);
 	font-size: 0.875rem;
 	line-height: 1.45;
 	margin: 0.25rem 0 0;
+}
+
+.results-guide,
+.survey-answer-summary {
+	border-top: 1px solid var(--line);
+	margin-top: 1.5rem;
+	padding-top: 1.5rem;
+}
+
+.results-guide summary,
+.survey-answer-summary summary {
+	cursor: pointer;
+	font-weight: 800;
+}
+
+.results-guide-content,
+.survey-answer-content {
+	padding-top: 1rem;
+}
+
+.results-guide-content > p {
+	line-height: 1.6;
+	margin: 0 0 1rem;
+}
+
+.survey-answer-summary h3 {
+	margin: 0.25rem 0 1rem;
+}
+
+.survey-answer-summary dl {
+	display: grid;
+	gap: 0.75rem;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.survey-answer-summary dt {
+	color: var(--muted-ink);
+	font-size: 0.8rem;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.survey-answer-summary dd {
+	margin: 0.2rem 0 0;
+}
+
+.survey-answer-summary ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+@media (max-width: 680px) {
+	.survey-answer-summary dl {
+		grid-template-columns: 1fr;
+	}
 }
 
 .broader-results-notice {
