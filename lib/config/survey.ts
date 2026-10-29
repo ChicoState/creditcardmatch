@@ -3,6 +3,7 @@ import {
   INCOME_RANGE_OPTIONS,
   type EnumeratedOption,
 } from './enumerated-values';
+import { SURVEY_FILTER_MAPPINGS } from '../catalog/filter-definitions';
 
 export type Preference = 'avoid' | 'want';
 
@@ -48,11 +49,31 @@ export interface SurveySubmission {
 }
 
 export const SURVEY_CATEGORIES = [
-  { label: 'Groceries', slug: 'groceries', supportsSavedSpend: true },
-  { label: 'Dining & food delivery', slug: 'dining', supportsSavedSpend: true },
-  { label: 'Gas', slug: 'gas', supportsSavedSpend: false },
-  { label: 'Travel', slug: 'travel', supportsSavedSpend: true },
-  { label: 'Shopping', slug: 'shopping', supportsSavedSpend: false },
+  {
+    label: 'Groceries',
+    slug: 'groceries',
+    supportsSavedSpend: true,
+  },
+  {
+    label: 'Dining & food delivery',
+    slug: 'dining',
+    supportsSavedSpend: true,
+  },
+  {
+    label: 'Gas',
+    slug: 'gas',
+    supportsSavedSpend: false,
+  },
+  {
+    label: 'Travel',
+    slug: 'travel',
+    supportsSavedSpend: true,
+  },
+  {
+    label: 'Shopping',
+    slug: 'shopping',
+    supportsSavedSpend: false,
+  },
   {
     label: 'Transit & rideshare',
     slug: 'transit-rideshare',
@@ -97,7 +118,8 @@ export const SURVEY_CONFIG = {
     prompt: 'Would you consider a card with an annual fee?',
   },
   categorySpend: {
-    description: 'Optional. Enter a typical monthly amount for any category.',
+    description:
+      'Enter a typical monthly amount for every category you selected.',
     prompt: 'About how much do you spend each month?',
   },
   creditScore: {
@@ -129,20 +151,10 @@ export const SURVEY_CONFIG = {
     options: SURVEY_CATEGORIES,
     prompt: 'Where do you spend the most?',
   },
-  filterMappings: {
-    annualFee: { false: 'no-annual-fee' },
-    creditScore: { none: 'no-credit-history' },
-    primaryGoal: {
-      building_credit: 'no-credit-history',
-      cash_back: 'cashback',
-    },
-  },
 } as const;
 
 export const SURVEY_FILTER_SLUGS = [
-  ...new Set(
-    Object.values(SURVEY_CONFIG.filterMappings).flatMap(Object.values),
-  ),
+  ...new Set(Object.values(SURVEY_FILTER_MAPPINGS).flatMap(Object.values)),
 ];
 
 function hasOption(
@@ -188,12 +200,12 @@ export function deriveSurveySubmission(
     : uniqueKnownValues(values.extraBenefits, EXTRA_BENEFIT_OPTIONS);
   const cardFilterPreferences: SurveySubmission['card_filter_preferences'] = [];
   const annualFeeFilter = filterForAnswer(
-    SURVEY_CONFIG.filterMappings.annualFee,
+    SURVEY_FILTER_MAPPINGS.annualFee,
     values.acceptsAnnualFee,
   );
 
   const creditScoreFilter = filterForAnswer(
-    SURVEY_CONFIG.filterMappings.creditScore,
+    SURVEY_FILTER_MAPPINGS.creditScore,
     values.creditScore,
   );
   if (creditScoreFilter) {
@@ -204,7 +216,7 @@ export function deriveSurveySubmission(
   }
 
   const primaryGoalFilter = filterForAnswer(
-    SURVEY_CONFIG.filterMappings.primaryGoal,
+    SURVEY_FILTER_MAPPINGS.primaryGoal,
     values.primaryGoal,
   );
   if (primaryGoalFilter) {

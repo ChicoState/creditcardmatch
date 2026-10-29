@@ -109,11 +109,12 @@ function SpendInputs({
             <input
               id={`monthly-spend-${category.slug}`}
               inputMode="decimal"
-              min="0"
+              min="0.01"
               onChange={(event) =>
                 onChangeCategorySpend(category.slug, event.target.value)
               }
               placeholder="0"
+              required
               step="0.01"
               type="number"
               value={categorySpend[category.slug] ?? ''}

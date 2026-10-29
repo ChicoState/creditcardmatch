@@ -32,6 +32,7 @@ async function completeSurvey(
   await page.getByRole('button', { name: 'Next question' }).click();
   await page.getByLabel('Groceries').check();
   await page.getByRole('button', { name: 'Next question' }).click();
+  await page.getByLabel('Groceries').fill('425');
   await page.getByRole('button', { name: 'Next question' }).click();
   await page.getByLabel(annualFee, { exact: true }).check();
   await page.getByRole('button', { name: 'Next question' }).click();
@@ -141,12 +142,12 @@ test('issue #3: a cash-back survey path returns a focused shortlist', async ({
   await completeSurvey(page);
   await page.getByRole('button', { name: 'SEE MY MATCHES' }).click();
 
-  await expect(page).toHaveURL(/\/results\?filters=cashback$/);
+  await expect(page).toHaveURL(/\/results\?mode=survey&filters=cashback$/);
   const activeFilters = page.getByLabel('Active filters');
   await expect(activeFilters.getByText('Cashback')).toBeVisible();
   await expectEveryCardToExplain(
     page.locator('article.result-card'),
-    'Matches every active filter: Cashback.',
+    'Cashback: category match',
   );
 });
 
@@ -161,14 +162,14 @@ test('issue #9: result chips match filters derived from the survey', async ({
   await page.getByRole('button', { name: 'SEE MY MATCHES' }).click();
 
   await expect(page).toHaveURL(
-    /\/results\?filters=no-credit-history,cashback$/,
+    /\/results\?mode=survey&filters=no-credit-history,cashback$/,
   );
   const activeFilters = page.getByLabel('Active filters');
   await expect(activeFilters.getByText('No Credit History')).toBeVisible();
   await expect(activeFilters.getByText('Cashback')).toBeVisible();
   await expectEveryCardToExplain(
     page.locator('article.result-card'),
-    'Matches every active filter: No Credit History, Cashback.',
+    'Cashback: category match',
   );
 });
 
