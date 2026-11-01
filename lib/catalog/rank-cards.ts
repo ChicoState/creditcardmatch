@@ -15,8 +15,10 @@ export interface RankingContext {
 }
 
 export type CardMatchRating = 'Best match' | 'Okay' | null;
+export type CardMatchMode = 'goal-based' | 'category-focused';
 
 export interface CardMatch {
+  mode: CardMatchMode | null;
   rating: CardMatchRating;
   score: number;
   maximumScore: number;
@@ -82,7 +84,11 @@ function cappedMonthlyValue(
 function categoryCriteria(
   card: CatalogCard,
   surveyAnswers: SurveySubmission,
-): { criteria: Criterion[]; hasCategoryOverlap: boolean } {
+): {
+  criteria: Criterion[];
+  hasCategoryOverlap: boolean;
+  mode: CardMatchMode;
+} {
   const spendingByCategory = new Map(
     surveyAnswers.category_monthly_spend.map((item) => [
       item.category_slug,
@@ -101,6 +107,7 @@ function categoryCriteria(
         },
       ],
       hasCategoryOverlap: true,
+      mode: 'goal-based',
     };
   }
 
@@ -169,6 +176,7 @@ function categoryCriteria(
 
   return {
     hasCategoryOverlap: matchedRewards.length > 0,
+    mode: 'category-focused',
     criteria: [
       {
         maximumScore: CATEGORY_WEIGHT,
@@ -280,6 +288,7 @@ export function getCardMatch(
 ): CardMatch {
   if (!context.surveyAnswers) {
     return {
+      mode: null,
       rating: null,
       score: 0,
       maximumScore: 0,
@@ -315,6 +324,7 @@ export function getCardMatch(
         : null;
 
   return {
+    mode: categories.mode,
     rating,
     score,
     maximumScore,

@@ -120,6 +120,9 @@ describe('rankCards', () => {
       getCardMatch(cards[0], { activeFilters: [], surveyAnswers }).reasons,
     ).toContain('No spending categories were selected.');
     expect(
+      getCardMatch(cards[0], { activeFilters: [], surveyAnswers }).mode,
+    ).toBe('goal-based');
+    expect(
       getCardMatchRating(cards[1], { activeFilters: [], surveyAnswers }),
     ).toBeNull();
     expect(
@@ -188,6 +191,7 @@ describe('rankCards', () => {
     );
 
     expect(match.hasCategoryOverlap).toBe(true);
+    expect(match.mode).toBe('category-focused');
     expect(match.reasons[0]).toBe('Category match: Shopping.');
   });
 

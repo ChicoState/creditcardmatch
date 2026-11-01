@@ -92,21 +92,21 @@ including the current balance-transfer and welcome-bonus selections, do not
 affect ranking. This prevents incomplete catalog records from unfairly
 lowering a card's ranking.
 
-### Slice 3: Separate goal-based and category-focused results — planned
+### Slice 3: Separate goal-based and category-focused results — implemented
 
-Users who select no spending categories should still receive useful results
+Users who select no spending categories receive useful results
 based on their primary goal, credit range, and annual-fee preference. These
 results will keep the existing `Best match` and `Okay` labels so the visual
 language remains consistent.
 
-The explanation will make the distinction clear without introducing separate
-technical terminology:
+The ranking model records the distinction internally, while the explanation
+makes it clear without introducing separate technical terminology:
 
 > No spending categories were selected.
 
 When categories are selected, category rewards and supported spending amounts
-will be part of the explanation. When selected categories have no matching
-rewards, cards will continue to be presented as `Broader option` results.
+are part of the explanation. When selected categories have no matching
+rewards, cards continue to be presented as `Broader option` results.
 
 This separates an intentional goal-based search from a category search that
 had to fall back to broader cards, without making users learn a new ranking
@@ -175,8 +175,8 @@ Annual-fee preference is a soft ranking signal:
 - A conflicting annual fee lowers the score.
 - Annual-fee conflict does not hide the card.
 
-Income and extra-benefit answers should not affect ranking until the catalog
-contains reliable normalized data for them.
+Income answers do not affect ranking. Confirmed extra-benefit evidence can add
+the small bonus described in Slice 2; unknown benefit data remains neutral.
 
 ## Score and ratings
 
@@ -198,9 +198,9 @@ representative catalog fixtures before being treated as product policy.
 ### Display behavior
 
 - `Best match`: the card meets the best-match threshold and has confirmed
-  credit compatibility. Category and spending fit are meaningful signals when
-  categories are selected; the goal-based behavior for no selected categories
-  is being refined in Slice 3.
+  credit compatibility. Category and spending fit are meaningful signals in
+  category-focused mode; goal, credit, annual-fee, and confirmed-benefit fit
+  are used in goal-based mode.
 - `Okay`: the card has some useful fit, but has weaker category, spending,
   credit, or preference alignment. Unknown credit range belongs here rather
   than in `Best match`.
