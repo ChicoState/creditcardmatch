@@ -227,6 +227,11 @@ describe('ResultsExplorer card details', () => {
     ).not.toBeVisible();
     fireEvent.click(screen.getByText('How to read your results'));
     expect(
+      within(readingGuide as HTMLElement).getByText(
+        'No matching category rewards were found.',
+      ),
+    ).toBeVisible();
+    expect(
       within(readingGuide as HTMLElement).getByText('Best match'),
     ).toBeVisible();
     expect(

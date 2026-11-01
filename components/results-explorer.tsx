@@ -110,6 +110,13 @@ export function ResultsExplorer({
     surveyAnswers !== null &&
     categoryMatchedCards.length === 0 &&
     searchedCards.length > 0;
+  const categoryInfluenceMessage = surveyAnswers
+    ? surveyAnswers.priority_category_slugs.length === 0
+      ? 'No spending categories were selected.'
+      : showingBroaderOptions
+        ? 'No matching category rewards were found.'
+        : 'Selected spending categories influenced this ranking.'
+    : null;
   const displayedCards = useMemo(() => {
     const cardsToRank =
       categoryMatchedCards.length > 0 ? categoryMatchedCards : searchedCards;
@@ -161,6 +168,11 @@ export function ResultsExplorer({
                 available fit. We compare your spending categories, reward fit,
                 credit range, annual-fee preference, and primary goal.
               </p>
+              {categoryInfluenceMessage && (
+                <p className="category-influence-summary">
+                  {categoryInfluenceMessage}
+                </p>
+              )}
               <dl className="match-legend">
                 <div>
                   <dt>

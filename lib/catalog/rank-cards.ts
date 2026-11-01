@@ -84,7 +84,16 @@ function categoryCriteria(
   const selectedCategories = surveyAnswers.priority_category_slugs;
 
   if (selectedCategories.length === 0) {
-    return { criteria: [], hasCategoryOverlap: true };
+    return {
+      criteria: [
+        {
+          maximumScore: 0,
+          score: 0,
+          reason: 'No spending categories were selected.',
+        },
+      ],
+      hasCategoryOverlap: true,
+    };
   }
 
   const totalSpend = selectedCategories.reduce(
@@ -117,6 +126,25 @@ function categoryCriteria(
       SURVEY_CATEGORIES.find((category) => category.slug === categorySlug)
         ?.label ?? categorySlug,
   );
+  const supportedCategories = selectedCategories.filter(
+    (categorySlug) =>
+      SURVEY_CATEGORIES.find((category) => category.slug === categorySlug)
+        ?.supportsSavedSpend,
+  );
+  const unsupportedCategories = selectedCategories.filter(
+    (categorySlug) => !supportedCategories.includes(categorySlug),
+  );
+  const missingSpendAmount = supportedCategories.some((categorySlug) => {
+    const amount = spendingByCategory.get(categorySlug);
+    return amount === undefined || amount <= 0;
+  });
+  const spendingReason = missingSpendAmount
+    ? 'No monthly amount was provided.'
+    : unsupportedCategories.length === selectedCategories.length
+      ? 'Monthly spending is not supported for this category.'
+      : unsupportedCategories.length > 0
+        ? 'Monthly spending is not supported for some selected categories.'
+        : 'Monthly spending: fits this card’s reward structure';
 
   const rewardValue = matchedRewards.reduce(
     (total, reward) =>
@@ -139,18 +167,13 @@ function categoryCriteria(
         score: overlapRatio * CATEGORY_WEIGHT,
         reason:
           matchedLabels.length > 0
-            ? `${matchedLabels.join(', ')}: category match`
-            : 'Selected categories: no matching rewards',
+            ? `Category match: ${matchedLabels.join(', ')}.`
+            : 'No matching category rewards were found.',
       },
       {
         maximumScore: SPENDING_WEIGHT,
         score: spendingFit * SPENDING_WEIGHT,
-        reason:
-          matchedRewards.length === 0
-            ? 'Monthly spending: no selected-category rewards to estimate'
-            : totalSpend === 0
-              ? 'Monthly spending: not used for this category yet'
-              : 'Monthly spending: fits this card’s reward structure',
+        reason: spendingReason,
       },
     ],
   };
