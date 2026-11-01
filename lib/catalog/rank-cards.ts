@@ -1,5 +1,12 @@
-import { SURVEY_CATEGORIES, type SurveySubmission } from '../config/survey';
-import { getCatalogCategorySlugs } from './filter-definitions';
+import {
+  EXTRA_BENEFIT_OPTIONS,
+  SURVEY_CATEGORIES,
+  type SurveySubmission,
+} from '../config/survey';
+import {
+  getCatalogCategorySlugs,
+  getConfirmedBenefitSlugs,
+} from './filter-definitions';
 import type { CardRewardCategory, CatalogCard, CreditLevel } from './types';
 
 export interface RankingContext {
@@ -30,6 +37,7 @@ const CATEGORY_WEIGHT = 40;
 const SPENDING_WEIGHT = 35;
 const CREDIT_WEIGHT = 15;
 const PREFERENCE_WEIGHT = 10;
+const BENEFIT_WEIGHT = 2;
 
 interface Criterion {
   maximumScore: number;
@@ -248,6 +256,24 @@ function preferenceCriteria(
   ];
 }
 
+function benefitCriteria(
+  card: CatalogCard,
+  surveyAnswers: SurveySubmission,
+): Criterion[] {
+  const confirmedBenefits = getConfirmedBenefitSlugs(card.benefits);
+
+  return surveyAnswers.extra_benefit_slugs
+    .filter((benefitSlug) => confirmedBenefits.includes(benefitSlug))
+    .map((benefitSlug) => ({
+      maximumScore: BENEFIT_WEIGHT,
+      score: BENEFIT_WEIGHT,
+      reason: `${
+        EXTRA_BENEFIT_OPTIONS.find((option) => option.value === benefitSlug)
+          ?.label ?? benefitSlug
+      }: included`,
+    }));
+}
+
 export function getCardMatch(
   card: CatalogCard,
   context: RankingContext,
@@ -268,6 +294,7 @@ export function getCardMatch(
     ...categories.criteria,
     credit.criterion,
     ...preferenceCriteria(card, context.surveyAnswers),
+    ...benefitCriteria(card, context.surveyAnswers),
   ];
   const score = criteria.reduce(
     (total, criterion) => total + criterion.score,

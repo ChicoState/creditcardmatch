@@ -1,4 +1,5 @@
 import {
+  getConfirmedBenefitSlugs,
   getCatalogCategorySlugs,
   SURVEY_FILTER_MAPPINGS,
 } from '../../lib/catalog/filter-definitions';
@@ -21,5 +22,17 @@ describe('catalog filter definitions', () => {
     expect(SURVEY_FILTER_MAPPINGS.annualFee.false).toBe('no-annual-fee');
     expect(SURVEY_FILTER_MAPPINGS.creditScore.none).toBe('no-credit-history');
     expect(SURVEY_FILTER_MAPPINGS.primaryGoal.cash_back).toBe('cashback');
+  });
+
+  it('only recognizes explicitly confirmed benefit evidence', () => {
+    expect(
+      getConfirmedBenefitSlugs([
+        'Purchase protection for 120 days',
+        'No foreign transaction fees',
+      ]),
+    ).toEqual(['no-foreign-transaction-fee', 'purchase-protection']);
+    expect(
+      getConfirmedBenefitSlugs(['A useful travel card', 'A welcome offer']),
+    ).toEqual([]);
   });
 });

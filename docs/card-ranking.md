@@ -39,11 +39,95 @@ Survey results:
 - Show `Best match` and `Okay` badges when applicable.
 - Do not show an `Alternative` badge.
 
+## Feature slices and decisions
+
+The ranking work is intentionally split into small changes so each behavior
+can be evaluated and committed separately.
+
+### Slice 1: Explain category influence and spending status — implemented
+
+This slice clarifies the existing ranking output without changing scores,
+weights, thresholds, or card ordering.
+
+The `How to read your results` section briefly states the category context:
+
+- `No spending categories were selected.`
+- `Selected spending categories influenced this ranking.`
+- `No matching category rewards were found.`
+
+Each card's `Why this rating` section keeps all ranking reasons and uses
+shorter, more specific spending messages:
+
+- `No monthly amount was provided.` when a supported category has no positive
+  amount.
+- `Monthly spending is not supported for this category.` when the selected
+  category does not support monthly spending yet.
+- `Monthly spending is not supported for some selected categories.` when a
+  selection mixes supported and unsupported categories.
+- `Monthly spending: fits this card’s reward structure` when the amount is
+  available and used.
+
+The distinction matters because an omitted amount is a user-input situation,
+while an unsupported category is a catalog capability limitation. Neither
+case should be described as if the user made an incorrect choice.
+
+### Slice 2: Add extra-benefit scoring — implemented
+
+Benefits such as purchase protection and travel benefits provide a small
+scoring bonus only when the catalog contains explicit evidence for the
+benefit. The current catalog stores benefit descriptions as text, so the
+ranking layer recognizes only narrowly defined evidence patterns.
+
+The bonus is intentionally weaker than category, spending, and major credit
+signals. It may separate otherwise similar cards but must not override a
+direct category match or a significant credit mismatch.
+
+The explanation adds a short reason only for confirmed matches, such as:
+
+> Purchase protection: included.
+
+Unknown catalog data is neutral: it gives no bonus, creates no penalty, and
+does not add a negative explanation. Benefits without confirmed evidence,
+including the current balance-transfer and welcome-bonus selections, do not
+affect ranking. This prevents incomplete catalog records from unfairly
+lowering a card's ranking.
+
+### Slice 3: Separate goal-based and category-focused results — planned
+
+Users who select no spending categories should still receive useful results
+based on their primary goal, credit range, and annual-fee preference. These
+results will keep the existing `Best match` and `Okay` labels so the visual
+language remains consistent.
+
+The explanation will make the distinction clear without introducing separate
+technical terminology:
+
+> No spending categories were selected.
+
+When categories are selected, category rewards and supported spending amounts
+will be part of the explanation. When selected categories have no matching
+rewards, cards will continue to be presented as `Broader option` results.
+
+This separates an intentional goal-based search from a category search that
+had to fall back to broader cards, without making users learn a new ranking
+system.
+
+### Stretch goal: Supplement explicit mappings with inference — deferred
+
+The current explicit mappings in `lib/catalog/filter-definitions.ts` remain
+the source of truth. A future grep-like inference system may supplement those
+mappings for straightforward cases, but it should not replace explicit
+mappings where survey language is ambiguous or catalog meaning requires
+product judgment.
+
+Inference is deferred so ranking behavior remains predictable while the core
+result explanations and scoring changes are evaluated.
+
 ## Category and spending rules
 
-The survey requires a positive monthly spending estimate for every selected
-priority category. A selected category therefore always represents both an
-interest and a spending signal.
+Selected priority categories represent the user's interests. A monthly
+spending amount is an additional signal only when the category supports saved
+spending and the user provides a positive amount.
 
 Category matching follows these rules:
 
@@ -61,7 +145,7 @@ Category matching follows these rules:
 - A card with no category overlap is hidden when at least one category-matching
   card exists.
 - If no cards overlap the user’s categories, broader cards are shown as
-  unbadged options instead of showing an empty result page.
+  `Broader option` results instead of showing an empty result page.
 
 Spending fit should use the card’s structured reward information when
 available, including reward rate, spending caps, cap periods, and any rate
@@ -113,8 +197,10 @@ representative catalog fixtures before being treated as product policy.
 
 ### Display behavior
 
-- `Best match`: the card meets the best-match threshold, has meaningful
-  category and spending fit, and has confirmed credit compatibility.
+- `Best match`: the card meets the best-match threshold and has confirmed
+  credit compatibility. Category and spending fit are meaningful signals when
+  categories are selected; the goal-based behavior for no selected categories
+  is being refined in Slice 3.
 - `Okay`: the card has some useful fit, but has weaker category, spending,
   credit, or preference alignment. Unknown credit range belongs here rather
   than in `Best match`.
@@ -134,12 +220,15 @@ factors.
 
 Examples:
 
-- `Groceries: strong category match`
+- `Category match: Groceries.`
+- `No spending categories were selected.`
+- `No matching category rewards were found.`
+- `No monthly amount was provided.`
+- `Monthly spending is not supported for this category.`
 - `Monthly spending: fits this card’s reward structure`
 - `Credit range: confirmed fit`
 - `Credit range: unknown, so this card is rated Okay`
 - `Annual fee: does not match your preference`
-- `Travel: no matching rewards`
 
 Broader fallback cards should explain why they are present:
 

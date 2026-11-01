@@ -223,4 +223,43 @@ describe('rankCards', () => {
       }).reasons,
     ).toContain('Monthly spending is not supported for this category.');
   });
+
+  it('adds a small bonus and reason only for confirmed benefits', () => {
+    const card = selectVisibleCatalogCards(catalogFixture)[1];
+    const surveyAnswers: SurveySubmission = {
+      accepts_annual_fee: true,
+      card_filter_preferences: [],
+      category_monthly_spend: [],
+      credit_score_band: 'good',
+      extra_benefit_slugs: ['purchase-protection', 'balance-transfer-offer'],
+      income_range: '60001_to_80000',
+      primary_goal: 'low_or_no_annual_fee',
+      priority_category_slugs: [],
+      user_filter_preferences: [],
+      user_preferences: {
+        accepts_annual_fee: true,
+        wants_travel_rewards: false,
+      },
+    };
+    const match = getCardMatch(
+      {
+        ...card,
+        benefits: ['Purchase protection for 120 days'],
+      },
+      { activeFilters: [], surveyAnswers },
+    );
+    const neutralMatch = getCardMatch(card, {
+      activeFilters: [],
+      surveyAnswers: {
+        ...surveyAnswers,
+        extra_benefit_slugs: ['balance-transfer-offer'],
+      },
+    });
+
+    expect(match.reasons).toContain('Purchase protection: included');
+    expect(match.score).toBe(neutralMatch.score + 2);
+    expect(neutralMatch.reasons).not.toContain(
+      'Balance-transfer offer: included',
+    );
+  });
 });
