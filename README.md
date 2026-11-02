@@ -103,12 +103,20 @@ docker compose version
    ```
 
    With the local Supabase stack running and Playwright Chromium installed, run
-   the browser suite from the host. Playwright starts Next.js on port 3001 when
-   no server is already available there:
+   the browser suite from the host. Playwright builds and starts a production
+   Next.js server on port 3001 when no server is already available there. The
+   first run takes longer because it includes the production build. A leftover
+   server on port 3001 is reused, so stop it first if the results look stale:
 
    ```sh
    npm run test:e2e
    ```
+
+   Stop `npm run dev` before running the suite so the production build and dev
+   server do not write to the same `.next` output at the same time. If auth
+   tests report `Too many attempts. Try again later.`, repeated runs hit the
+   local 127.0.0.1 login/signup rate limit; run `npm run supabase:reset` and
+   re-run.
 
    To confirm production compilation, run:
 
@@ -163,7 +171,7 @@ The generator reports the CSV file and row for duplicate or unknown slugs, inval
 | `npm run test`, `coverage`                  | Infrastructure, application-page, and pure matching-logic tests.                                                                  |
 | `npm run seed:generate`                     | Validates the three team CSV exports and regenerates `supabase/seed.sql`.                                                         |
 | `npm run verify`                            | Full repository baseline. It currently reports pre-existing formatting drift in repository-managed skill and configuration files. |
-| `npm run test:e2e`                          | Runs catalog, survey, and filter flows in Chromium against the local Supabase stack.                                              |
+| `npm run test:e2e`                          | Builds and starts a production Next.js server on port 3001, then runs catalog, survey, and filter flows in Chromium against the local Supabase stack. A leftover server on port 3001 is reused. |
 | `npm run test:smoke`                        | Builds and checks the Docker-based development foundation.                                                                        |
 | `npm run build`, `dev`, `start`             | Next.js production build, development server, and production server commands. Use Node 24 or Docker.                              |
 | `npm run supabase:start`                    | Starts the local Supabase stack from the host with the pinned CLI.                                                                |
