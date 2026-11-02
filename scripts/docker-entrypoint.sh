@@ -12,7 +12,7 @@ mkdir -p /tmp/dev-home
 
 
 
-for directory in /workspace/node_modules /workspace/.next; do
+for directory in /workspace/node_modules /workspace/.next /tmp/dev-home; do
   # Change permissions of these directories based on returned user and group id
   chown -R "${DEV_UID}:${DEV_GID}" "$directory"
 done
