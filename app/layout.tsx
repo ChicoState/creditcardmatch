@@ -3,24 +3,27 @@ import type { ReactNode } from 'react';
 
 import { ComparisonProvider } from '../components/comparison-provider';
 import { SiteHeader } from '../components/site-header';
-import { getCurrentUsername } from '../lib/auth/server';
+import { getCurrentHeaderAccount } from '../lib/auth/server';
 import './globals.css';
 
 export const metadata: Metadata = {
-	title: "CreditCardMatch",
-	description: "Find fictional card matches based on what matters to you.",
+  title: 'CreditCardMatch',
+  description: 'Find fictional card matches based on what matters to you.',
 };
 
 export default async function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
-  const username = await getCurrentUsername();
+  const account = await getCurrentHeaderAccount();
 
   return (
     <html lang="en">
       <body>
         <ComparisonProvider>
-          <SiteHeader username={username} />
+          <SiteHeader
+            username={account?.username}
+            avatarUrl={account?.avatarUrl}
+          />
           {children}
         </ComparisonProvider>
       </body>
