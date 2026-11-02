@@ -1,6 +1,10 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+}));
+
 vi.mock('../../lib/data/catalog', async () => {
   const { catalogFixture } = await import('../fixtures/catalog');
 
@@ -12,6 +16,8 @@ vi.mock('../../lib/data/catalog', async () => {
 import RootLayout from '../../app/layout';
 import LegalPage from '../../app/legal/page';
 import HomePage from '../../app/page';
+import ResultsPage from '../../app/results/page';
+import { ComparisonProvider } from '../../components/comparison-provider';
 
 describe('legal page', () => {
   afterEach(cleanup);
@@ -55,7 +61,7 @@ describe('legal page', () => {
     ).toHaveAttribute('href', expect.stringContaining('consumer.ftc.gov'));
   });
 
-  it('is linked from home and global navigation without requiring an acknowledgment', async () => {
+  it('is linked from home, results, and global navigation without requiring an acknowledgment', async () => {
     const { unmount: unmountHome } = render(await HomePage());
     expect(screen.getByRole('link', { name: 'Legal' })).toHaveAttribute(
       'href',
@@ -63,6 +69,15 @@ describe('legal page', () => {
     );
 
     unmountHome();
+
+    const { unmount: unmountResults } = render(
+      await ResultsPage({ searchParams: Promise.resolve({}) }),
+      { wrapper: ComparisonProvider },
+    );
+    expect(
+      screen.getByRole('link', { name: /read the legal page/i }),
+    ).toHaveAttribute('href', '/legal');
+    unmountResults();
 
     render(await RootLayout({ children: 'Content' }));
     expect(screen.getByRole('link', { name: 'Legal' })).toHaveAttribute(
