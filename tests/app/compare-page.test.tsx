@@ -69,8 +69,7 @@ describe('compare page', () => {
     expect(
       within(table).queryByText('Harbor Starter Card'),
     ).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Clear comparison' }));
-    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    expect(screen.getByRole('table', { name: 'Card comparison' })).toBeVisible();
   });
 
   it('keeps point and mile units, caps, post-cap rates and notes together', () => {

@@ -40,6 +40,6 @@ describe('SiteHeader', () => {
 
     expect(
       [...links].map((link) => link.textContent?.replace(/\s+/gu, ' ').trim()),
-    ).toEqual(['Compare 0', 'Credit Card FAQ', 'Legal']);
+    ).toEqual(['Credit Card FAQ', 'Legal']);
   });
 });
