@@ -33,7 +33,9 @@ export function SurveyQuestionStep({
         <legend id="survey-question" ref={headingRef} tabIndex={-1}>
           {question}
         </legend>
-        <QuestionHelp label={question}>{explanation}</QuestionHelp>
+        <QuestionHelp key={question} label={question}>
+          {explanation}
+        </QuestionHelp>
         {children}
       </fieldset>
     </section>

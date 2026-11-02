@@ -19,11 +19,28 @@ describe('comparison data', () => {
           rate_after_cap: 0.5,
           notes: 'Enrollment required',
         },
+        {
+          ...catalogFixture.cardRewards[2],
+          spend_cap: 1500,
+          cap_period: 'quarter',
+          rate_after_cap: 0.5,
+          notes: 'Enrollment required',
+        },
       ],
     });
     expect(cards.map((card) => card.cardId)).toEqual([10, 11]);
     expect(cards[0].benefits).toEqual(['First benefit', 'Second benefit']);
-    expect(cards[0].rewards).toEqual([]);
+    expect(cards[0].rewards).toEqual([
+      expect.objectContaining({
+        categoryId: 21,
+        categoryName: 'Groceries',
+        rate: 2,
+        spendCap: 1500,
+        capPeriod: 'quarter',
+        rateAfterCap: 0.5,
+        notes: 'Enrollment required',
+      }),
+    ]);
     expect(cards[1].rewards).toEqual([
       expect.objectContaining({
         categoryId: 20,

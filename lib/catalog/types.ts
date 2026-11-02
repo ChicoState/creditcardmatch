@@ -68,6 +68,15 @@ export interface CardBenefitRow {
   sort_order: number;
 }
 
+export interface CardRewardCategory {
+  categorySlug: string;
+  categoryLabel: string;
+  rewardRate: number;
+  spendCap: number | null;
+  capPeriod: RewardCapPeriod | null;
+  rateAfterCap: number | null;
+}
+
 export interface CatalogSnapshot {
   filters: FilterRow[];
   creditCards: CreditCardRow[];
@@ -91,12 +100,14 @@ export interface CatalogCard {
   foreignTransactionFeePercent: number | null;
   isSecured: boolean;
   securityDepositMin: number | null;
+  introOffer: string | null;
   applyUrl: string | null;
   imageUrl: string | null;
   description: string | null;
   rewardType: RewardType | null;
   creditLevelRequired: CreditLevel | null;
   isVerified: boolean;
+  rewardCategories: CardRewardCategory[];
   benefits: string[];
   filterSlugs: string[];
 }
