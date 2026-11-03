@@ -1,5 +1,9 @@
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { cleanup, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+}));
 
 vi.mock('../../lib/data/catalog', async () => {
   const { catalogFixture } = await import('../fixtures/catalog');
@@ -13,8 +17,11 @@ import RootLayout from '../../app/layout';
 import LegalPage from '../../app/legal/page';
 import HomePage from '../../app/page';
 import ResultsPage from '../../app/results/page';
+import { ComparisonProvider } from '../../components/comparison-provider';
 
 describe('legal page', () => {
+  afterEach(cleanup);
+
   it('explains site boundaries and common credit-card risks', () => {
     render(<LegalPage />);
 
@@ -25,7 +32,7 @@ describe('legal page', () => {
     ).toBeVisible();
     expect(screen.getByText(/independent, informational tool/i)).toBeVisible();
     expect(
-      screen.getByText(/does not provide legal, financial, tax/i),
+      screen.getByText(/Nothing here is legal, financial, tax/i),
     ).toBeVisible();
     expect(
       screen.getByRole('heading', { name: 'The costs can add up' }),
@@ -37,22 +44,24 @@ describe('legal page', () => {
         name: 'When debt becomes a legal problem',
       }),
     ).toBeVisible();
-    expect(screen.getByText(/wage garnishment/i)).toBeVisible();
-    expect(screen.getByText(/bankruptcy/i)).toBeVisible();
+    expect(screen.getByText(/wage garnishment is not automatic/i)).toBeVisible();
+    expect(
+      screen.getByText(/bankruptcy can have lasting consequences/i),
+    ).toBeVisible();
     expect(
       screen.getByRole('heading', { name: 'A safer way to compare' }),
     ).toBeVisible();
     expect(
       screen.getByRole('link', {
-        name: /consumer financial protection bureau/i,
+        name: /Read CFPB interest guidance/i,
       }),
     ).toHaveAttribute('href', expect.stringContaining('consumerfinance.gov'));
     expect(
-      screen.getByRole('link', { name: /FTC debt collection guidance/i }),
+      screen.getByRole('link', { name: /FTC debt-collection FAQs/i }),
     ).toHaveAttribute('href', expect.stringContaining('consumer.ftc.gov'));
   });
 
-  it('is linked prominently without requiring an acknowledgment', async () => {
+  it('is linked from home, results, and global navigation without requiring an acknowledgment', async () => {
     const { unmount: unmountHome } = render(await HomePage());
     expect(screen.getByRole('link', { name: 'Legal' })).toHaveAttribute(
       'href',
@@ -60,15 +69,17 @@ describe('legal page', () => {
     );
 
     unmountHome();
-    const { unmount } = render(
+
+    const { unmount: unmountResults } = render(
       await ResultsPage({ searchParams: Promise.resolve({}) }),
+      { wrapper: ComparisonProvider },
     );
     expect(
       screen.getByRole('link', { name: /read the legal page/i }),
     ).toHaveAttribute('href', '/legal');
-    unmount();
+    unmountResults();
 
-    render(RootLayout({ children: 'Content' }));
+    render(await RootLayout({ children: 'Content' }));
     expect(screen.getByRole('link', { name: 'Legal' })).toHaveAttribute(
       'href',
       '/legal',

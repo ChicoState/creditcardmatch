@@ -115,6 +115,12 @@ const creditCards: CreditCardRow[] = [
 
 const rewardCategories: RewardCategoryRow[] = [
   {
+    category_id: 21,
+    category_name: 'Groceries',
+    slug: 'groceries',
+    display_order: 1,
+  },
+  {
     category_id: 20,
     category_name: 'Other',
     slug: 'other',
@@ -123,6 +129,26 @@ const rewardCategories: RewardCategoryRow[] = [
 ];
 
 const cardRewards: CardRewardRow[] = [
+  {
+    card_reward_id: 31,
+    card_id: 10,
+    category_id: 21,
+    reward_rate: 2,
+    spend_cap: null,
+    cap_period: null,
+    rate_after_cap: null,
+    notes: null,
+  },
+  {
+    card_reward_id: 32,
+    card_id: 11,
+    category_id: 21,
+    reward_rate: 3,
+    spend_cap: null,
+    cap_period: null,
+    rate_after_cap: null,
+    notes: null,
+  },
   {
     card_reward_id: 30,
     card_id: 11,
