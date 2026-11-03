@@ -130,9 +130,10 @@ test('a visitor can open the legal page without a gate', async ({ page }) => {
   await expect(page.getByText(/no acknowledgment/i)).not.toBeVisible();
 
   await page.goto('/results');
+  await page.getByRole('link', { name: /read the legal page/i }).click();
   await expect(
-    page.getByRole('link', { name: /read the legal page/i }),
-  ).not.toBeVisible();
+    page.getByRole('heading', { name: 'When debt becomes a legal problem' }),
+  ).toBeVisible();
 });
 
 test('issue #3: a cash-back survey path returns a focused shortlist', async ({

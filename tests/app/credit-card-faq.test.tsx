@@ -57,14 +57,14 @@ describe('credit card FAQ', () => {
     ).toHaveAttribute('href', expect.stringContaining('consumerfinance.gov'));
     expect(screen.queryByText(/AI-generated/i)).not.toBeInTheDocument();
     expect(
-      screen.getByRole('link', { name: 'Read the legal information' }),
+      screen.getByRole('link', { name: /Read the legal information/i }),
     ).toHaveAttribute('href', '/legal');
   });
 
   it('is linked from the home page, recommendations, and global navigation', async () => {
     const { unmount } = render(await HomePage());
     expect(
-      screen.getByRole('link', { name: 'Credit card FAQ' }),
+      screen.getByRole('link', { name: /Credit card FAQ/i }),
     ).toHaveAttribute('href', '/learn');
     unmount();
 

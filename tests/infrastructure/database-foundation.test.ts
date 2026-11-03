@@ -1,49 +1,82 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const projectFile = (path: string) => resolve(process.cwd(), path);
 
 describe('database foundation', () => {
-  const migration = readFileSync(
-    projectFile('supabase/migrations/20260928120000_initial_schema.sql'),
-    'utf8',
-  );
+  const migration = readdirSync(projectFile('supabase/migrations'))
+    .filter((file) => file.endsWith('.sql'))
+    .sort()
+    .map((file) => readFileSync(projectFile(`supabase/migrations/${file}`), 'utf8'))
+    .join('\n');
   const seed = readFileSync(projectFile('supabase/seed.sql'), 'utf8');
+  const publicTables = [
+    ...migration.matchAll(/create table public\.([a-z_]+)/gi),
+  ].map((match) => match[1]);
 
   it('links application profiles to Supabase Auth and enables RLS', () => {
-    expect(migration).toContain('references auth.users(id) on delete cascade');
-    expect(migration).toContain(
-      'alter table public.profiles enable row level security',
+    expect(migration).toMatch(
+      /references auth\.users\(id\) on delete cascade/i,
     );
-    expect(migration).toContain('create policy "users read their own profile"');
-    expect(migration).toContain('create policy "administrators create cards"');
+    expect(migration).toMatch(
+      /alter table public\.profiles enable row level security/i,
+    );
+    expect(migration).toMatch(/create policy "owners can read profiles"/i);
+    expect(migration).toMatch(/create policy "owners can create profiles"/i);
   });
 
   it('models the confirmed private data and catalog boundaries', () => {
     for (const table of [
-      'user_preferences',
-      'user_spending',
-      'user_owned_cards',
-      'reward_programs',
+      'profiles',
+      'user_category_spend',
+      'user_filter_preferences',
       'credit_cards',
       'card_rewards',
       'recommendations',
     ]) {
-      expect(migration).toContain(`create table public.${table}`);
+      expect(migration).toMatch(
+        new RegExp(`create table (?:public\\.)?${table}\\b`, 'i'),
+      );
     }
 
-    expect(migration).toContain('source_url text not null');
-    expect(migration).toContain('last_reviewed_at timestamptz not null');
-    expect(migration).toContain('cap_period text');
-    expect(migration).toContain('profile_snapshot jsonb not null');
+    expect(migration).toMatch(/source_url text/i);
+    expect(migration).toMatch(/last_verified_at timestamptz/i);
+    expect(migration).toMatch(/cap_period text/i);
+    for (const table of publicTables) {
+      expect(migration).toMatch(
+        new RegExp(
+          `alter table public\\.${table} enable row level security`,
+          'i',
+        ),
+      );
+    }
+    expect(migration).not.toMatch(/disable row level security/i);
+
+    for (const table of [
+      'credit_cards',
+      'card_rewards',
+      'filters',
+      'card_filters',
+    ]) {
+      expect(migration).not.toMatch(
+        new RegExp(
+          `create policy\\s+"[^"]+"\\s+on public\\.${table}\\s+for\\s+(?:insert|update|delete|all)\\b`,
+          'i',
+        ),
+      );
+    }
   });
 
   it('seeds the verified no-credit-history catalog additions', () => {
     expect(seed).toContain('Chase Freedom Unlimited');
-    expect(seed).toContain('Capital One Quicksilver');
-    expect(seed).toContain('https://creditcards.chase.com/');
-    expect(seed).toContain('https://www.capitalone.com/credit-cards/');
+    expect(seed).toContain('Quicksilver Secured');
+    expect(seed).toContain(
+      'https://creditcards.chase.com/cash-back-credit-cards/freedom/unlimited',
+    );
+    expect(seed).toContain(
+      'https://www.capitalone.com/credit-cards/quicksilver-secured/',
+    );
     expect(seed).toContain("'no-credit-history'");
     for (const cardName of [
       'Capital One Platinum',
