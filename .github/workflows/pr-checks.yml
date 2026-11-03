@@ -63,20 +63,42 @@ jobs:
   e2e:
     name: Playwright against test environment
     runs-on: ubuntu-latest
-    if: ${{ vars.E2E_BASE_URL != '' && secrets.E2E_TEST_USER_EMAIL != '' && secrets.E2E_TEST_USER_PASSWORD != '' }}
+    if: ${{ vars.E2E_BASE_URL != '' }}
+
+    env:
+      PLAYWRIGHT_BASE_URL: ${{ vars.E2E_BASE_URL }}
+      E2E_TEST_USER_EMAIL: ${{ secrets.E2E_TEST_USER_EMAIL }}
+      E2E_TEST_USER_PASSWORD: ${{ secrets.E2E_TEST_USER_PASSWORD }}
+
     steps:
+      - name: Check E2E credentials
+        id: config
+        run: |
+          if [[ -n "$E2E_TEST_USER_EMAIL" && -n "$E2E_TEST_USER_PASSWORD" ]]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping E2E: credentials not configured."
+          fi
+
       - uses: actions/checkout@v5
+        if: ${{ steps.config.outputs.enabled == 'true' }}
+
       - uses: actions/setup-node@v5
+        if: ${{ steps.config.outputs.enabled == 'true' }}
         with:
           node-version: 24.21.0
           cache: npm
+
       - run: npm ci
+        if: ${{ steps.config.outputs.enabled == 'true' }}
+
       - run: npx playwright install --with-deps chromium
+        if: ${{ steps.config.outputs.enabled == 'true' }}
+
       - run: npm run test:e2e
-        env:
-          PLAYWRIGHT_BASE_URL: ${{ vars.E2E_BASE_URL }}
-          E2E_TEST_USER_EMAIL: ${{ secrets.E2E_TEST_USER_EMAIL }}
-          E2E_TEST_USER_PASSWORD: ${{ secrets.E2E_TEST_USER_PASSWORD }}
+        if: ${{ steps.config.outputs.enabled == 'true' }}
+
       - uses: actions/upload-artifact@v4
         if: ${{ failure() }}
         with:
