@@ -53,10 +53,15 @@ export function createAuthAdminClient() {
 }
 
 export async function getCurrentHeaderAccount(): Promise<
-  { username: string; avatarUrl?: string } | undefined
+  | {
+      username: string;
+      avatarUrl?: string;
+    }
+  | undefined
 > {
   try {
-    const { data } = await (await createAuthServerClient()).auth.getUser();
+    const auth = await createAuthServerClient();
+    const { data } = await auth.auth.getUser();
     const username = data.user?.user_metadata?.username;
     if (!data.user) return undefined;
     const avatarUrl = data.user.user_metadata?.avatar_url;

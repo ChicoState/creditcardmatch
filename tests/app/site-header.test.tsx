@@ -85,7 +85,7 @@ describe('SiteHeader', () => {
     pathname.current = '/';
   });
 
-  it('opens account actions from the avatar without showing the username in the navbar', () => {
+  it('opens account actions from the avatar without showing cards in the menu', () => {
     render(<SiteHeader username="alex" />);
 
     const menuButton = screen.getByText('Open account menu');
@@ -99,11 +99,33 @@ describe('SiteHeader', () => {
       within(menu).getByRole('link', { name: 'Account details' }),
     ).toHaveAttribute('href', '/account');
     expect(
+      within(menu).getByRole('link', { name: 'Current Cards' }),
+    ).toHaveAttribute('href', '/account/current-cards');
+    expect(
       within(menu).getByRole('link', { name: 'Bookmarked cards' }),
     ).toHaveAttribute('href', '/bookmarks');
+    expect(
+      within(menu).queryByText('Everyday Cash Card'),
+    ).not.toBeInTheDocument();
+    expect(
+      within(menu).queryByText('Travel Rewards Card'),
+    ).not.toBeInTheDocument();
     expect(
       within(menu).getByRole('button', { name: 'Log out' }),
     ).toBeInTheDocument();
     expect(menu.querySelector('.account-avatar')).toBeInTheDocument();
+  });
+
+  it('links to the independent current cards page without putting a message in the menu', () => {
+    render(<SiteHeader username="alex" />);
+
+    fireEvent.click(screen.getByText('Open account menu'));
+    const menu = screen.getByRole('group', { name: 'Account menu' });
+    expect(
+      within(menu).getByRole('link', { name: 'Current Cards' }),
+    ).toHaveAttribute('href', '/account/current-cards');
+    expect(
+      within(menu).queryByText('No current cards added.'),
+    ).not.toBeInTheDocument();
   });
 });
