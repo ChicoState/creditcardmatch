@@ -18,9 +18,10 @@ export default defineConfig({
   webServer: configuredBaseURL
     ? undefined
     : {
-        command: 'npm run dev -- --port 3001',
+        command: 'npm run build && npm run start -- --port 3001',
         reuseExistingServer: !process.env.CI,
         url: localBaseURL,
+        timeout: 180_000,
       },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
 });

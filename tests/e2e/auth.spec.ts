@@ -38,8 +38,10 @@ test.describe.serial('username authentication', () => {
     await page.getByLabel('Password').fill('wrongpass1');
     await page.getByRole('button', { name: 'Login' }).click();
 
-    await expect(page.getByRole('alert')).toHaveText(
-      'Invalid username or password.',
-    );
+    await expect(
+      page
+        .getByRole('alert')
+        .filter({ hasText: /invalid username or password/i }),
+    ).toHaveText('Invalid username or password.');
   });
 });
