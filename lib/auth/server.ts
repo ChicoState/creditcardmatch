@@ -52,11 +52,21 @@ export function createAuthAdminClient() {
   );
 }
 
-export async function getCurrentUsername(): Promise<string | undefined> {
+export async function getCurrentHeaderAccount(): Promise<
+  { username: string; avatarUrl?: string } | undefined
+> {
   try {
     const { data } = await (await createAuthServerClient()).auth.getUser();
     const username = data.user?.user_metadata?.username;
-    return typeof username === 'string' ? username : undefined;
+    if (!data.user) return undefined;
+    const avatarUrl = data.user.user_metadata?.avatar_url;
+    return {
+      username: typeof username === 'string' ? username : 'Account',
+      avatarUrl:
+        typeof avatarUrl === 'string' && /^https?:\/\//i.test(avatarUrl)
+          ? avatarUrl
+          : undefined,
+    };
   } catch {
     return undefined;
   }

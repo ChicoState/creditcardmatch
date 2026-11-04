@@ -127,10 +127,84 @@ h1 {
 	text-underline-offset: 0.25rem;
 }
 
+.primary-nav a[aria-current="page"],
+.account-nav a[aria-current="page"] {
+	color: var(--ink);
+	font-size: 1rem;
+	font-weight: 800;
+}
+
+.account-avatar {
+	color: var(--muted-ink);
+	flex: none;
+	height: 2rem;
+	width: 2rem;
+	border-radius: 50%;
+	object-fit: cover;
+}
+
 .account-nav {
 	align-items: center;
 	display: flex;
 	gap: 0.875rem;
+}
+
+.account-menu {
+	position: relative;
+}
+
+.account-menu summary {
+	align-items: center;
+	cursor: pointer;
+	display: flex;
+	list-style: none;
+}
+
+.account-menu summary::-webkit-details-marker {
+	display: none;
+}
+
+.account-menu summary:focus-visible {
+	border-radius: 50%;
+	outline: 2px solid var(--accent);
+	outline-offset: 3px;
+}
+
+.account-menu-label {
+	clip: rect(0, 0, 0, 0);
+	clip-path: inset(50%);
+	height: 1px;
+	overflow: hidden;
+	position: absolute;
+	white-space: nowrap;
+	width: 1px;
+}
+
+.account-menu-panel {
+	background: var(--panel);
+	border: 1px solid var(--line);
+	border-radius: var(--radius-medium);
+	box-shadow: var(--shadow);
+	display: grid;
+	gap: 0.75rem;
+	min-width: 12rem;
+	padding: 1rem;
+	position: absolute;
+	right: 0;
+	top: calc(100% + 0.75rem);
+}
+
+.account-menu-identity {
+	align-items: center;
+	border-bottom: 1px solid var(--line);
+	display: flex;
+	gap: 0.75rem;
+	padding-bottom: 0.75rem;
+}
+
+.account-menu-panel form {
+	border-top: 1px solid var(--line);
+	padding-top: 0.75rem;
 }
 
 .account-username {
