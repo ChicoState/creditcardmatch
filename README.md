@@ -4,6 +4,29 @@ Infrastructure foundation, Phase 1 MVP pages and pure matching logic, and Phase 
 
 The stack is TypeScript, Next.js/React, Supabase, npm, and a Node 24 development container. Every developer also installs Node 24 LTS and npm 11 on the host so the project-pinned Supabase CLI can manage Docker through `npx`. Update the exact container image patch and `.nvmrc` together when the project deliberately refreshes its LTS baseline.
 
+## Account details
+
+Signed-in users can edit a display name, an optional unverified contact email,
+and a profile photo at `/account`. Username/password login is unchanged. Name,
+contact email, and the photo reference are stored in Supabase Auth user metadata;
+they must never be used to make authorization decisions.
+
+Profile photos require the reviewed `20261104120000_account_avatars.sql`
+migration. It creates a private `avatars` bucket with owner-only read, insert,
+and delete policies. This migration has **not been applied or verified locally
+or remotely** as part of this implementation. Apply it only after the repository's
+required migration review/authorization. Existing instructions to reset the local
+stack also apply this new migration, so obtain review before resetting.
+
+JPEG, PNG, and WebP uploads are limited to 2 MB and 16 megapixels. The server
+decodes and re-encodes photos as WebP, strips metadata, and bounds dimensions to
+512×512. Signed display URLs expire after one hour and refresh on navigation or
+reload. Next.js accepts Server Action bodies up to 3 MB to allow multipart overhead.
+
+The account browser flow is `PLAYWRIGHT_BASE_URL=http://localhost:3001 npx
+playwright test tests/e2e/account.spec.ts --workers=1 --project=chromium`.
+See [the account plan](docs/account-details-plan.md) for acceptance criteria.
+
 ## Repository map
 
 | Location                    | Purpose                                                          |

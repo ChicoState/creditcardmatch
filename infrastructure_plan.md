@@ -37,7 +37,8 @@
 
 - **Storage model:** Hosted relational storage.
 - **Primary data store:** Supabase-hosted PostgreSQL.
-- **User files or object storage:** None planned; add Supabase Storage later only if users must upload files or media.
+- **User files or object storage:** Supabase Storage holds account profile photos in a private `avatars` bucket. Session-authenticated access is restricted to the user's UUID folder; server-rendered signed URLs expire after one hour. Accept JPEG, PNG, and WebP uploads up to 2 MB and decode/re-encode them to bounded WebP images before storage. Version-controlled bucket/policy migrations require review before application.
+- **Account details:** Supabase Auth user metadata stores `display_name`, optional unverified `contact_email`, and `avatar_path`. These are presentation/contact fields, never authorization data. Existing username/password login and the internal authentication email remain unchanged. Next.js Server Actions accept multipart bodies up to 3 MB for the 2 MB photo limit.
 - **Local-development storage:** A local Supabase stack managed by the pinned npm Supabase CLI and Docker. Developers run the CLI through `npx`; local URL and keys come from `npx supabase status` and belong only in ignored `.env.local` files.
 - **Production hosting model:** Supabase managed PostgreSQL in a production project.
 - **Schema and migration approach:** Version-controlled SQL migrations applied through the future Supabase migration workflow. Public card-catalog tables are readable by anonymous and authenticated clients but writable only through trusted service-role or dashboard operations. User-owned tables use Supabase Auth UUIDs and row-level policies based on `auth.uid()`. Catalog status visibility is enforced in application behavior, not RLS: inactive cards are hidden and unverified cards remain visible with an `Unverified` label.
