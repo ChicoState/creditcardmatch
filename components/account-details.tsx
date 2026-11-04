@@ -6,6 +6,7 @@ import { saveAccountDetails } from '../lib/account/actions';
 import { AVATAR_MAX_BYTES, AVATAR_TYPES } from '../lib/account/validation';
 
 interface AccountDetailsProps {
+  username: string;
   name: string;
   email: string;
   avatarUrl?: string;
@@ -227,12 +228,21 @@ function AccountEditor({
 }
 
 export function AccountDetails({
+  username,
   name,
   email,
   avatarUrl,
 }: AccountDetailsProps) {
   return (
     <div className="account-details">
+      <section
+        className="account-section"
+        aria-labelledby="account-username-heading"
+      >
+        <h2 id="account-username-heading">Username</h2>
+        <p className="account-value">{username}</p>
+        <p className="account-help">Used to sign in. Cannot be changed.</p>
+      </section>
       <AccountEditor field="name" value={name} />
       <AccountEditor field="email" value={email} />
       <AccountEditor field="photo" value="" avatarUrl={avatarUrl} />

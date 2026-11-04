@@ -21,7 +21,7 @@ describe('account editors', () => {
   it('shows account values and saves an edited display name', async () => {
     vi.mocked(saveAccountDetails).mockResolvedValue({ success: true });
     const user = userEvent.setup();
-    render(<AccountDetails name="Original" email="" />);
+    render(<AccountDetails username="login" name="Original" email="" />);
     expect(screen.getByText('No email added')).toBeVisible();
     await user.click(screen.getByRole('button', { name: 'Change name' }));
     const input = screen.getByLabelText('New account name');
@@ -35,7 +35,7 @@ describe('account editors', () => {
   });
   it('discards drafts on cancel', async () => {
     const user = userEvent.setup();
-    render(<AccountDetails name="Original" email="" />);
+    render(<AccountDetails username="login" name="Original" email="" />);
     await user.click(screen.getByRole('button', { name: 'Change name' }));
     await user.type(screen.getByLabelText('New account name'), ' draft');
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
@@ -52,7 +52,7 @@ describe('account editors', () => {
         }),
     );
     const user = userEvent.setup();
-    render(<AccountDetails name="Original" email="" />);
+    render(<AccountDetails username="login" name="Original" email="" />);
     await user.click(screen.getByRole('button', { name: 'Change email' }));
     await user.type(
       screen.getByLabelText('New contact email'),
@@ -69,7 +69,7 @@ describe('account editors', () => {
     );
   });
   it('rejects invalid files before upload', async () => {
-    render(<AccountDetails name="Original" email="" />);
+    render(<AccountDetails username="login" name="Original" email="" />);
     fireEvent.click(screen.getByRole('button', { name: 'Change photo' }));
     fireEvent.change(screen.getByLabelText('Choose a photo'), {
       target: {

@@ -19,6 +19,11 @@ export default async function AccountPage() {
         Manage your name, contact email, and profile photo.
       </p>
       <AccountDetails
+        username={
+          typeof user.user_metadata.username === 'string'
+            ? user.user_metadata.username
+            : ''
+        }
         name={accountName(user)}
         email={typeof email === 'string' ? email : ''}
         avatarUrl={await accountAvatarUrl(user, auth)}

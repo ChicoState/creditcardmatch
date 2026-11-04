@@ -39,6 +39,14 @@ describe('account page', () => {
       },
     });
     render(await AccountPage());
+    const username = screen.getByRole('region', { name: 'Username' });
+    expect(username).toHaveTextContent('login');
+    expect(username.querySelector('input, button')).toBeNull();
+    expect(
+      screen
+        .getAllByRole('heading', { level: 2 })
+        .map((heading) => heading.textContent),
+    ).toEqual(['Username', 'Account name', 'Contact email', 'Profile photo']);
     expect(screen.getByText('Display name')).toBeVisible();
     expect(screen.getByText('contact@example.com')).toBeVisible();
     expect(
@@ -50,7 +58,7 @@ describe('account page', () => {
       data: { user: { id: 'owner', user_metadata: { username: 'login' } } },
     });
     render(await AccountPage());
-    expect(screen.getByText('login')).toBeVisible();
+    expect(screen.getAllByText('login')).toHaveLength(2);
     expect(screen.getByText('No email added')).toBeVisible();
     expect(
       screen.getByRole('img', { name: 'Default profile photo' }),
