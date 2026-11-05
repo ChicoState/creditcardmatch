@@ -214,7 +214,8 @@ function AccountEditor({
                     return;
                   }
                   setFile(selected);
-                  setPreview(URL.createObjectURL(selected));
+                  // Encode the generated URL, not the file contents or signed storage URL.
+                  setPreview(encodeURI(URL.createObjectURL(selected)));
                 }}
               />
               <p id={`account-${field}-help`} className="account-help">
