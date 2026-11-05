@@ -1,68 +1,68 @@
-import Link from "next/link";
-import styles from "./page.module.css";
+import Link from 'next/link';
+import styles from './page.module.css';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-	return (
-		<main className="page-shell">
-			<section className={styles.landingHero} aria-labelledby="landing-heading">
-				<h1 className={styles.landingHeading}>
-					Find the card that&apos;s right for you!
-				</h1>
-				<div className={styles.landingChoices}>
-					<section className={styles.landingColumn}>
-						<h2>Popular Categories:</h2>
-						<div className={styles.popularCategoryButtons}>
-							<Link
-								className="secondary-action"
-								href="/results?filters=popular-cards"
-							>
-								📈 Popular cards
-							</Link>
-							<Link
-								className="secondary-action"
-								href="/results?filters=travel-focus"
-							>
-								✈️ Travel cards
-							</Link>
-							<Link
-								className="secondary-action"
-								href="/results?filters=gas-focus"
-							>
-								⛽ Gas cards
-							</Link>
-							<Link
-								className="secondary-action"
-								href="/results?filters=cashback"
-							>
-								💰 Cashback cards
-							</Link>
-						</div>
-					</section>
+  return (
+    <main className="page-shell">
+      <section className={styles.landingHero} aria-labelledby="landing-heading">
+        <h1 className={styles.landingHeading}>
+          Find the card that&apos;s right for you!
+        </h1>
+        <div className={styles.landingChoices}>
+          <section className={styles.landingColumn}>
+            <h2>Popular Categories:</h2>
+            <div className={styles.popularCategoryButtons}>
+              <Link
+                className="secondary-action"
+                href="/results?filters=popular-cards"
+              >
+                📈 Popular cards
+              </Link>
+              <Link
+                className="secondary-action"
+                href="/results?filters=travel-focus"
+              >
+                ✈️ Travel cards
+              </Link>
+              <Link
+                className="secondary-action"
+                href="/results?filters=gas-focus"
+              >
+                ⛽ Gas cards
+              </Link>
+              <Link
+                className="secondary-action"
+                href="/results?filters=cashback"
+              >
+                💰 Cashback cards
+              </Link>
+            </div>
+          </section>
 
-					<section className={styles.landingColumn}>
-						<h2>Take our survey for personalized recommendations:</h2>
-						<Link className="primary-action" href="/survey">
-							SURVEY
-						</Link>
-					</section>
+          <section className={styles.landingColumn}>
+            <h2>Take our survey for personalized recommendations:</h2>
+            <Link className="primary-action" href="/survey">
+              SURVEY
+            </Link>
+          </section>
 
-					<section className={styles.landingColumn}>
-						<h2>Want a blank slate?</h2>
-						<Link className="primary-action" href="/results">
-							START FRESH
-						</Link>
-					</section>
-				</div>
+          <section className={styles.landingColumn}>
+            <h2>Want a blank slate?</h2>
+            <Link className="primary-action" href="/results">
+              START FRESH
+            </Link>
+          </section>
+        </div>
 
-				<Link className={styles.learnLink} href="/learn">
-					Credit Card FAQ
-				</Link>
-				<Link className={styles.learnLink} href="/legal">
-					Legal
-				</Link>
-			</section>
-		</main>
-	);
+        <Link className={styles.learnLink} href="/learn">
+          Credit Card FAQ
+        </Link>
+        <Link className={styles.learnLink} href="/legal">
+          Legal
+        </Link>
+      </section>
+    </main>
+  );
 }

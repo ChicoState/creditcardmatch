@@ -25,10 +25,7 @@ const filterMigrations = [
     'supabase/migrations/20261015120000_no_annual_fee_filter.sql',
     'utf8',
   ),
-  readFileSync(
-    'supabase/migrations/20261028120000_focus_filters.sql',
-    'utf8',
-  ),
+  readFileSync('supabase/migrations/20261028120000_focus_filters.sql', 'utf8'),
 ];
 
 function seededFilterSlugs(): string[] {

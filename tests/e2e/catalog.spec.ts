@@ -91,7 +91,9 @@ test('spending focus filters return cards with the matching reward category', as
   ]) {
     await page.goto(`/results?filters=${focus.slug}`);
 
-    await expect(page.getByLabel('Active filters').getByText(focus.label)).toBeVisible();
+    await expect(
+      page.getByLabel('Active filters').getByText(focus.label),
+    ).toBeVisible();
     await expectEveryCardToExplain(
       page.locator('article.result-card'),
       `Matches every active filter: ${focus.label}.`,

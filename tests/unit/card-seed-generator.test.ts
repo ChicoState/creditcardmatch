@@ -221,9 +221,15 @@ describe('generateSeed', () => {
 
     const result = await generateSeed(rootDir);
 
-    expect(result.sql).toContain("('capital-one-platinum-secured', 'dining-food-focus')");
-    expect(result.sql).toContain("('capital-one-platinum-secured', 'gas-focus')");
-    expect(result.sql).toContain("('capital-one-platinum-secured', 'travel-focus')");
+    expect(result.sql).toContain(
+      "('capital-one-platinum-secured', 'dining-food-focus')",
+    );
+    expect(result.sql).toContain(
+      "('capital-one-platinum-secured', 'gas-focus')",
+    );
+    expect(result.sql).toContain(
+      "('capital-one-platinum-secured', 'travel-focus')",
+    );
   });
 });
 
