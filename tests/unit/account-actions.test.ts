@@ -5,15 +5,27 @@ import { saveAccountDetails } from '../../lib/account/actions';
 
 const mocks = vi.hoisted(() => ({
   getUser: vi.fn(),
+  signInWithPassword: vi.fn(),
   updateUser: vi.fn(),
+  updateUserById: vi.fn(),
   upload: vi.fn(),
   remove: vi.fn(),
   revalidatePath: vi.fn(),
 }));
+vi.mock('../../lib/auth/rate-limit', () => ({
+  consumeAuthRateLimit: async () => true,
+}));
 vi.mock('next/cache', () => ({ revalidatePath: mocks.revalidatePath }));
 vi.mock('../../lib/auth/server', () => ({
+  createAuthAdminClient: () => ({
+    auth: { admin: { updateUserById: mocks.updateUserById } },
+  }),
   createAuthServerClient: async () => ({
-    auth: { getUser: mocks.getUser, updateUser: mocks.updateUser },
+    auth: {
+      getUser: mocks.getUser,
+      signInWithPassword: mocks.signInWithPassword,
+      updateUser: mocks.updateUser,
+    },
     storage: { from: () => ({ upload: mocks.upload, remove: mocks.remove }) },
   }),
 }));
@@ -26,6 +38,7 @@ describe('account save authorization and failure recovery', () => {
       data: {
         user: {
           id,
+          email: 'internal@accounts.invalid',
           user_metadata: {
             username: 'login',
             avatar_path: `${id}/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa.webp`,
@@ -33,7 +46,12 @@ describe('account save authorization and failure recovery', () => {
         },
       },
     });
+    mocks.signInWithPassword.mockResolvedValue({
+      data: { user: { id } },
+      error: null,
+    });
     mocks.updateUser.mockResolvedValue({ error: null });
+    mocks.updateUserById.mockResolvedValue({ error: null });
     mocks.upload.mockResolvedValue({ error: null });
     mocks.remove.mockResolvedValue({ error: null });
   });
@@ -65,14 +83,76 @@ describe('account save authorization and failure recovery', () => {
     expect(mocks.updateUser).not.toHaveBeenCalled();
     expect(mocks.upload).not.toHaveBeenCalled();
   });
-  it('only updates the chosen presentation field and refreshes the header', async () => {
-    const form = fields('name', ' New name ');
-    form.set('userId', 'someone-else');
-    expect(await saveAccountDetails(form)).toEqual({ success: true });
+  function passwordForm(password = 'newpass2', confirmation = password) {
+    const form = fields('password', '');
+    form.set('currentPassword', 'oldpass1');
+    form.set('password', password);
+    form.set('confirmation', confirmation);
+    return form;
+  }
+  it('changes password after verifying the current password', async () => {
+    expect(await saveAccountDetails(passwordForm())).toEqual({ success: true });
     expect(mocks.updateUser).toHaveBeenCalledWith({
-      data: { display_name: 'New name' },
+      password: 'newpass2',
+      current_password: 'oldpass1',
     });
-    expect(mocks.revalidatePath).toHaveBeenCalledWith('/', 'layout');
+  });
+  it('rejects wrong current passwords without updating', async () => {
+    mocks.signInWithPassword.mockResolvedValue({
+      data: { user: null },
+      error: {},
+    });
+    expect(await saveAccountDetails(passwordForm())).toHaveProperty('error');
+    expect(mocks.updateUser).not.toHaveBeenCalled();
+  });
+  it('rejects weak or mismatched new passwords before verifying', async () => {
+    for (const form of [
+      passwordForm('short'),
+      passwordForm('nodigitsplease'),
+      passwordForm('newpass2', 'otherpass3'),
+    ]) {
+      expect(await saveAccountDetails(form)).toHaveProperty('error');
+    }
+    expect(mocks.signInWithPassword).not.toHaveBeenCalled();
+    expect(mocks.updateUser).not.toHaveBeenCalled();
+  });
+  it('rejects the removed display name field', async () => {
+    expect(
+      await saveAccountDetails(fields('name', 'Other name')),
+    ).toHaveProperty('error');
+    expect(mocks.updateUser).not.toHaveBeenCalled();
+  });
+  function usernameForm(value = 'new_login') {
+    const form = fields('username', value);
+    form.set('currentPassword', 'oldpass1');
+    form.set('userId', 'someone-else');
+    return form;
+  }
+  it('updates the session owner’s login identity and username together', async () => {
+    expect(await saveAccountDetails(usernameForm())).toEqual({ success: true });
+    expect(mocks.updateUserById).toHaveBeenCalledWith(id, {
+      email: '6e65775f6c6f67696e@accounts.invalid',
+      email_confirm: true,
+      user_metadata: { username: 'new_login' },
+    });
+  });
+  it('rejects invalid usernames and incorrect passwords without admin writes', async () => {
+    expect(await saveAccountDetails(usernameForm('bad name'))).toHaveProperty(
+      'error',
+    );
+    mocks.signInWithPassword.mockResolvedValue({
+      data: { user: null },
+      error: {},
+    });
+    expect(await saveAccountDetails(usernameForm())).toHaveProperty('error');
+    expect(mocks.updateUserById).not.toHaveBeenCalled();
+  });
+  it('reports a taken username without claiming success', async () => {
+    mocks.updateUserById.mockResolvedValue({ error: { code: 'email_exists' } });
+    expect(await saveAccountDetails(usernameForm())).toEqual({
+      error: 'Username already taken.',
+    });
+    expect(mocks.revalidatePath).not.toHaveBeenCalled();
   });
   it('allows clearing contact email', async () => {
     expect(await saveAccountDetails(fields('email', ''))).toEqual({

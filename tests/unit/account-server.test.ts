@@ -12,9 +12,11 @@ describe('account presentation data', () => {
     return { id, user_metadata: metadata } as User;
   }
   it('falls back to the username when no display name exists', () => {
-    expect(accountName(user({ display_name: ' ', username: 'login' }))).toBe(
-      'login',
-    );
+    expect(
+      accountName(
+        user({ display_name: 'Old display name', username: 'login' }),
+      ),
+    ).toBe('login');
     expect(accountName(user({}))).toBe('Account');
   });
   it('never signs another user’s folder or traversal paths', () => {

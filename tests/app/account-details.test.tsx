@@ -18,29 +18,45 @@ describe('account editors', () => {
   beforeEach(() => {
     vi.mocked(saveAccountDetails).mockReset();
   });
-  it('shows account values and saves an edited display name', async () => {
+  it('shows only the login username and changes password', async () => {
     vi.mocked(saveAccountDetails).mockResolvedValue({ success: true });
     const user = userEvent.setup();
-    render(<AccountDetails username="login" name="Original" email="" />);
-    expect(screen.getByText('No email added')).toBeVisible();
-    await user.click(screen.getByRole('button', { name: 'Change name' }));
-    const input = screen.getByLabelText('New account name');
-    await user.clear(input);
-    await user.type(input, 'New name');
+    render(<AccountDetails username="login" email="" />);
+    expect(screen.getAllByText('login')).toHaveLength(1);
+    expect(screen.queryByRole('button', { name: 'Change name' })).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Change password' }));
+    await user.type(screen.getByLabelText('Current password'), 'oldpass1');
+    await user.type(screen.getByLabelText('New password'), 'newpass2');
+    await user.type(screen.getByLabelText('Confirm new password'), 'newpass2');
     await user.click(screen.getByRole('button', { name: 'Save' }));
-    expect(await screen.findByText('Account name saved.')).toBeVisible();
-    expect(vi.mocked(saveAccountDetails).mock.calls[0][0].get('value')).toBe(
-      'New name',
+    expect(await screen.findByText('Password saved.')).toBeVisible();
+    expect(screen.queryByLabelText('Current password')).toBeNull();
+    expect(vi.mocked(saveAccountDetails).mock.calls[0][0].get('password')).toBe(
+      'newpass2',
     );
   });
-  it('discards drafts on cancel', async () => {
+  it('saves a changed login username', async () => {
+    vi.mocked(saveAccountDetails).mockResolvedValue({ success: true });
     const user = userEvent.setup();
-    render(<AccountDetails username="login" name="Original" email="" />);
-    await user.click(screen.getByRole('button', { name: 'Change name' }));
-    await user.type(screen.getByLabelText('New account name'), ' draft');
+    render(<AccountDetails username="login" email="" />);
+    await user.click(screen.getByRole('button', { name: 'Change username' }));
+    await user.clear(screen.getByLabelText('New username'));
+    await user.type(screen.getByLabelText('New username'), 'new_login');
+    await user.type(screen.getByLabelText('Current password'), 'oldpass1');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    expect(await screen.findByText('Username saved.')).toBeVisible();
+    expect(vi.mocked(saveAccountDetails).mock.calls[0][0].get('value')).toBe(
+      'new_login',
+    );
+  });
+  it('clears password drafts on cancel', async () => {
+    const user = userEvent.setup();
+    render(<AccountDetails username="login" email="" />);
+    await user.click(screen.getByRole('button', { name: 'Change password' }));
+    await user.type(screen.getByLabelText('New password'), 'draft123');
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
-    await user.click(screen.getByRole('button', { name: 'Change name' }));
-    expect(screen.getByLabelText('New account name')).toHaveValue('Original');
+    await user.click(screen.getByRole('button', { name: 'Change password' }));
+    expect(screen.getByLabelText('New password')).toHaveValue('');
     expect(saveAccountDetails).not.toHaveBeenCalled();
   });
   it('keeps input after failures and prevents duplicate saves while pending', async () => {
@@ -52,7 +68,7 @@ describe('account editors', () => {
         }),
     );
     const user = userEvent.setup();
-    render(<AccountDetails username="login" name="Original" email="" />);
+    render(<AccountDetails username="login" email="" />);
     await user.click(screen.getByRole('button', { name: 'Change email' }));
     await user.type(
       screen.getByLabelText('New contact email'),
@@ -69,7 +85,7 @@ describe('account editors', () => {
     );
   });
   it('rejects invalid files before upload', async () => {
-    render(<AccountDetails username="login" name="Original" email="" />);
+    render(<AccountDetails username="login" email="" />);
     fireEvent.click(screen.getByRole('button', { name: 'Change photo' }));
     fireEvent.change(screen.getByLabelText('Choose a photo'), {
       target: {

@@ -1,16 +1,22 @@
 # Account details
 
-Approved requirements: signed-in users can independently edit a display name,
+Approved requirements: signed-in users can change their login username, password,
 unverified contact email, and profile photo at `/account`. Each inline editor has
-Save and Cancel, pending feedback, validation, and recoverable errors. Username
-login is unchanged. Empty names fall back to the username for existing accounts;
-email can be cleared. Missing photos use the default avatar.
+Save and Cancel, pending feedback, validation, and recoverable errors. The login
+username is the only account name shown, including in the header; legacy display
+names are ignored. Username edits require the current password and signup username
+validation. A server-only Admin Auth update changes the encoded login email and
+username metadata together for the verified session owner; duplicates are rejected.
+Email can be cleared. Password changes verify the current
+password using the session user’s internal email, consume the existing login
+rate limit, and require matching new passwords with at least 8 characters and a digit.
+Passwords are handled by Supabase Auth and never saved in metadata. Missing photos use the default avatar.
 
 Implementation order: account metadata and validation; private photo storage and
 image decoding; accessible editors and header refresh; unit, component, and local
 Playwright verification. Use existing TypeScript/React conventions and CSS tokens.
 
-Name: trimmed, 1–80 characters. Email: trimmed, valid format, max 254 characters,
+Email: trimmed, valid format, max 254 characters,
 or empty. Photos: JPEG/PNG/WebP, maximum 2 MB, decoded with a pixel limit and
 re-encoded as WebP at maximum 512×512 with metadata stripped. Only the current
 session's user can update metadata or access their UUID folder. Replaced photos

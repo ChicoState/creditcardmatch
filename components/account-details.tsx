@@ -7,11 +7,10 @@ import { AVATAR_MAX_BYTES, AVATAR_TYPES } from '../lib/account/validation';
 
 interface AccountDetailsProps {
   username: string;
-  name: string;
   email: string;
   avatarUrl?: string;
 }
-type Field = 'name' | 'email' | 'photo';
+type Field = 'username' | 'email' | 'photo' | 'password';
 
 function AccountEditor({
   field,
@@ -33,11 +32,13 @@ function AccountEditor({
   const input = useRef<HTMLInputElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const label =
-    field === 'name'
-      ? 'Account name'
-      : field === 'email'
-        ? 'Contact email'
-        : 'Profile photo';
+    field === 'username'
+      ? 'Username'
+      : field === 'password'
+        ? 'Password'
+        : field === 'email'
+          ? 'Contact email'
+          : 'Profile photo';
   const changeLabel = `Change ${field}`;
 
   useEffect(() => {
@@ -54,6 +55,7 @@ function AccountEditor({
     setEditing(false);
     setPreview('');
     setFile(undefined);
+    setDraft('');
     requestAnimationFrame(() => trigger.current?.focus());
   }
 
@@ -61,7 +63,7 @@ function AccountEditor({
     event.preventDefault();
     setPending(true);
     setError('');
-    const form = new FormData();
+    const form = new FormData(event.currentTarget);
     form.set('field', field);
     if (field === 'photo' && file) form.set('photo', file);
     else form.set('value', draft);
@@ -108,17 +110,19 @@ function AccountEditor({
           </div>
         )
       ) : (
-        <p className="account-value">{value || 'No email added'}</p>
+        <p className="account-value">
+          {field === 'password' ? '••••••••' : value || 'No email added'}
+        </p>
+      )}
+      {field === 'username' && (
+        <p className="account-help">
+          Used to sign in. Changing this updates your login username.
+        </p>
       )}
       {field === 'email' && (
         <p className="account-help">
           Contact information only. Unverified; not used for login or password
           recovery.
-        </p>
-      )}
-      {field === 'name' && (
-        <p className="account-help">
-          Your display name. Your login username stays the same.
         </p>
       )}
       {!editing ? (
@@ -144,9 +148,47 @@ function AccountEditor({
           <label htmlFor={`account-${field}`}>
             {field === 'photo'
               ? 'Choose a photo'
-              : `New ${label.toLowerCase()}`}
+              : field === 'password'
+                ? 'Current password'
+                : `New ${label.toLowerCase()}`}
           </label>
-          {field === 'photo' ? (
+          {field === 'password' ? (
+            <>
+              <input
+                ref={input}
+                id="account-password"
+                name="currentPassword"
+                type="password"
+                autoComplete="current-password"
+                required
+                disabled={pending}
+                aria-label="Current password"
+              />
+              <label htmlFor="new-password">New password</label>
+              <input
+                id="new-password"
+                name="password"
+                type="password"
+                autoComplete="new-password"
+                minLength={8}
+                required
+                disabled={pending}
+                aria-describedby="password-help"
+              />
+              <p id="password-help" className="account-help">
+                At least 8 characters, including a digit.
+              </p>
+              <label htmlFor="confirm-password">Confirm new password</label>
+              <input
+                id="confirm-password"
+                name="confirmation"
+                type="password"
+                autoComplete="new-password"
+                required
+                disabled={pending}
+              />
+            </>
+          ) : field === 'photo' ? (
             <>
               <input
                 ref={input}
@@ -183,14 +225,33 @@ function AccountEditor({
               id={`account-${field}`}
               type={field === 'email' ? 'email' : 'text'}
               value={draft}
-              required={field === 'name'}
-              maxLength={field === 'name' ? 80 : 254}
-              autoComplete={field === 'name' ? 'nickname' : 'email'}
+              maxLength={field === 'username' ? 30 : 254}
+              minLength={field === 'username' ? 3 : undefined}
+              required={field === 'username'}
+              autoComplete={field === 'username' ? 'username' : 'email'}
               disabled={pending}
               aria-invalid={Boolean(error)}
               aria-describedby={error ? `account-${field}-error` : undefined}
               onChange={(event) => setDraft(event.target.value)}
             />
+          )}
+          {field === 'username' && (
+            <>
+              <p className="account-help">
+                3–30 letters, numbers, or underscores.
+              </p>
+              <label htmlFor="username-current-password">
+                Current password
+              </label>
+              <input
+                id="username-current-password"
+                name="currentPassword"
+                type="password"
+                autoComplete="current-password"
+                required
+                disabled={pending}
+              />
+            </>
           )}
           {error && (
             <p
@@ -229,21 +290,13 @@ function AccountEditor({
 
 export function AccountDetails({
   username,
-  name,
   email,
   avatarUrl,
 }: AccountDetailsProps) {
   return (
     <div className="account-details">
-      <section
-        className="account-section"
-        aria-labelledby="account-username-heading"
-      >
-        <h2 id="account-username-heading">Username</h2>
-        <p className="account-value">{username}</p>
-        <p className="account-help">Used to sign in. Cannot be changed.</p>
-      </section>
-      <AccountEditor field="name" value={name} />
+      <AccountEditor field="username" value={username} />
+      <AccountEditor field="password" value="" />
       <AccountEditor field="email" value={email} />
       <AccountEditor field="photo" value="" avatarUrl={avatarUrl} />
     </div>

@@ -6,9 +6,12 @@ The stack is TypeScript, Next.js/React, Supabase, npm, and a Node 24 development
 
 ## Account details
 
-Signed-in users can edit a display name, an optional unverified contact email,
-and a profile photo at `/account`. Username/password login is unchanged. Name,
-contact email, and the photo reference are stored in Supabase Auth user metadata;
+Signed-in users can change their login username, password, optional
+unverified contact email, and profile photo at `/account`. Password changes require
+the current password and matching new passwords that meet signup requirements.
+Username changes also require the current password and update the internal login
+identity together with the visible username; taken usernames are rejected.
+Contact email and the photo reference are stored in Supabase Auth user metadata;
 they must never be used to make authorization decisions.
 
 Profile photos require the reviewed `20261104120000_account_avatars.sql`
@@ -187,20 +190,20 @@ The generator reports the CSV file and row for duplicate or unknown slugs, inval
 
 ## Commands
 
-| Command                                     | Current scope                                                                                                                     |
-| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `npm ci`                                    | Reproducible dependency install with Node 24/npm 11.                                                                              |
-| `npm run format:check`, `lint`, `typecheck` | Static tooling checks.                                                                                                            |
-| `npm run test`, `coverage`                  | Infrastructure, application-page, and pure matching-logic tests.                                                                  |
-| `npm run seed:generate`                     | Validates the three team CSV exports and regenerates `supabase/seed.sql`.                                                         |
-| `npm run verify`                            | Full repository baseline. It currently reports pre-existing formatting drift in repository-managed skill and configuration files. |
+| Command                                     | Current scope                                                                                                                                                                                   |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm ci`                                    | Reproducible dependency install with Node 24/npm 11.                                                                                                                                            |
+| `npm run format:check`, `lint`, `typecheck` | Static tooling checks.                                                                                                                                                                          |
+| `npm run test`, `coverage`                  | Infrastructure, application-page, and pure matching-logic tests.                                                                                                                                |
+| `npm run seed:generate`                     | Validates the three team CSV exports and regenerates `supabase/seed.sql`.                                                                                                                       |
+| `npm run verify`                            | Full repository baseline. It currently reports pre-existing formatting drift in repository-managed skill and configuration files.                                                               |
 | `npm run test:e2e`                          | Builds and starts a production Next.js server on port 3001, then runs catalog, survey, and filter flows in Chromium against the local Supabase stack. A leftover server on port 3001 is reused. |
-| `npm run test:smoke`                        | Builds and checks the Docker-based development foundation.                                                                        |
-| `npm run build`, `dev`, `start`             | Next.js production build, development server, and production server commands. Use Node 24 or Docker.                              |
-| `npm run supabase:start`                    | Starts the local Supabase stack from the host with the pinned CLI.                                                                |
-| `npm run supabase:reset`                    | Recreates the local database and reapplies migrations.                                                                            |
-| `npm run supabase:stop`                     | Stops the local Supabase stack without contacting a remote project.                                                               |
-| `npm run db:migrate:production`             | Protected release-only Supabase command; never run against production from a workstation.                                         |
+| `npm run test:smoke`                        | Builds and checks the Docker-based development foundation.                                                                                                                                      |
+| `npm run build`, `dev`, `start`             | Next.js production build, development server, and production server commands. Use Node 24 or Docker.                                                                                            |
+| `npm run supabase:start`                    | Starts the local Supabase stack from the host with the pinned CLI.                                                                                                                              |
+| `npm run supabase:reset`                    | Recreates the local database and reapplies migrations.                                                                                                                                          |
+| `npm run supabase:stop`                     | Stops the local Supabase stack without contacting a remote project.                                                                                                                             |
+| `npm run db:migrate:production`             | Protected release-only Supabase command; never run against production from a workstation.                                                                                                       |
 
 ## GitHub configuration
 

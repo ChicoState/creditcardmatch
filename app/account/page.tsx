@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { AccountDetails } from '../../components/account-details';
 import { createAuthServerClient } from '../../lib/auth/server';
-import { accountAvatarUrl, accountName } from '../../lib/account/server';
+import { accountAvatarUrl } from '../../lib/account/server';
 import './account.css';
 
 export default async function AccountPage() {
@@ -16,7 +16,7 @@ export default async function AccountPage() {
     <main className="page-shell account-page">
       <h1>Account details</h1>
       <p className="account-intro">
-        Manage your name, contact email, and profile photo.
+        Manage your password, contact email, and profile photo.
       </p>
       <AccountDetails
         username={
@@ -24,7 +24,6 @@ export default async function AccountPage() {
             ? user.user_metadata.username
             : ''
         }
-        name={accountName(user)}
         email={typeof email === 'string' ? email : ''}
         avatarUrl={await accountAvatarUrl(user, auth)}
       />

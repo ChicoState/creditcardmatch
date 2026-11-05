@@ -41,13 +41,15 @@ describe('account page', () => {
     render(await AccountPage());
     const username = screen.getByRole('region', { name: 'Username' });
     expect(username).toHaveTextContent('login');
-    expect(username.querySelector('input, button')).toBeNull();
+    expect(username.querySelector('button')).toHaveTextContent(
+      'Change username',
+    );
     expect(
       screen
         .getAllByRole('heading', { level: 2 })
         .map((heading) => heading.textContent),
-    ).toEqual(['Username', 'Account name', 'Contact email', 'Profile photo']);
-    expect(screen.getByText('Display name')).toBeVisible();
+    ).toEqual(['Username', 'Password', 'Contact email', 'Profile photo']);
+    expect(screen.queryByText('Display name')).toBeNull();
     expect(screen.getByText('contact@example.com')).toBeVisible();
     expect(
       screen.queryByText('internal@accounts.invalid'),
@@ -58,7 +60,7 @@ describe('account page', () => {
       data: { user: { id: 'owner', user_metadata: { username: 'login' } } },
     });
     render(await AccountPage());
-    expect(screen.getAllByText('login')).toHaveLength(2);
+    expect(screen.getAllByText('login')).toHaveLength(1);
     expect(screen.getByText('No email added')).toBeVisible();
     expect(
       screen.getByRole('img', { name: 'Default profile photo' }),

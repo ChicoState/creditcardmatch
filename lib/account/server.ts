@@ -1,12 +1,8 @@
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 
 export function accountName(user: User): string {
-  const { display_name: name, username } = user.user_metadata;
-  return typeof name === 'string' && name.trim()
-    ? name
-    : typeof username === 'string' && username
-      ? username
-      : 'Account';
+  const { username } = user.user_metadata;
+  return typeof username === 'string' && username ? username : 'Account';
 }
 
 export function ownedAvatarPath(user: User): string | undefined {
