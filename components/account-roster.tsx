@@ -8,11 +8,13 @@ import {
   removeCardAction,
   saveCardRosterAction,
 } from '../lib/account/actions';
-import type { CatalogCard } from '../lib/catalog/types';
+import type { CatalogCard, RewardCategoryRow } from '../lib/catalog/types';
+import { CardRequestForm } from './card-request-form';
 
 interface AccountRosterProps {
   initialRoster: CatalogCard[];
   availableCards: CatalogCard[];
+  rewardCategories: RewardCategoryRow[];
 }
 
 function rewardTypeLabel(rewardType: CatalogCard['rewardType']): string {
@@ -29,6 +31,7 @@ function cardFormData(cardId: number): FormData {
 export function AccountRoster({
   initialRoster,
   availableCards,
+  rewardCategories,
 }: AccountRosterProps) {
   const router = useRouter();
   const [roster, setRoster] = useState(initialRoster);
@@ -36,6 +39,9 @@ export function AccountRoster({
     null,
   );
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [visibleCount, setVisibleCount] = useState(10);
+  const [isRequestFormOpen, setIsRequestFormOpen] = useState(false);
   const [draftCardIds, setDraftCardIds] = useState<Set<number>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -111,8 +117,20 @@ export function AccountRoster({
   function openCatalog() {
     setError(null);
     setDraftCardIds(new Set(roster.map((card) => card.cardId)));
+    setSearchTerm('');
+    setVisibleCount(10);
+    setIsRequestFormOpen(false);
     setIsCatalogOpen(true);
   }
+
+  const matchingCards = availableCards.filter((card) => {
+    const query = searchTerm.trim().toLocaleLowerCase();
+    if (!query) return true;
+    return [card.cardName, card.issuer].some((value) =>
+      value.toLocaleLowerCase().includes(query),
+    );
+  });
+  const visibleCards = matchingCards.slice(0, visibleCount);
 
   function toggleDraftCard(cardId: number) {
     setDraftCardIds((current) => {
@@ -215,7 +233,19 @@ export function AccountRoster({
               </button>
             </div>
             <div aria-label="Available cards" className="card-catalog__list">
-              {availableCards.map((card) => {
+              <label className="card-catalog__search">
+                Search by card name or issuer
+                <input
+                  onChange={(event) => {
+                    setSearchTerm(event.target.value);
+                    setVisibleCount(10);
+                  }}
+                  placeholder="Search cards"
+                  type="search"
+                  value={searchTerm}
+                />
+              </label>
+              {visibleCards.map((card) => {
                 const isSelected = draftCardIds.has(card.cardId);
                 return (
                   <button
@@ -231,7 +261,46 @@ export function AccountRoster({
                   </button>
                 );
               })}
+              {matchingCards.length === 0 ? (
+                <div className="card-catalog__empty">
+                  <p>No cards found.</p>
+                  <button
+                    className="secondary-action"
+                    onClick={() => setIsRequestFormOpen(true)}
+                    type="button"
+                  >
+                    Can’t Find Your Card? Submit a Request
+                  </button>
+                </div>
+              ) : null}
+              {visibleCount < matchingCards.length ? (
+                <button
+                  className="secondary-action"
+                  onClick={() => setVisibleCount((count) => count + 10)}
+                  type="button"
+                >
+                  + See more
+                </button>
+              ) : matchingCards.length > 10 ? (
+                <button
+                  className="secondary-action"
+                  onClick={() => setVisibleCount(10)}
+                  type="button"
+                >
+                  Collapse all
+                </button>
+              ) : null}
             </div>
+            {isRequestFormOpen ? (
+              <CardRequestForm
+                onCancel={() => setIsRequestFormOpen(false)}
+                onSubmitted={() => {
+                  setIsRequestFormOpen(false);
+                  setError(null);
+                }}
+                rewardCategories={rewardCategories}
+              />
+            ) : null}
             <button
               className="primary-action"
               disabled={isPending}

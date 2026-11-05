@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
+  usePathname: () => '/',
 }));
 
 vi.mock('../../lib/data/catalog', async () => {
@@ -44,7 +45,9 @@ describe('legal page', () => {
         name: 'When debt becomes a legal problem',
       }),
     ).toBeVisible();
-    expect(screen.getByText(/wage garnishment is not automatic/i)).toBeVisible();
+    expect(
+      screen.getByText(/wage garnishment is not automatic/i),
+    ).toBeVisible();
     expect(
       screen.getByText(/bankruptcy can have lasting consequences/i),
     ).toBeVisible();

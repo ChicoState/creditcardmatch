@@ -602,9 +602,7 @@ export async function generateSeed(rootDir) {
     ),
     ...rewards.flatMap((reward) => {
       const filterSlug = REWARD_CATEGORY_FILTERS.get(reward.category);
-      return filterSlug
-        ? [{ cardSlug: reward.cardSlug, filterSlug }]
-        : [];
+      return filterSlug ? [{ cardSlug: reward.cardSlug, filterSlug }] : [];
     }),
   ];
 
@@ -657,10 +655,12 @@ async function main() {
 
 if (
   process.argv[1] &&
-  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+  path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url))
 ) {
-  main().catch((error) => {
+  try {
+    await main();
+  } catch (error) {
     console.error(error instanceof Error ? error.message : error);
     process.exitCode = 1;
-  });
+  }
 }

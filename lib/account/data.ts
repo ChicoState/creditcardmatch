@@ -63,6 +63,7 @@ export async function getAccountDashboardData(): Promise<AccountDashboardData> {
         : 'Username unavailable',
     roster,
     availableCards,
+    rewardCategories: catalog.rewardCategories,
     spend,
   };
 }
