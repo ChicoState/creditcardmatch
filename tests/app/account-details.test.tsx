@@ -14,6 +14,63 @@ vi.mock('../../lib/account/actions', () => ({ saveAccountDetails: vi.fn() }));
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 
 describe('account editors', () => {
+  it.each(['javascript:alert(1)', 'data:text/html,<script>alert(1)</script>'])(
+    'does not render an unsafe photo URL: %s',
+    (avatarUrl) => {
+      render(
+        <AccountDetails username="login" email="" avatarUrl={avatarUrl} />,
+      );
+      expect(screen.queryByAltText('Your profile photo')).toBeNull();
+      expect(
+        screen.getByRole('img', { name: 'Default profile photo' }),
+      ).toBeVisible();
+    },
+  );
+  it.each([
+    'https://storage.example/avatar?token=abc&expires=123',
+    'http://localhost:54321/avatar',
+  ])('preserves a saved photo URL: %s', (avatarUrl) => {
+    render(<AccountDetails username="login" email="" avatarUrl={avatarUrl} />);
+    expect(screen.getByAltText('Your profile photo')).toHaveAttribute(
+      'src',
+      avatarUrl,
+    );
+  });
+  it('previews a selected photo and restores the saved photo on cancel', () => {
+    const avatarUrl = 'https://storage.example/avatar';
+    const createObjectURL = vi.fn(() => 'blob:http://localhost/preview');
+    const revokeObjectURL = vi.fn();
+    vi.stubGlobal(
+      'URL',
+      Object.assign(class extends URL {}, { createObjectURL, revokeObjectURL }),
+    );
+    try {
+      render(
+        <AccountDetails username="login" email="" avatarUrl={avatarUrl} />,
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Change photo' }));
+      const file = new File(['photo'], 'photo.png', { type: 'image/png' });
+      fireEvent.change(screen.getByLabelText('Choose a photo'), {
+        target: { files: [file] },
+      });
+      expect(screen.getByAltText('New profile photo preview')).toHaveAttribute(
+        'src',
+        'blob:http://localhost/preview',
+      );
+      expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+      expect(screen.getByAltText('Your profile photo')).toHaveAttribute(
+        'src',
+        avatarUrl,
+      );
+      expect(revokeObjectURL).toHaveBeenCalledWith(
+        'blob:http://localhost/preview',
+      );
+    } finally {
+      cleanup();
+      vi.unstubAllGlobals();
+    }
+  });
   afterEach(cleanup);
   beforeEach(() => {
     vi.mocked(saveAccountDetails).mockReset();

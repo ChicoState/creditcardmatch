@@ -40,6 +40,7 @@ function AccountEditor({
           ? 'Contact email'
           : 'Profile photo';
   const changeLabel = `Change ${field}`;
+  const photoUrl = preview || avatarUrl;
 
   useEffect(() => {
     if (editing) input.current?.focus();
@@ -89,12 +90,13 @@ function AccountEditor({
     >
       <h2 id={`account-${field}-heading`}>{label}</h2>
       {field === 'photo' ? (
-        preview || avatarUrl ? (
+        // Only signed storage URLs and browser-created previews may be image sources.
+        photoUrl && /^(https?:\/\/|blob:)/i.test(photoUrl) ? (
           // Signed storage URLs and browser previews are intentionally unoptimized.
           // eslint-disable-next-line @next/next/no-img-element
           <img
             className="account-photo"
-            src={preview || avatarUrl}
+            src={photoUrl}
             alt={preview ? 'New profile photo preview' : 'Your profile photo'}
           />
         ) : (
