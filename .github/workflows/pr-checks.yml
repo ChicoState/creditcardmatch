@@ -47,10 +47,9 @@ jobs:
       - name: Production dependency audit
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: npm run security:audit
-      - name: Full dependency audit
+      - name: Full dependency audit (report only)
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        continue-on-error: true
-        run: npm run security:audit:all
+        run: npm run security:audit:all || echo "::warning title=Full npm audit::Dev-only advisories found. See this step's log."
       - name: Upload coverage
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         uses: actions/upload-artifact@v4
