@@ -1,4 +1,4 @@
-import type { CatalogCard } from '../catalog/types';
+import type { CatalogCard, RewardCategoryRow } from '../catalog/types';
 
 export interface AccountSpendSummary {
   categoryName: string;
@@ -9,5 +9,6 @@ export interface AccountDashboardData {
   username: string;
   roster: CatalogCard[];
   availableCards: CatalogCard[];
+  rewardCategories: RewardCategoryRow[];
   spend: AccountSpendSummary[];
 }

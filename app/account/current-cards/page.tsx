@@ -10,6 +10,7 @@ export default async function CurrentCardsPage() {
       <AccountRoster
         initialRoster={account.roster}
         availableCards={account.availableCards}
+        rewardCategories={account.rewardCategories}
       />
     </main>
   );

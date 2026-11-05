@@ -34,6 +34,12 @@ export default async function HomePage() {
               </Link>
               <Link
                 className="secondary-action"
+                href="/results?filters=dining-food-focus"
+              >
+                🍽️ Dining &amp; food cards
+              </Link>
+              <Link
+                className="secondary-action"
                 href="/results?filters=cashback"
               >
                 💰 Cashback cards

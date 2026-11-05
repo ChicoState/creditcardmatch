@@ -8,6 +8,7 @@ vi.mock('../../lib/account/data', () => ({
     username: 'alex',
     roster: [],
     availableCards: [],
+    rewardCategories: [],
     spend: [],
   }),
 }));

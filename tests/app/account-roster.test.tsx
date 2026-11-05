@@ -48,6 +48,10 @@ const card = (cardId: number, cardName: string): CatalogCard => ({
   filterSlugs: [],
 });
 
+const rewardCategories = [
+  { category_id: 1, category_name: 'Travel', slug: 'travel', display_order: 1 },
+];
+
 describe('AccountRoster', () => {
   afterEach(() => {
     cleanup();
@@ -66,6 +70,7 @@ describe('AccountRoster', () => {
       <AccountRoster
         initialRoster={[current]}
         availableCards={[third, current, other]}
+        rewardCategories={rewardCategories}
       />,
     );
 
@@ -115,6 +120,7 @@ describe('AccountRoster', () => {
       <AccountRoster
         initialRoster={[current]}
         availableCards={[current, other]}
+        rewardCategories={rewardCategories}
       />,
     );
     await user.click(
@@ -137,7 +143,11 @@ describe('AccountRoster', () => {
     const current = card(1, 'Current Card');
 
     render(
-      <AccountRoster initialRoster={[current]} availableCards={[current]} />,
+      <AccountRoster
+        initialRoster={[current]}
+        availableCards={[current]}
+        rewardCategories={rewardCategories}
+      />,
     );
     await user.click(
       screen.getByRole('button', { name: 'Browse card catalog' }),
@@ -159,7 +169,13 @@ describe('AccountRoster', () => {
     const user = userEvent.setup();
     const current = card(1, 'Current Card');
 
-    render(<AccountRoster initialRoster={[current]} availableCards={[]} />);
+    render(
+      <AccountRoster
+        initialRoster={[current]}
+        availableCards={[]}
+        rewardCategories={rewardCategories}
+      />,
+    );
     await user.click(screen.getByRole('button', { name: 'Remove' }));
 
     expect(
@@ -170,5 +186,72 @@ describe('AccountRoster', () => {
 
     expect(addCardAction).toHaveBeenCalled();
     expect(screen.getByRole('heading', { name: 'Current Card' })).toBeVisible();
+  });
+
+  it('shows ten cards, expands by ten, and searches by issuer or name', async () => {
+    const user = userEvent.setup();
+    const cards = Array.from({ length: 21 }, (_, index) =>
+      card(index + 1, `Catalog Card ${index + 1}`),
+    );
+
+    render(
+      <AccountRoster
+        initialRoster={[]}
+        availableCards={cards}
+        rewardCategories={rewardCategories}
+      />,
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'Browse card catalog' }),
+    );
+
+    expect(screen.getAllByText(/Catalog Card/)).toHaveLength(10);
+    await user.click(screen.getByRole('button', { name: '+ See more' }));
+    expect(screen.getAllByText(/Catalog Card/)).toHaveLength(20);
+    await user.click(screen.getByRole('button', { name: '+ See more' }));
+    expect(screen.getAllByText(/Catalog Card/)).toHaveLength(21);
+    expect(screen.getByRole('button', { name: 'Collapse all' })).toBeVisible();
+
+    await user.click(screen.getByRole('button', { name: 'Collapse all' }));
+    expect(screen.getAllByText(/Catalog Card/)).toHaveLength(10);
+    expect(screen.getByRole('button', { name: '+ See more' })).toBeVisible();
+
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Search by card name or issuer' }),
+      'card 21',
+    );
+    expect(screen.getAllByText('Catalog Card 21')).toHaveLength(1);
+    expect(
+      screen.queryByRole('button', { name: '+ See more' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('offers a request form when no cards match', async () => {
+    const user = userEvent.setup();
+    render(
+      <AccountRoster
+        initialRoster={[]}
+        availableCards={[card(1, 'Known Card')]}
+        rewardCategories={rewardCategories}
+      />,
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'Browse card catalog' }),
+    );
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Search by card name or issuer' }),
+      'missing',
+    );
+    expect(screen.getByText('No cards found.')).toBeVisible();
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Can’t Find Your Card? Submit a Request',
+      }),
+    );
+    expect(
+      screen.getByRole('heading', { name: 'Request a missing card' }),
+    ).toBeVisible();
+    expect(screen.getByLabelText('Card name')).toBeRequired();
+    expect(screen.getByLabelText('Issuer')).toBeRequired();
   });
 });

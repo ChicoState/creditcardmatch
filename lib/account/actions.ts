@@ -15,6 +15,7 @@ import { ownedAvatarPath } from './server';
 import { AVATAR_MAX_BYTES, validateAccountField } from './validation';
 import { selectVisibleCatalogCards } from '../catalog/visibility';
 import type { SurveySubmission } from '../config/survey';
+import { parseCardRequest } from '../card-requests/validation';
 
 export interface AccountSaveResult {
   error?: string;
@@ -175,6 +176,13 @@ async function currentUser() {
   return data.user;
 }
 
+async function isAdmin(
+  auth: Awaited<ReturnType<typeof createAuthServerClient>>,
+) {
+  const { data, error } = await auth.rpc('is_admin');
+  return !error && data === true;
+}
+
 function cardIdFromForm(formData: FormData): number | null {
   const value = Number(formData.get('card_id'));
   return Number.isSafeInteger(value) && value > 0 ? value : null;
@@ -309,6 +317,63 @@ export async function saveSurveyAnswersAction(
   }
 
   revalidatePath('/account');
+}
+
+export async function submitCardRequestAction(
+  formData: FormData,
+): Promise<void> {
+  const user = await currentUser();
+  if (!user) throw new Error('You must be signed in to request a card.');
+
+  const catalog = await getCatalogData();
+  const request = parseCardRequest(
+    formData,
+    new Set(catalog.rewardCategories.map((category) => category.slug)),
+  );
+  const auth = await createAuthServerClient();
+  const { error } = await auth.from('card_requests').insert({
+    user_id: user.id,
+    card_name: request.cardName,
+    issuer: request.issuer,
+    reward_types: request.rewardTypes,
+    notification_email: request.notificationEmail,
+    comments: request.comments,
+  });
+  if (error) throw new Error('Unable to submit your card request.');
+
+  revalidatePath('/account/current-cards');
+}
+
+export async function reviewCardRequestAction(
+  formData: FormData,
+): Promise<void> {
+  const requestId = Number(formData.get('request_id'));
+  const status = formData.get('status');
+  if (!Number.isSafeInteger(requestId) || requestId <= 0) {
+    throw new Error('Invalid card request.');
+  }
+  if (status !== 'approved' && status !== 'rejected') {
+    throw new Error('Invalid card request decision.');
+  }
+
+  const user = await currentUser();
+  if (!user) throw new Error('You must be signed in to review requests.');
+  const auth = await createAuthServerClient();
+  if (!(await isAdmin(auth)))
+    throw new Error('You are not allowed to review requests.');
+
+  const { error } = await auth
+    .from('card_requests')
+    .update({
+      status,
+      reviewed_at: new Date().toISOString(),
+      reviewed_by: user.id,
+    })
+    .eq('request_id', requestId)
+    .eq('status', 'pending');
+  if (error) throw new Error('Unable to review the card request.');
+
+  revalidatePath('/admin/card-requests');
 }
 
 function isPersistableSurveySubmission(submission: SurveySubmission): boolean {
