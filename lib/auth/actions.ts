@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 
 import { consumeAuthRateLimit } from './rate-limit';
+import { safeNextPath } from './next-path';
 import { createAuthAdminClient, createAuthServerClient } from './server';
 import type { AuthActionState } from './types';
 import {
@@ -101,6 +102,11 @@ export async function loginAction(
   formData: FormData,
 ): Promise<AuthActionState> {
   const { username, password } = formValues(formData);
+  const next = safeNextPath(
+    typeof formData.get('next') === 'string'
+      ? String(formData.get('next'))
+      : null,
+  );
   if (!(await consumeAuthRateLimit('login'))) {
     return {
       username,
@@ -126,7 +132,7 @@ export async function loginAction(
     };
   }
 
-  redirect('/');
+  redirect(next);
 }
 
 export async function logoutAction(): Promise<void> {
