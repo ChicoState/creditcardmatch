@@ -35,6 +35,7 @@ git --no-pager diff
 ```
 
 If nothing is staged, stage all changes interactively:
+
 - Show the user what would be staged (`git status --short`)
 - Ask the user whether to stage everything or select specific files
 - Stage accordingly (`git add -A` or `git add <files>`)
@@ -62,6 +63,7 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) format:
 **Types:** `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `style`, `perf`, `ci`, `build`
 
 **Rules:**
+
 - Subject line ≤ 72 characters
 - Use imperative mood ("add" not "added")
 - Body wraps at 80 characters
@@ -80,6 +82,7 @@ If any of the following are true, attach a git note after committing:
 - **Agent plan context** exists with meaningful reasoning
 
 **Do NOT attach a note for:**
+
 - Trivial changes (typo fixes, formatting, simple renames)
 - Changes where the commit message already fully explains the reasoning
 - Routine changes that follow established patterns
@@ -154,6 +157,7 @@ Previously this could panic when a stage was deleted mid-processing.
 ### Complex Change (With Note)
 
 Commit:
+
 ```
 feat(pipelines): add retry backoff for MLOps deployment stages
 
@@ -164,6 +168,7 @@ Refs #4521
 ```
 
 Git Note:
+
 ```
 ## AI Agent Reasoning
 

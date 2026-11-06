@@ -165,10 +165,12 @@ Create or update `README.md` at the repository root. It must be concise, accurat
 1. project purpose/status and the explicit note that infrastructure is present but production application code may not yet exist;
 2. a repository map covering source/front end, API/backend, scripts, infrastructure/Docker, tests, docs, agents/skills, and CI—mark planned or absent areas accurately rather than inventing paths;
 3. `## Getting Started` section with step-by-step instructions for a new developer to set up the project locally, including the following:
-  - exact manual step-by-step directions (with links and/or verbatim commands) for all prerequisites with version policy and links/names of official installers where helpful;
-  - configuration steps, including copying `.env.example` if applicable and how secrets are supplied outside version control;
-  - dependency installation, local service/container startup, checks, smoke tests, and cleanup commands;
-  - any required GitHub configuration
+
+- exact manual step-by-step directions (with links and/or verbatim commands) for all prerequisites with version policy and links/names of official installers where helpful;
+- configuration steps, including copying `.env.example` if applicable and how secrets are supplied outside version control;
+- dependency installation, local service/container startup, checks, smoke tests, and cleanup commands;
+- any required GitHub configuration
+
 4. a troubleshooting section for the most likely setup failures (runtime, Docker, port, permission, or missing environment variable) only when relevant.
 
 Do not describe unimplemented commands as working. Label planned application commands and explain their dependency on future application code.
