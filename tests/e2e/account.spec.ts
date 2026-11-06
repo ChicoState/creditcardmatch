@@ -66,6 +66,7 @@ test('account edits persist and username login stays unchanged', async ({
     page.getByRole('group', { name: 'Account menu' }).getByText(renamed),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Log out' }).click();
+  await expect(page).toHaveURL('/');
   await page.goto('/login');
   await page.getByLabel('Username', { exact: true }).fill(renamed);
   await page.getByLabel('Password', { exact: true }).fill('changedpassword2');
