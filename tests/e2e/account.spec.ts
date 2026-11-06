@@ -71,7 +71,8 @@ test('account edits persist and username login stays unchanged', async ({
   await page.getByLabel('Username', { exact: true }).fill(renamed);
   await page.getByLabel('Password', { exact: true }).fill('changedpassword2');
   await page.getByRole('button', { name: 'Login', exact: true }).click();
-  await expect(page).toHaveURL('/');
+  // Direct login uses safeNextPath's default from lib/auth: /results.
+  await expect(page).toHaveURL('/results');
   await page.goto('/account');
   await expect(page.getByText(renamed, { exact: true }).last()).toBeVisible();
   await expect(
