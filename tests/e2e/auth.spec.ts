@@ -16,10 +16,16 @@ test.describe.serial('username authentication', () => {
     await page.getByRole('button', { name: 'Create account' }).click();
 
     await expect(page).toHaveURL('/');
-    await expect(page.getByText(username, { exact: true })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible();
+    await page.locator('summary[aria-label="Open account menu"]').click();
+    const accountMenu = page.getByRole('group', { name: 'Account menu' });
+    await expect(
+      accountMenu.getByText(username, { exact: true }),
+    ).toBeVisible();
+    await expect(
+      accountMenu.getByRole('button', { name: 'Log out' }),
+    ).toBeVisible();
 
-    await page.getByRole('button', { name: 'Log out' }).click();
+    await accountMenu.getByRole('button', { name: 'Log out' }).click();
     await expect(page).toHaveURL('/');
     await expect(page.getByRole('link', { name: 'Login' })).toBeVisible();
 
@@ -29,7 +35,10 @@ test.describe.serial('username authentication', () => {
     await page.getByRole('button', { name: 'Login' }).click();
 
     await expect(page).toHaveURL('/');
-    await expect(page.getByText(username, { exact: true })).toBeVisible();
+    await page.locator('summary[aria-label="Open account menu"]').click();
+    await expect(
+      accountMenu.getByText(username, { exact: true }),
+    ).toBeVisible();
   });
 
   test('wrong credentials show a generic error', async ({ page }) => {
