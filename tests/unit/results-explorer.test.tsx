@@ -28,6 +28,23 @@ afterEach(() => {
 });
 
 describe('ResultsExplorer card details', () => {
+  it('shows saved state for authenticated bookmarked cards', () => {
+    render(
+      <ResultsExplorer
+        activeFilters={[]}
+        cards={selectVisibleCatalogCards(catalogFixture)}
+        filters={catalogFixture.filters}
+        bookmarkedCardIds={[catalogFixture.creditCards[0].card_id]}
+        isAuthenticated
+      />,
+      { wrapper: ComparisonProvider },
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'Remove Harbor Starter Card from bookmarks' }),
+    ).toHaveAttribute('aria-pressed', 'true');
+  });
+
   it('shows a secure issuer apply link with an accessible new-tab name', () => {
     render(
       <ResultsExplorer
