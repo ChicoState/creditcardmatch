@@ -8,9 +8,10 @@ import { EMPTY_AUTH_STATE, type AuthActionState } from '../lib/auth/types';
 
 interface AuthFormProps {
   mode: 'login' | 'signup';
+  next?: string;
 }
 
-export function AuthForm({ mode }: AuthFormProps) {
+export function AuthForm({ mode, next }: AuthFormProps) {
   const action = mode === 'login' ? loginAction : signupAction;
   const [state, formAction, pending] = useActionState<
     AuthActionState,
@@ -20,6 +21,7 @@ export function AuthForm({ mode }: AuthFormProps) {
 
   return (
     <form action={formAction} className="auth-form">
+      {mode === 'login' && next ? <input name="next" type="hidden" value={next} /> : null}
       <div className="auth-form__field">
         <label htmlFor="username">Username</label>
         <input
