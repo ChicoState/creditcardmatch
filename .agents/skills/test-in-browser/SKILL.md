@@ -1,6 +1,6 @@
 ---
 name: test-in-browser
-description: "Test a feature in the browser using the Playwright MCP server"
+description: 'Test a feature in the browser using the Playwright MCP server'
 ---
 
 # Browser Testing with Playwright MCP
@@ -30,6 +30,7 @@ sleep 3  # Wait for both servers to start
 ### 2. Navigate to the app
 
 Start at the root page:
+
 - URL: `http://localhost:5000/`
 
 ### 3. Understand the page
@@ -39,6 +40,7 @@ Use **accessibility snapshots** (not screenshots) to understand what's on the pa
 ### 4. Interact with elements
 
 Use the MCP tools to:
+
 - **Click** buttons and links
 - **Fill** form inputs with text
 - **Press** keyboard keys (Enter, Tab, etc.)
@@ -47,6 +49,7 @@ Use the MCP tools to:
 ### 5. Verify results
 
 After interactions, take another accessibility snapshot to confirm the page updated correctly. Check for:
+
 - New elements appearing (e.g., a message added to the list)
 - Elements disappearing (e.g., after deletion)
 - Error messages or validation states
@@ -55,6 +58,7 @@ After interactions, take another accessibility snapshot to confirm the page upda
 ### 6. Report findings
 
 Summarize what you tested and the results:
+
 - ✅ What worked as expected
 - ❌ What broke or behaved unexpectedly
 - Include specific details (element text, error messages, unexpected states)
@@ -63,13 +67,14 @@ Summarize what you tested and the results:
 
 ### Pages & Routes
 
-| URL | Description |
-|-----|-------------|
+| URL                      | Description                                         |
+| ------------------------ | --------------------------------------------------- |
 | `http://localhost:5000/` | Main page — renders Hello island with greeting form |
 
 ### React Islands
 
 The app uses **React Islands** — server-rendered HTML with selective React hydration:
+
 - Islands are marked with `data-island` attributes in the HTML
 - The **Hello island** (`data-island="hello"`) is the main interactive component
 - Initial data is passed via `data-props` attribute from the server
@@ -78,6 +83,7 @@ The app uses **React Islands** — server-rendered HTML with selective React hyd
 ### Hello Island Features
 
 The Hello island at `/` has:
+
 - **Text input**: placeholder "Enter a greeting..." — type a message here
 - **Add button**: submits the form to create a new greeting
 - **Message list**: shows all greetings with delete buttons
@@ -86,12 +92,12 @@ The Hello island at `/` has:
 
 ### API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/hello` | List all greetings |
-| POST | `/api/hello` | Create greeting (`{"message": "text"}`) |
-| GET | `/api/hello/:id` | Get single greeting |
-| DELETE | `/api/hello/:id` | Delete greeting (returns 204) |
+| Method | Endpoint         | Description                             |
+| ------ | ---------------- | --------------------------------------- |
+| GET    | `/api/hello`     | List all greetings                      |
+| POST   | `/api/hello`     | Create greeting (`{"message": "text"}`) |
+| GET    | `/api/hello/:id` | Get single greeting                     |
+| DELETE | `/api/hello/:id` | Delete greeting (returns 204)           |
 
 ### Common Test Scenarios
 

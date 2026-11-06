@@ -602,9 +602,7 @@ export async function generateSeed(rootDir) {
     ),
     ...rewards.flatMap((reward) => {
       const filterSlug = REWARD_CATEGORY_FILTERS.get(reward.category);
-      return filterSlug
-        ? [{ cardSlug: reward.cardSlug, filterSlug }]
-        : [];
+      return filterSlug ? [{ cardSlug: reward.cardSlug, filterSlug }] : [];
     }),
   ];
 

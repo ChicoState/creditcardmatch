@@ -8,7 +8,9 @@ describe('database foundation', () => {
   const migration = readdirSync(projectFile('supabase/migrations'))
     .filter((file) => file.endsWith('.sql'))
     .sort()
-    .map((file) => readFileSync(projectFile(`supabase/migrations/${file}`), 'utf8'))
+    .map((file) =>
+      readFileSync(projectFile(`supabase/migrations/${file}`), 'utf8'),
+    )
     .join('\n');
   const seed = readFileSync(projectFile('supabase/seed.sql'), 'utf8');
   const publicTables = [

@@ -251,17 +251,17 @@ Present two to four stack-compatible bundles that cover the applicable test laye
 
 Common mappings include:
 
-| Ecosystem | Unit and integration | End-to-end or user-interface |
-|---|---|---|
-| TypeScript web | Vitest or Jest, Testing Library, and Testcontainers when needed | Playwright |
-| Python | pytest, the framework test client, and Testcontainers when needed | Playwright |
-| Java or Kotlin | JUnit, a suitable mocking library, and Testcontainers | A platform-appropriate UI or API tool |
-| C# | xUnit or NUnit, a suitable mocking library, and Testcontainers | Playwright |
-| Rust | `cargo test` and focused integration crates | A platform-appropriate UI tool |
-| Flutter | `flutter_test` | `integration_test` |
-| React Native | Jest and React Native Testing Library | Maestro or Detox |
-| Native iOS | XCTest | XCUITest |
-| Native Android | JUnit and Robolectric where useful | Espresso or Compose UI testing |
+| Ecosystem      | Unit and integration                                              | End-to-end or user-interface          |
+| -------------- | ----------------------------------------------------------------- | ------------------------------------- |
+| TypeScript web | Vitest or Jest, Testing Library, and Testcontainers when needed   | Playwright                            |
+| Python         | pytest, the framework test client, and Testcontainers when needed | Playwright                            |
+| Java or Kotlin | JUnit, a suitable mocking library, and Testcontainers             | A platform-appropriate UI or API tool |
+| C#             | xUnit or NUnit, a suitable mocking library, and Testcontainers    | Playwright                            |
+| Rust           | `cargo test` and focused integration crates                       | A platform-appropriate UI tool        |
+| Flutter        | `flutter_test`                                                    | `integration_test`                    |
+| React Native   | Jest and React Native Testing Library                             | Maestro or Detox                      |
+| Native iOS     | XCTest                                                            | XCUITest                              |
+| Native Android | JUnit and Robolectric where useful                                | Espresso or Compose UI testing        |
 
 Recommend the smallest bundle that exercises the application's most important workflows.
 
@@ -429,7 +429,7 @@ The plan must list the names and purposes of required GitHub secrets, variables,
 
 Use this structure. Omit rows or subsections that do not apply.
 
-````markdown
+```markdown
 # Infrastructure Plan
 
 > Planning only. This document describes future infrastructure work. No installations, configuration changes, containers, workflows, deployments, or other implementation files were created by the infrastructure-planning process.
@@ -455,15 +455,15 @@ Use this structure. Omit rows or subsections that do not apply.
 
 ## 3. Selected Technology Stack
 
-| Area | Selected technology | Purpose | Version policy |
-|---|---|---|---|
-| Primary language | | | |
-| Application framework | | | |
-| Runtime or SDK | | | |
-| Package manager | | | |
-| Build or packaging tool | | | |
-| Backend framework | | | |
-| API or synchronization layer | | | |
+| Area                         | Selected technology | Purpose | Version policy |
+| ---------------------------- | ------------------- | ------- | -------------- |
+| Primary language             |                     |         |                |
+| Application framework        |                     |         |                |
+| Runtime or SDK               |                     |         |                |
+| Package manager              |                     |         |                |
+| Build or packaging tool      |                     |         |                |
+| Backend framework            |                     |         |                |
+| API or synchronization layer |                     |         |                |
 
 ## 4. Storage and Persistence
 
@@ -479,42 +479,42 @@ Use this structure. Omit rows or subsections that do not apply.
 
 ## 5. Testing Tools
 
-| Test layer | Tool or library | Planned scope | Planned execution point |
-|---|---|---|---|
-| Unit | | | Local and pull requests |
-| Integration | | | Local and pull requests |
-| End-to-end or UI | | | Pull requests, release, or scheduled |
+| Test layer       | Tool or library | Planned scope | Planned execution point              |
+| ---------------- | --------------- | ------------- | ------------------------------------ |
+| Unit             |                 |               | Local and pull requests              |
+| Integration      |                 |               | Local and pull requests              |
+| End-to-end or UI |                 |               | Pull requests, release, or scheduled |
 
 ## 6. Test Analysis
 
-| Capability | Tool | Planned policy |
-|---|---|---|
-| Coverage | | |
-| Coverage threshold or regression rule | | |
-| Mutation testing | | |
-| Flaky-test or duration analysis | | |
-| Reporting | | |
+| Capability                            | Tool | Planned policy |
+| ------------------------------------- | ---- | -------------- |
+| Coverage                              |      |                |
+| Coverage threshold or regression rule |      |                |
+| Mutation testing                      |      |                |
+| Flaky-test or duration analysis       |      |                |
+| Reporting                             |      |                |
 
 ## 7. Static Analysis and Security
 
-| Check | Tool | Planned enforcement |
-|---|---|---|
-| Formatting | | |
-| Linting | | |
-| Type checking or compiler warnings | | |
-| Anti-pattern or maintainability analysis | | |
-| Dependency vulnerability scanning | | |
-| Secret scanning | | |
-| Static security analysis | | |
-| Container scanning | | |
+| Check                                    | Tool | Planned enforcement |
+| ---------------------------------------- | ---- | ------------------- |
+| Formatting                               |      |                     |
+| Linting                                  |      |                     |
+| Type checking or compiler warnings       |      |                     |
+| Anti-pattern or maintainability analysis |      |                     |
+| Dependency vulnerability scanning        |      |                     |
+| Secret scanning                          |      |                     |
+| Static security analysis                 |      |                     |
+| Container scanning                       |      |                     |
 
 ## 8. Development Technologies Requiring Manual Installation
 
 These are developer-workstation prerequisites that will not be supplied by the planned Docker environment.
 
 | Technology | Why it is needed | Required on which machines | Version policy | Planned installation or verification method | Why Docker does not provide it |
-|---|---|---|---|---|---|
-| | | | | | |
+| ---------- | ---------------- | -------------------------- | -------------- | ------------------------------------------- | ------------------------------ |
+|            |                  |                            |                |                                             |                                |
 
 ### Host tools intentionally not required
 
@@ -544,10 +544,7 @@ These are developer-workstation prerequisites that will not be supplied by the p
 - **Trigger:**
 - **Runner or matrix:**
 - **Permissions:**
-- **Planned jobs in order:**
-  1.
-  2.
-  3.
+- **Planned jobs in order:** 1. 2. 3.
 - **Service containers:**
 - **Caching:**
 - **Coverage and analysis reporting:**
@@ -561,10 +558,7 @@ These are developer-workstation prerequisites that will not be supplied by the p
 - **Release trigger:**
 - **Release destination:**
 - **Runner or matrix:**
-- **Planned jobs in order:**
-  1.
-  2.
-  3.
+- **Planned jobs in order:** 1. 2. 3.
 - **Build artifacts:**
 - **Signing, notarization, or store requirements:**
 - **Database migration step:**
@@ -574,9 +568,9 @@ These are developer-workstation prerequisites that will not be supplied by the p
 
 ### GitHub configuration required later
 
-| Name | Type | Purpose |
-|---|---|---|
-| | Secret, variable, environment, certificate, account, or token | |
+| Name | Type                                                          | Purpose |
+| ---- | ------------------------------------------------------------- | ------- |
+|      | Secret, variable, environment, certificate, account, or token |         |
 
 ## 11. Planned Repository Artifacts - Not Created by This Skill
 
@@ -596,7 +590,7 @@ List only the files that a later implementation task is expected to create. This
 - **Assumptions:**
 - **Decisions still requiring an external account, credential, certificate, or organizational approval:**
 - **Items to confirm before implementation begins:**
-````
+```
 
 ## Completion Check
 

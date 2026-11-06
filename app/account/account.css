@@ -1,0 +1,96 @@
+.account-page {
+  max-width: 44rem;
+}
+
+.account-intro,
+.account-help {
+  color: var(--muted-ink);
+  line-height: 1.5;
+}
+
+.account-details {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-medium);
+  padding: 0 1.5rem;
+}
+
+.account-section {
+  padding: 1.5rem 0;
+}
+
+.account-section + .account-section {
+  border-top: 1px solid var(--line);
+}
+
+.account-section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.account-value {
+  font-size: 1.125rem;
+  overflow-wrap: anywhere;
+}
+
+.account-help {
+  font-size: 0.875rem;
+}
+
+.account-photo {
+  border-radius: 50%;
+  display: block;
+  height: 7rem;
+  width: 7rem;
+  object-fit: cover;
+  margin-bottom: 1rem;
+}
+
+.account-photo--empty {
+  background: var(--accent-soft);
+  color: var(--accent);
+  padding: 1rem;
+}
+
+.account-editor {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.account-editor label {
+  font-weight: 700;
+}
+
+.account-editor input {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-small);
+  min-height: 3rem;
+  min-width: 0;
+  width: 100%;
+  padding: 0.75rem;
+}
+
+.account-editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.account-section button:disabled {
+  opacity: 0.65;
+}
+
+.account-error {
+  color: var(--match-worst);
+}
+
+.account-status {
+  color: var(--accent-dark);
+  margin: 0.75rem 0 0;
+}
+
+.account-status:empty {
+  display: none;
+}
