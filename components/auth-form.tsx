@@ -21,7 +21,9 @@ export function AuthForm({ mode, next }: AuthFormProps) {
 
   return (
     <form action={formAction} className="auth-form">
-      {mode === 'login' && next ? <input name="next" type="hidden" value={next} /> : null}
+      {mode === 'login' && next ? (
+        <input name="next" type="hidden" value={next} />
+      ) : null}
       <div className="auth-form__field">
         <label htmlFor="username">Username</label>
         <input
