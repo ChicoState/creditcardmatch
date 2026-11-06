@@ -27,9 +27,11 @@ test('account edits persist and username login stays unchanged', async ({
     .getByLabel('Confirm new password', { exact: true })
     .fill('changedpassword2');
   await page.getByRole('button', { name: 'Save', exact: true }).click();
-  await expect(page.getByRole('alert')).toContainText(
-    'current password is incorrect',
-  );
+  await expect(
+    page
+      .getByRole('alert')
+      .filter({ hasText: /current password is incorrect/i }),
+  ).toContainText('current password is incorrect');
   await page
     .getByLabel('Current password', { exact: true })
     .fill('accounttest1');
