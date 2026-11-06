@@ -111,7 +111,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Start local Supabase
-        run: npx supabase start --exclude studio,imgproxy,edge-runtime,logflare,vector,supavisor,storage-api,realtime,mailpit,postgres-meta
+        run: npx supabase start --exclude studio,imgproxy,edge-runtime,logflare,vector,supavisor,realtime,mailpit,postgres-meta
       - name: Export local Supabase environment
         run: |
           npx supabase status -o json > supabase-status.json
