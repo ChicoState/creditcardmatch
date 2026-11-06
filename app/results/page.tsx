@@ -5,6 +5,8 @@ import { selectVisibleCatalogCards } from '../../lib/catalog/visibility';
 import { SURVEY_FILTER_SLUGS } from '../../lib/config/survey';
 import { getCatalogData } from '../../lib/data/catalog';
 import { findMissingFilterSlugs } from '../../lib/results/missing-filters';
+import { getBookmarkedCardIds } from '../../lib/bookmarks/data';
+import { getCurrentHeaderAccount } from '../../lib/auth/server';
 import {
   parseFilterSlugs,
   parseResultsMode,
@@ -20,8 +22,17 @@ interface ResultsPageProps {
 export const dynamic = 'force-dynamic';
 
 export default async function ResultsPage({ searchParams }: ResultsPageProps) {
-  const [{ filters: filterQuery, mode: modeQuery }, catalog] =
-    await Promise.all([searchParams, getCatalogData()]);
+  const [
+    { filters: filterQuery, mode: modeQuery },
+    catalog,
+    bookmarkedCardIds,
+    account,
+  ] = await Promise.all([
+    searchParams,
+    getCatalogData(),
+    getBookmarkedCardIds(),
+    getCurrentHeaderAccount(),
+  ]);
   const activeFilters = parseFilterSlugs(filterQuery);
   const mode = parseResultsMode(modeQuery);
   const cards = selectVisibleCatalogCards(catalog);
@@ -57,6 +68,8 @@ export default async function ResultsPage({ searchParams }: ResultsPageProps) {
         filters={catalog.filters}
         mode={mode}
         missingFilterSlugs={missingFilterSlugs}
+        bookmarkedCardIds={bookmarkedCardIds}
+        isAuthenticated={Boolean(account)}
       />
     </main>
   );
