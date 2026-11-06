@@ -181,9 +181,11 @@ The generator reports the CSV file and row for duplicate or unknown slugs, inval
 
 ## GitHub configuration
 
+The pull-request checks workflow runs on pull requests and pushes to `main`. It validates formatting, linting, types, tests, coverage, the production build, and production dependency vulnerabilities; the full npm audit is reported without blocking. It also runs a pinned, checksum-verified Gitleaks scan over only the new commits, CodeQL v4, and Playwright against a local Supabase stack started inside the runner. The workflow uses the Node version in `.nvmrc` and does not require repository secrets for pull-request checks.
+
 Before enabling protected release deployment, create the `production` GitHub Environment with approval rules. Add `VERCEL_TOKEN`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_URL`, `E2E_TEST_USER_EMAIL`, and `E2E_TEST_USER_PASSWORD` as secrets; set `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `E2E_BASE_URL`, and `PRODUCTION_SMOKE_URL` (the future health endpoint) as variables. Create separate Supabase development, test, and production projects; never reuse production values locally.
 
-The release workflow intentionally fails its prerequisite check until Vercel values are configured. Playwright is skipped on pull requests until the dedicated non-production test environment is configured; make that check required once its secrets are available. Dependabot must be enabled in the GitHub repository settings.
+The release workflow intentionally fails its prerequisite check until Vercel values are configured. The pull-request Playwright job uses only the runner's local Supabase stack; release-specific test credentials remain future protected-release configuration. Dependabot must be enabled in the GitHub repository settings.
 
 ## Troubleshooting
 
