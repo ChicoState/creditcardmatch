@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import CurrentCardsPage from '../../app/account/current-cards/page';
 
 vi.mock('../../lib/account/data', () => ({
-  getAccountDashboardData: vi.fn().mockResolvedValue({
+  getCurrentCardsPageData: vi.fn().mockResolvedValue({
     username: 'alex',
     roster: [],
     availableCards: [],
