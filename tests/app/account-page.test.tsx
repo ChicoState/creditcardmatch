@@ -15,6 +15,7 @@ vi.mock('next/navigation', () => ({
 describe('account page', () => {
   afterEach(cleanup);
   beforeEach(() => {
+    vi.clearAllMocks();
     mocks.redirect.mockImplementation(() => {
       throw new Error('redirect');
     });

@@ -1,17 +1,39 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import sharp from 'sharp';
-import { saveAccountDetails } from '../../lib/account/actions';
+import {
+  addCardAction,
+  saveAccountDetails,
+  saveCardRosterAction,
+} from '../../lib/account/actions';
 
-const mocks = vi.hoisted(() => ({
-  getUser: vi.fn(),
-  signInWithPassword: vi.fn(),
-  updateUser: vi.fn(),
-  updateUserById: vi.fn(),
-  upload: vi.fn(),
-  remove: vi.fn(),
-  revalidatePath: vi.fn(),
-}));
+const mocks = vi.hoisted(() => {
+  const getUser = vi.fn();
+  const from = vi.fn();
+  const authClient = {
+    auth: {
+      getUser,
+      signInWithPassword: vi.fn(),
+      updateUser: vi.fn(),
+    },
+    from,
+    storage: { from: vi.fn() },
+  };
+  return {
+    authClient,
+    createAuthServerClient: vi.fn(),
+    getCatalogData: vi.fn(),
+    getUser,
+    from,
+    signInWithPassword: authClient.auth.signInWithPassword,
+    updateUser: authClient.auth.updateUser,
+    updateUserById: vi.fn(),
+    upload: vi.fn(),
+    remove: vi.fn(),
+    revalidatePath: vi.fn(),
+  };
+});
+
 vi.mock('../../lib/auth/rate-limit', () => ({
   consumeAuthRateLimit: async () => true,
 }));
@@ -20,20 +42,62 @@ vi.mock('../../lib/auth/server', () => ({
   createAuthAdminClient: () => ({
     auth: { admin: { updateUserById: mocks.updateUserById } },
   }),
-  createAuthServerClient: async () => ({
-    auth: {
-      getUser: mocks.getUser,
-      signInWithPassword: mocks.signInWithPassword,
-      updateUser: mocks.updateUser,
-    },
-    storage: { from: () => ({ upload: mocks.upload, remove: mocks.remove }) },
-  }),
+  createAuthServerClient: mocks.createAuthServerClient,
 }));
+vi.mock('../../lib/data/catalog', () => ({
+  getCatalogData: mocks.getCatalogData,
+}));
+vi.mock('../../lib/catalog/visibility', () => ({
+  selectVisibleCatalogCards: vi.fn(() => [{ cardId: 7 }]),
+}));
+
+describe('card roster actions', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.createAuthServerClient.mockResolvedValue(mocks.authClient);
+    mocks.getUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    mocks.getCatalogData.mockResolvedValue({});
+    mocks.from.mockImplementation(() => ({
+      upsert: vi.fn().mockResolvedValue({ error: null }),
+    }));
+  });
+
+  it('creates the profile before adding a card for a new account', async () => {
+    const formData = new FormData();
+    formData.set('card_id', '7');
+    const upsertedTables: string[] = [];
+    mocks.from.mockImplementation((table: string) => ({
+      upsert: vi.fn().mockImplementation(() => {
+        upsertedTables.push(table);
+        return Promise.resolve({ error: null });
+      }),
+    }));
+    await addCardAction(formData);
+    expect(upsertedTables).toEqual(['profiles', 'user_card_roster']);
+  });
+
+  it('replaces the authenticated user roster with visible catalog cards', async () => {
+    const deleteQuery = { eq: vi.fn() };
+    deleteQuery.eq.mockResolvedValue({ error: null });
+    const insert = vi.fn().mockResolvedValue({ error: null });
+    mocks.from.mockImplementation((table: string) => {
+      if (table === 'user_card_roster')
+        return { delete: vi.fn(() => deleteQuery), insert };
+      return { upsert: vi.fn().mockResolvedValue({ error: null }) };
+    });
+    const formData = new FormData();
+    formData.append('card_id', '7');
+    formData.append('card_id', '8');
+    await saveCardRosterAction(formData);
+    expect(insert).toHaveBeenCalledWith([{ user_id: 'user-1', card_id: 7 }]);
+  });
+});
 
 describe('account save authorization and failure recovery', () => {
   const id = '11111111-1111-4111-8111-111111111111';
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.createAuthServerClient.mockResolvedValue(mocks.authClient);
     mocks.getUser.mockResolvedValue({
       data: {
         user: {
@@ -54,6 +118,10 @@ describe('account save authorization and failure recovery', () => {
     mocks.updateUserById.mockResolvedValue({ error: null });
     mocks.upload.mockResolvedValue({ error: null });
     mocks.remove.mockResolvedValue({ error: null });
+    mocks.authClient.storage.from.mockReturnValue({
+      upload: mocks.upload,
+      remove: mocks.remove,
+    });
   });
   function fields(field: string, value: string) {
     const form = new FormData();
@@ -110,9 +178,8 @@ describe('account save authorization and failure recovery', () => {
       passwordForm('short'),
       passwordForm('nodigitsplease'),
       passwordForm('newpass2', 'otherpass3'),
-    ]) {
+    ])
       expect(await saveAccountDetails(form)).toHaveProperty('error');
-    }
     expect(mocks.signInWithPassword).not.toHaveBeenCalled();
     expect(mocks.updateUser).not.toHaveBeenCalled();
   });
