@@ -119,6 +119,7 @@ jobs:
           echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$(jq -r '.ANON_KEY' supabase-status.json)" >> "$GITHUB_ENV"
           echo "SUPABASE_SERVICE_ROLE_KEY=$(jq -r '.SERVICE_ROLE_KEY' supabase-status.json)" >> "$GITHUB_ENV"
       - name: Install Playwright Chromium
+        timeout-minutes: 10
         run: npx playwright install --with-deps chromium
       - name: Run Playwright tests
         run: npx playwright test

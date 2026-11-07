@@ -41,7 +41,9 @@ describe('ResultsExplorer card details', () => {
     );
 
     expect(
-      screen.getByRole('button', { name: 'Remove Harbor Starter Card from bookmarks' }),
+      screen.getByRole('button', {
+        name: 'Remove Harbor Starter Card from bookmarks',
+      }),
     ).toHaveAttribute('aria-pressed', 'true');
   });
 

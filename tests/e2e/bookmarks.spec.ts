@@ -18,7 +18,11 @@ test.describe('bookmarked cards', () => {
     await page.getByLabel('Username').fill(username);
     await page.getByLabel('Password').fill(password);
     await page.getByRole('button', { name: 'Create account' }).click();
-    await expect(page.getByText(username, { exact: true })).toBeVisible();
+    await page.locator('summary[aria-label="Open account menu"]').click();
+    const accountMenu = page.getByRole('group', { name: 'Account menu' });
+    await expect(
+      accountMenu.getByText(username, { exact: true }),
+    ).toBeVisible();
 
     await page.goto('/results');
     const firstCard = page.locator('article.result-card').first();
@@ -29,7 +33,11 @@ test.describe('bookmarked cards', () => {
       name: `Bookmark ${cardName}`,
     });
     await bookmark.click();
-    await expect(bookmark).toHaveAttribute('aria-pressed', 'true');
+    const savedBookmark = firstCard.getByRole('button', {
+      name: `Remove ${cardName} from bookmarks`,
+    });
+    await expect(savedBookmark).toHaveAttribute('aria-pressed', 'true');
+    await expect(savedBookmark).toBeEnabled();
 
     await page.goto('/bookmarks');
     await expect(
@@ -41,10 +49,12 @@ test.describe('bookmarked cards', () => {
     await expect(savedCard).toBeVisible();
 
     await savedCard
-      .getByRole('button', {
-        name: `Remove ${cardName} from bookmarks`,
-      })
+      .getByRole('button', { name: `Remove ${cardName} from bookmarks` })
       .click();
+    const removedBookmark = savedCard.getByRole('button', {
+      name: `Bookmark ${cardName}`,
+    });
+    await expect(removedBookmark).toHaveAttribute('aria-pressed', 'false');
     await expect(page.getByText('No saved cards yet')).toBeVisible();
   });
 });
