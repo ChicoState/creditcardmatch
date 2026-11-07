@@ -8,7 +8,9 @@ describe('database foundation', () => {
   const migration = readdirSync(projectFile('supabase/migrations'))
     .filter((file) => file.endsWith('.sql'))
     .sort()
-    .map((file) => readFileSync(projectFile(`supabase/migrations/${file}`), 'utf8'))
+    .map((file) =>
+      readFileSync(projectFile(`supabase/migrations/${file}`), 'utf8'),
+    )
     .join('\n');
   const seed = readFileSync(projectFile('supabase/seed.sql'), 'utf8');
   const publicTables = [
@@ -34,11 +36,16 @@ describe('database foundation', () => {
       'credit_cards',
       'card_rewards',
       'recommendations',
+      'bookmarks',
     ]) {
       expect(migration).toMatch(
         new RegExp(`create table (?:public\\.)?${table}\\b`, 'i'),
       );
     }
+    expect(migration).toMatch(/create table public\.bookmarks/i);
+    expect(migration).toMatch(/owners can read bookmarks/i);
+    expect(migration).toMatch(/owners can create bookmarks/i);
+    expect(migration).toMatch(/owners can delete bookmarks/i);
 
     expect(migration).toMatch(/source_url text/i);
     expect(migration).toMatch(/last_verified_at timestamptz/i);

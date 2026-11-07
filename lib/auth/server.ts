@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
+import { accountAvatarUrl, accountName } from '../account/server';
 
 function requiredEnvironmentVariable(name: string): string {
   const value = process.env[name];
@@ -62,15 +63,10 @@ export async function getCurrentHeaderAccount(): Promise<
   try {
     const auth = await createAuthServerClient();
     const { data } = await auth.auth.getUser();
-    const username = data.user?.user_metadata?.username;
     if (!data.user) return undefined;
-    const avatarUrl = data.user.user_metadata?.avatar_url;
     return {
-      username: typeof username === 'string' ? username : 'Account',
-      avatarUrl:
-        typeof avatarUrl === 'string' && /^https?:\/\//i.test(avatarUrl)
-          ? avatarUrl
-          : undefined,
+      username: accountName(data.user),
+      avatarUrl: await accountAvatarUrl(data.user, auth),
     };
   } catch {
     return undefined;

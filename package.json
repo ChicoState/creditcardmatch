@@ -18,7 +18,8 @@
     "coverage": "vitest run --coverage --passWithNoTests",
     "test:e2e": "playwright test --pass-with-no-tests",
     "test:smoke": "bash scripts/smoke-infrastructure.sh",
-    "security:audit": "npm audit --audit-level=high",
+    "security:audit": "npm audit --omit=dev --audit-level=high",
+    "security:audit:all": "npm audit --audit-level=high",
     "seed:generate": "node scripts/generate-card-seed.mjs",
     "db:migrate:production": "supabase db push",
     "supabase:start": "npx supabase start",
@@ -31,9 +32,10 @@
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.116.0",
-    "next": "^16.3.8",
+    "next": "^16.4.1",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react-dom": "^19.3.0",
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
@@ -45,7 +47,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitest/coverage-v8": "^5.0.1",
     "eslint": "^9.39.5",
-    "eslint-config-next": "^16.3.8",
+    "eslint-config-next": "^16.4.1",
     "jsdom": "^30.0.1",
     "prettier": "^3.9.7",
     "supabase": "2.117.0",

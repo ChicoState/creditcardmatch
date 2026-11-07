@@ -20,8 +20,8 @@ import {
   removeFilterSlug,
   type ResultsMode,
 } from '../lib/results/query-string';
-import { CompareButton, ComparisonCart } from './comparison-cart';
-import { ApplyLink } from './apply-link';
+import { ComparisonCart } from './comparison-cart';
+import { CatalogCardView } from './catalog-card';
 import { ResultsFilterControls } from './results-filter-controls';
 import { SurveyAnswerSummary } from './survey-answer-summary';
 
@@ -31,21 +31,8 @@ interface ResultsExplorerProps {
   filters: FilterRow[];
   mode?: ResultsMode;
   missingFilterSlugs?: string[];
-}
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
-}
-
-function formatNetwork(network: CatalogCard['network']): string {
-  if (network === 'amex') return 'American Express';
-  if (!network) return 'Card details';
-  return `${network[0].toUpperCase()}${network.slice(1)}`;
+  bookmarkedCardIds?: number[];
+  isAuthenticated?: boolean;
 }
 
 function subscribeToSurveyStorage() {
@@ -70,6 +57,8 @@ export function ResultsExplorer({
   filters,
   mode = 'browse',
   missingFilterSlugs = [],
+  bookmarkedCardIds = [],
+  isAuthenticated = false,
 }: ResultsExplorerProps) {
   const router = useRouter();
   const surveyMode = mode === 'survey';
@@ -269,113 +258,16 @@ export function ResultsExplorer({
               );
 
             return (
-              <article className="result-card" key={card.cardId}>
-                <div
-                  aria-label={`Illustration of ${card.cardName}`}
-                  className="card-art"
-                  role="img"
-                >
-                  <span>{card.issuer}</span>
-                  <strong>{card.cardName}</strong>
-                  <small>{formatNetwork(card.network)}</small>
-                </div>
-
-                <div className="card-heading">
-                  <div>
-                    <p className="card-issuer">{card.issuer}</p>
-                    <h2>{card.cardName}</h2>
-                  </div>
-                  <div className="card-labels">
-                    {surveyMode && (
-                      <span
-                        className={`match-label match-label-${(
-                          cardMatch.rating ??
-                          (showingBroaderOptions
-                            ? 'Broader option'
-                            : 'Review fit')
-                        )
-                          .toLocaleLowerCase()
-                          .replaceAll(' ', '-')}`}
-                      >
-                        {cardMatch.rating ??
-                          (showingBroaderOptions
-                            ? 'Broader option'
-                            : 'Review fit')}
-                      </span>
-                    )}
-                    {!card.isVerified && (
-                      <span className="unverified-label">Unverified</span>
-                    )}
-                  </div>
-                </div>
-
-                <dl className="card-details">
-                  <div>
-                    <dt>Annual fee</dt>
-                    <dd>
-                      {card.annualFeeWaivedFirstYear
-                        ? '$0 first year'
-                        : formatCurrency(card.annualFee)}
-                    </dd>
-                  </div>
-                  {card.oneTimeFee !== null && card.oneTimeFee !== 0 && (
-                    <div>
-                      <dt>One-time fee</dt>
-                      <dd>{formatCurrency(card.oneTimeFee)}</dd>
-                    </div>
-                  )}
-                  {card.monthlyFee !== null && card.monthlyFee !== 0 && (
-                    <div>
-                      <dt>Monthly fee</dt>
-                      <dd>{formatCurrency(card.monthlyFee)}</dd>
-                    </div>
-                  )}
-                  {card.isSecured && (
-                    <div>
-                      <dt>Card type</dt>
-                      <dd>
-                        Secured
-                        {card.securityDepositMin !== null &&
-                          ` · ${formatCurrency(card.securityDepositMin)} minimum deposit`}
-                      </dd>
-                    </div>
-                  )}
-                  {card.rewardType === 'none' && (
-                    <div>
-                      <dt>Rewards</dt>
-                      <dd>No rewards</dd>
-                    </div>
-                  )}
-                </dl>
-
-                <ul className="benefit-list">
-                  {card.benefits.map((benefit) => (
-                    <li key={benefit}>{benefit}</li>
-                  ))}
-                </ul>
-                <p className="card-description">{card.description}</p>
-
-                <section className="recommendation-reason">
-                  <h3>{surveyMode ? 'Why this rating' : 'Why we show this'}</h3>
-                  {surveyMode ? (
-                    <>
-                      <ul className="score-reasons">
-                        {cardMatch.reasons.map((reason) => (
-                          <li key={reason}>{reason}</li>
-                        ))}
-                      </ul>
-                    </>
-                  ) : (
-                    <p>
-                      {matchedLabels.length > 0
-                        ? `Matches every active filter: ${matchedLabels.join(', ')}.`
-                        : 'No filters are active, so this card is part of the blank-slate catalog.'}
-                    </p>
-                  )}
-                </section>
-                <ApplyLink card={card} />
-                <CompareButton card={card} />
-              </article>
+              <CatalogCardView
+                card={card}
+                cardMatch={cardMatch}
+                initialBookmarked={bookmarkedCardIds.includes(card.cardId)}
+                isAuthenticated={isAuthenticated}
+                key={card.cardId}
+                matchedLabels={matchedLabels}
+                showingBroaderOptions={showingBroaderOptions}
+                surveyMode={surveyMode}
+              />
             );
           })}
         </div>

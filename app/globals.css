@@ -1093,6 +1093,46 @@ h1 {
   gap: 0.375rem;
 }
 
+.bookmark-control {
+  align-items: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.bookmark-button {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--accent-dark);
+  display: inline-flex;
+  font-size: 0.75rem;
+  font-weight: 700;
+  gap: 0.3rem;
+  padding: 0.3rem 0.55rem;
+}
+
+.bookmark-button:hover,
+.bookmark-button[aria-pressed='true'] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.bookmark-button span:first-child {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.bookmark-error {
+  color: var(--match-worst);
+  font-size: 0.7rem;
+  line-height: 1.25;
+  margin: 0;
+  max-width: 12rem;
+  text-align: right;
+}
+
 .match-label {
   border: 1px solid;
   border-radius: 999px;

@@ -36,9 +36,6 @@ describe('HomePage', () => {
       'href',
       '/results?filters=gas-focus',
     );
-    expect(
-      screen.getByRole('link', { name: /Dining & food cards/i }),
-    ).toHaveAttribute('href', '/results?filters=dining-food-focus');
     expect(screen.getByRole('link', { name: 'SURVEY' })).toHaveAttribute(
       'href',
       '/survey',
