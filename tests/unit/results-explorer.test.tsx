@@ -8,8 +8,10 @@ import {
 } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+const navigation = vi.hoisted(() => ({ push: vi.fn() }));
+
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => navigation,
 }));
 
 import { ResultsExplorer } from '../../components/results-explorer';
@@ -23,6 +25,7 @@ import {
 import { catalogFixture } from '../fixtures/catalog';
 
 afterEach(() => {
+  navigation.push.mockReset();
   clearSurveyAnswers();
   cleanup();
 });
@@ -41,7 +44,9 @@ describe('ResultsExplorer card details', () => {
     );
 
     expect(
-      screen.getByRole('button', { name: 'Remove Harbor Starter Card from bookmarks' }),
+      screen.getByRole('button', {
+        name: 'Remove Harbor Starter Card from bookmarks',
+      }),
     ).toHaveAttribute('aria-pressed', 'true');
   });
 
@@ -268,7 +273,7 @@ describe('ResultsExplorer card details', () => {
     expect(answersGuide).not.toBeNull();
     expect(
       within(answersGuide as HTMLElement).getByRole('heading', {
-        name: 'What we used for matching',
+        name: 'Used for current matching',
       }),
     ).not.toBeVisible();
     fireEvent.click(screen.getByText('Your answers'));
@@ -325,5 +330,107 @@ describe('ResultsExplorer card details', () => {
         'Try removing a filter or changing your search to see more cards.',
       ),
     ).toBeVisible();
+  });
+
+  it('relaxes only the annual-fee filter when it would leave no cards', async () => {
+    const cards = selectVisibleCatalogCards(catalogFixture).map((card) => ({
+      ...card,
+      annualFee: card.cardId === 11 ? 95 : 0,
+      filterSlugs: ['cashback'],
+    }));
+    const filters = [
+      ...catalogFixture.filters,
+      {
+        filter_id: 4,
+        slug: 'no-annual-fee',
+        label: 'No Annual Fee',
+        description: null,
+      },
+    ];
+    saveSurveyAnswers({
+      accepts_annual_fee: false,
+      card_filter_preferences: [
+        { filter_slug: 'no-annual-fee', preference: 'want' },
+      ],
+      category_monthly_spend: [],
+      credit_score_band: 'good',
+      extra_benefit_slugs: [],
+      income_range: 'under_40000',
+      primary_goal: 'cash_back',
+      priority_category_slugs: [],
+      user_filter_preferences: [
+        { filter_slug: 'no-annual-fee', preference: 'want' },
+      ],
+      user_preferences: {
+        accepts_annual_fee: false,
+        wants_travel_rewards: false,
+      },
+    });
+
+    render(
+      <ResultsExplorer
+        activeFilters={['cashback', 'no-annual-fee']}
+        cards={cards}
+        filters={filters}
+        mode="survey"
+      />,
+      { wrapper: ComparisonProvider },
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: 'Aurora Everyday Card' }),
+      ).toBeVisible();
+    });
+    fireEvent.click(screen.getByText('How to read your results'));
+    expect(
+      screen.getByText(
+        'No cards matched your annual-fee preference, so broader options are shown while other filters remain active.',
+      ),
+    ).toBeVisible();
+    expect(screen.getAllByText('Broader option').length).toBeGreaterThan(0);
+    expect(
+      screen.getByText('Annual fee: does not match your preference'),
+    ).toBeVisible();
+  });
+
+  it('clears survey answers and returns to blank-slate browsing', async () => {
+    saveSurveyAnswers({
+      accepts_annual_fee: true,
+      card_filter_preferences: [],
+      category_monthly_spend: [],
+      credit_score_band: 'good',
+      extra_benefit_slugs: [],
+      income_range: 'under_40000',
+      primary_goal: 'cash_back',
+      priority_category_slugs: [],
+      user_filter_preferences: [],
+      user_preferences: {
+        accepts_annual_fee: true,
+        wants_travel_rewards: false,
+      },
+    });
+
+    render(
+      <ResultsExplorer
+        activeFilters={[]}
+        cards={selectVisibleCatalogCards(catalogFixture)}
+        filters={catalogFixture.filters}
+        mode="survey"
+      />,
+      { wrapper: ComparisonProvider },
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: 'Clear survey answers' }),
+      ).toBeVisible();
+    });
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Clear survey answers' }),
+    );
+
+    expect(localStorage.getItem('ccm:survey:v2')).toBeNull();
+    expect(navigation.push).toHaveBeenCalledWith('/results');
   });
 });
