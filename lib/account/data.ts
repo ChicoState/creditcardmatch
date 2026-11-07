@@ -16,8 +16,8 @@ export async function getAccountDashboardData(): Promise<AccountDashboardData> {
   const user = await getAuthenticatedUser();
   const auth = await createAuthServerClient();
 
-  const [rosterResult, spendResult, catalog] = await Promise.all([
-    auth.from('user_card_roster').select('card_id').eq('user_id', user.id),
+  const [currentCards, spendResult, catalog] = await Promise.all([
+    getCurrentCardsPageData(user, auth),
     auth
       .from('user_category_spend')
       .select('category_id, monthly_amount')
@@ -25,16 +25,8 @@ export async function getAccountDashboardData(): Promise<AccountDashboardData> {
     getCatalogData(),
   ]);
 
-  if (rosterResult.error) throw new Error('Unable to load your card roster.');
   if (spendResult.error)
     throw new Error('Unable to load your saved spending answers.');
-
-  const visibleCards = selectVisibleCatalogCards(catalog);
-  const rosterIds = new Set(
-    (rosterResult.data ?? []).map((row) => Number(row.card_id)),
-  );
-  const roster = visibleCards.filter((card) => rosterIds.has(card.cardId));
-  const availableCards = visibleCards;
 
   const categoryById = new Map(
     catalog.rewardCategories.map((category) => [
@@ -57,14 +49,41 @@ export async function getAccountDashboardData(): Promise<AccountDashboardData> {
     .sort((left, right) => right.monthlyAmount - left.monthlyAmount);
 
   return {
-    username:
-      typeof user.user_metadata?.username === 'string'
-        ? user.user_metadata.username
-        : 'Username unavailable',
-    roster,
-    availableCards,
-    rewardCategories: catalog.rewardCategories,
+    ...currentCards,
     spend,
+  };
+}
+
+export async function getCurrentCardsPageData(
+  user?: Awaited<ReturnType<typeof getAuthenticatedUser>>,
+  auth?: Awaited<ReturnType<typeof createAuthServerClient>>,
+): Promise<Omit<AccountDashboardData, 'spend'>> {
+  const authenticatedUser =
+    user ?? (await getAuthenticatedUser('/account/current-cards'));
+  const client = auth ?? (await createAuthServerClient());
+  const [rosterResult, catalog] = await Promise.all([
+    client
+      .from('user_card_roster')
+      .select('card_id')
+      .eq('user_id', authenticatedUser.id),
+    getCatalogData(),
+  ]);
+
+  if (rosterResult.error) throw new Error('Unable to load your card roster.');
+
+  const visibleCards = selectVisibleCatalogCards(catalog);
+  const rosterIds = new Set(
+    (rosterResult.data ?? []).map((row) => Number(row.card_id)),
+  );
+
+  return {
+    username:
+      typeof authenticatedUser.user_metadata?.username === 'string'
+        ? authenticatedUser.user_metadata.username
+        : 'Username unavailable',
+    roster: visibleCards.filter((card) => rosterIds.has(card.cardId)),
+    availableCards: visibleCards,
+    rewardCategories: catalog.rewardCategories,
   };
 }
 

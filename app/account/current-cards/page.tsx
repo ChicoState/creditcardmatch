@@ -1,8 +1,8 @@
 import { AccountRoster } from '../../../components/account-roster';
-import { getAccountDashboardData } from '../../../lib/account/data';
+import { getCurrentCardsPageData } from '../../../lib/account/data';
 
 export default async function CurrentCardsPage() {
-  const account = await getAccountDashboardData();
+  const account = await getCurrentCardsPageData();
 
   return (
     <main className="page-shell narrow-page">
