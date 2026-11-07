@@ -34,7 +34,8 @@ test.describe.serial('username authentication', () => {
     await page.getByLabel('Password').fill(password);
     await page.getByRole('button', { name: 'Login' }).click();
 
-    await expect(page).toHaveURL('/');
+    // Direct login uses safeNextPath's default from lib/auth: /results.
+    await expect(page).toHaveURL('/results');
     await page.locator('summary[aria-label="Open account menu"]').click();
     await expect(
       accountMenu.getByText(username, { exact: true }),

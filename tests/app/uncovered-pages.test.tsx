@@ -23,19 +23,20 @@ import SurveyPage from '../../app/survey/page';
 describe('uncovered app pages', () => {
   afterEach(cleanup);
 
-  it('renders the bookmarks page message', () => {
-    render(<BookmarksPage />);
+  it('redirects guests to login from the bookmarks page', async () => {
+    mocks.redirect.mockImplementation(() => {
+      throw new Error('redirect');
+    });
+    mocks.getUser.mockResolvedValue({ data: { user: null } });
 
-    expect(
-      screen.getByRole('heading', { name: 'Bookmarked cards' }),
-    ).toBeVisible();
-    expect(screen.getByText('This page is coming soon.')).toBeVisible();
+    await expect(BookmarksPage()).rejects.toThrow('redirect');
+    expect(mocks.redirect).toHaveBeenCalledWith('/login?next=%2Fbookmarks');
   });
 
   it('renders the login form for a guest', async () => {
     mocks.getUser.mockResolvedValue({ data: { user: null } });
 
-    render(await LoginPage());
+    render(await LoginPage({ searchParams: Promise.resolve({}) }));
 
     expect(screen.getByRole('heading', { name: 'Login' })).toBeVisible();
     expect(screen.getByRole('button', { name: 'Login' })).toBeVisible();
