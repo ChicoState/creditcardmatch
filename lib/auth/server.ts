@@ -54,7 +54,11 @@ export function createAuthAdminClient() {
 }
 
 export async function getCurrentHeaderAccount(): Promise<
-  { username: string; avatarUrl?: string } | undefined
+  | {
+      username: string;
+      avatarUrl?: string;
+    }
+  | undefined
 > {
   try {
     const auth = await createAuthServerClient();
