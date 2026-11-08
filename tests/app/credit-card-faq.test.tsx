@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { cleanup, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -14,75 +14,77 @@ vi.mock('../../lib/data/catalog', async () => {
   };
 });
 
-import RootLayout from '../../app/layout';
 import LearnPage from '../../app/learn/page';
 import HomePage from '../../app/page';
 import ResultsPage from '../../app/results/page';
 import { ComparisonProvider } from '../../components/comparison-provider';
+import { SiteHeader } from '../../components/site-header';
 
 describe('credit card FAQ', () => {
-  it('offers an introductory, source-linked credit-card reference', () => {
+  afterEach(cleanup);
+
+  it('offers an introductory, source-linked credit-card reference', async () => {
     render(<LearnPage />);
 
     expect(
-      screen.getByRole('heading', { name: 'Credit card basics' }),
+      await screen.findByRole('heading', { name: 'Credit card basics' }),
     ).toBeVisible();
     expect(
-      screen.getByRole('table', { name: 'Credit card pros and cons' }),
+      await screen.findByRole('table', { name: 'Credit card pros and cons' }),
     ).toBeVisible();
-    expect(screen.getByText('APR', { selector: 'dt' })).toBeVisible();
+    expect(await screen.findByText('APR', { selector: 'dt' })).toBeVisible();
     expect(
-      screen.getByText('Hard credit check', { selector: 'dt' }),
-    ).toBeVisible();
-    expect(
-      screen.getByText('Soft credit check', { selector: 'dt' }),
+      await screen.findByText('Hard credit check', { selector: 'dt' }),
     ).toBeVisible();
     expect(
-      screen.getByText(
+      await screen.findByText('Soft credit check', { selector: 'dt' }),
+    ).toBeVisible();
+    expect(
+      await screen.findByText(
         'What is the difference between a credit card and a debit card?',
         { selector: 'summary' },
       ),
     ).toBeVisible();
     expect(
-      screen.getByText('Will checking my credit hurt my credit score?', {
+      await screen.findByText('Will checking my credit hurt my credit score?', {
         selector: 'summary',
       }),
     ).toBeVisible();
     expect(
-      screen.getByText(/educational information, not financial advice/i),
+      await screen.findByText(/educational information, not financial advice/i),
     ).toBeVisible();
     expect(
-      screen.getByRole('link', {
+      await screen.findByRole('link', {
         name: /consumer financial protection bureau/i,
       }),
     ).toHaveAttribute('href', expect.stringContaining('consumerfinance.gov'));
     expect(screen.queryByText(/AI-generated/i)).not.toBeInTheDocument();
     expect(
-      screen.getByRole('link', { name: /Read the legal information/i }),
+      await screen.findByRole('link', { name: /Read the legal information/i }),
     ).toHaveAttribute('href', '/legal');
   });
 
   it('is linked from the home page, recommendations, and global navigation', async () => {
     const { unmount } = render(await HomePage());
     expect(
-      screen.getByRole('link', { name: /Credit card FAQ/i }),
+      await screen.findByRole('link', { name: /Credit card FAQ/i }),
     ).toHaveAttribute('href', '/learn');
     unmount();
 
-    render(
+    const { unmount: unmountResults } = render(
       await ResultsPage({
         searchParams: Promise.resolve({}),
       }),
       { wrapper: ComparisonProvider },
     );
     expect(
-      screen.getByRole('link', { name: 'Learn credit card basics' }),
+      await screen.findByRole('link', { name: 'Learn credit card basics' }),
     ).toHaveAttribute('href', '/learn');
+    unmountResults();
 
-    const layout = await RootLayout({ children: 'Content' });
-    render(layout);
+    render(<SiteHeader />);
     expect(
-      screen.getByRole('link', { name: 'Credit Card FAQ' }),
+      await screen.findByRole('link', { name: 'Credit Card FAQ' }),
     ).toHaveAttribute('href', '/learn');
   });
 });
