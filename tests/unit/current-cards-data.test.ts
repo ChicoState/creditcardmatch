@@ -31,7 +31,9 @@ describe('getCurrentCardsPageData', () => {
       if (table === 'user_card_roster') {
         return {
           select: vi.fn(() => ({
-            eq: vi.fn().mockResolvedValue({ data: [{ card_id: 7 }], error: null }),
+            eq: vi
+              .fn()
+              .mockResolvedValue({ data: [{ card_id: 7 }], error: null }),
           })),
         };
       }
