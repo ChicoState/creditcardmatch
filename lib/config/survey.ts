@@ -186,6 +186,17 @@ function filterForAnswer(
   return mapping[String(answer)];
 }
 
+function uniqueFilterPreferences(
+  preferences: SurveySubmission['card_filter_preferences'],
+): SurveySubmission['card_filter_preferences'] {
+  return preferences.filter(
+    (preference, index) =>
+      preferences.findIndex(
+        (candidate) => candidate.filter_slug === preference.filter_slug,
+      ) === index,
+  );
+}
+
 export function deriveSurveySubmission(
   values: SurveyFormValues,
 ): SurveySubmission {
@@ -234,16 +245,9 @@ export function deriveSurveySubmission(
   }
 
   const categoryMonthlySpend = priorityCategorySlugs.flatMap((categorySlug) => {
-    const category = SURVEY_CATEGORIES.find(
-      (option) => option.slug === categorySlug,
-    );
     const amount = Number(values.categorySpend[categorySlug]);
 
-    if (
-      !category?.supportsSavedSpend ||
-      !Number.isFinite(amount) ||
-      amount <= 0
-    ) {
+    if (!Number.isFinite(amount) || amount <= 0) {
       return [];
     }
 
@@ -255,9 +259,13 @@ export function deriveSurveySubmission(
     values.primaryGoal === 'travel_rewards' ||
     extraBenefitSlugs.includes('airport-travel-benefits');
 
+  const normalizedFilterPreferences = uniqueFilterPreferences(
+    cardFilterPreferences,
+  );
+
   return {
     accepts_annual_fee: acceptsAnnualFee,
-    card_filter_preferences: cardFilterPreferences,
+    card_filter_preferences: normalizedFilterPreferences,
     category_monthly_spend: categoryMonthlySpend,
     credit_score_band: hasOption(CREDIT_SCORE_OPTIONS, values.creditScore)
       ? values.creditScore
@@ -270,7 +278,7 @@ export function deriveSurveySubmission(
       ? values.primaryGoal
       : 'cash_back',
     priority_category_slugs: priorityCategorySlugs,
-    user_filter_preferences: cardFilterPreferences,
+    user_filter_preferences: normalizedFilterPreferences,
     user_preferences: {
       accepts_annual_fee: acceptsAnnualFee,
       wants_travel_rewards: wantsTravelRewards,

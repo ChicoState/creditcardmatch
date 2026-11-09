@@ -82,6 +82,7 @@ describe('deriveSurveySubmission', () => {
     expect(submission.income_range).toBe('40001_to_60000');
     expect(submission.category_monthly_spend).toEqual([
       { category_slug: 'groceries', monthly_amount: 425.5 },
+      { category_slug: 'gas', monthly_amount: 95 },
       { category_slug: 'travel', monthly_amount: 120 },
     ]);
     expect(submission.user_filter_preferences).toEqual([
@@ -134,6 +135,25 @@ describe('deriveSurveySubmission', () => {
       filter_slug: 'no-credit-history',
       preference: 'want',
     });
+  });
+
+  it('deduplicates filters when multiple answers map to the same filter', () => {
+    const submission = deriveSurveySubmission({
+      acceptsAnnualFee: true,
+      categorySpend: {},
+      creditScore: 'none',
+      extraBenefits: [],
+      incomeRange: 'over_100000',
+      primaryGoal: 'building_credit',
+      priorityCategories: [],
+    });
+
+    expect(submission.card_filter_preferences).toEqual([
+      { filter_slug: 'no-credit-history', preference: 'want' },
+    ]);
+    expect(submission.user_filter_preferences).toEqual(
+      submission.card_filter_preferences,
+    );
   });
 });
 

@@ -38,8 +38,10 @@ submission mapping, then wizard UI and regression coverage.
   - Map `Building/no score yet` and primary goal `Building credit` to
     `no-credit-history`.
   - Map primary goal `Cash back` to `cashback`.
-  - Do not emit filters for income, annual-fee preference, travel, 0% APR,
-    category priorities, monthly amounts, or extra benefits.
+  - Map declining annual-fee acceptance to `no-annual-fee`.
+  - Deduplicate repeated filter slugs before storage and URL generation.
+  - Do not emit filters for income, travel, 0% APR, category priorities,
+    monthly amounts, or extra benefits.
 - Verify: unit tests assert exact result-filter slugs and retained values.
 - Dependencies: Task 1.
 - Files: `lib/config/survey.ts`, `tests/unit/survey-config.test.ts`.
@@ -49,7 +51,8 @@ submission mapping, then wizard UI and regression coverage.
 - Acceptance:
   - Replace the current five steps with the approved order and controls.
   - Add priority-category selection with a maximum of three selections.
-  - Reveal amount inputs only for selected categories.
+  - Reveal amount inputs only for selected categories and require each selected
+    category to have a positive, nonzero amount.
   - Add yes/no annual-fee selection and exclusive `None in particular` extra
     benefits behavior.
 - Verify: component tests cover validation, caps, exclusive selection, back
@@ -62,8 +65,12 @@ submission mapping, then wizard UI and regression coverage.
 
 - Acceptance:
   - Review displays all seven answers, including non-filtering preferences.
-  - Local storage round-trips the extended submission shape safely.
+  - Local storage round-trips the extended submission shape safely, retains all
+    selected category amounts, and rejects malformed or unsupported stored data.
   - Final navigation continues to use only supported derived filters.
+  - An annual-fee filter that produces no cards falls back to broader results
+    while preserving other active filters and explaining the tradeoff.
+  - Clearing survey answers returns the results page to neutral catalog browsing.
 - Verify: component/storage tests and current filtered-result unit coverage.
 - Dependencies: Tasks 1–3.
 - Files: `components/survey-form.tsx`, `lib/storage/survey-storage.ts`,
@@ -105,12 +112,12 @@ submission mapping, then wizard UI and regression coverage.
 
 ## Risks and Mitigations
 
-| Risk                                                             | Impact                        | Mitigation                                                                                |
-| ---------------------------------------------------------------- | ----------------------------- | ----------------------------------------------------------------------------------------- |
-| Users infer unsupported answers affect results                   | Misleading recommendations    | Use clear explanatory copy and retain only current supported filter mappings.             |
-| Extra category choices cannot be saved to existing database rows | Future Phase 2b save mismatch | Retain answers locally; require migration review before authenticated persistence.        |
-| A primary goal and extra benefits become contradictory           | Confusing data                | Treat primary goal as one required priority and benefits as optional secondary interests. |
-| New wizard controls regress keyboard use                         | Accessibility regression      | Test native controls, selection limits, review edits, and focus movement.                 |
+| Risk                                                          | Impact                      | Mitigation                                                                                |
+| ------------------------------------------------------------- | --------------------------- | ----------------------------------------------------------------------------------------- |
+| Users infer unsupported answers affect results                | Misleading recommendations  | Use clear explanatory copy and retain only current supported filter mappings.             |
+| Extra category choices are not yet used by all matching paths | Incomplete current matching | Retain every selected amount locally; document which values are inactive today.           |
+| A primary goal and extra benefits become contradictory        | Confusing data              | Treat primary goal as one required priority and benefits as optional secondary interests. |
+| New wizard controls regress keyboard use                      | Accessibility regression    | Test native controls, selection limits, review edits, and focus movement.                 |
 
 ## Out of Scope
 
