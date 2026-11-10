@@ -2,11 +2,18 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import AccountPage from '../../app/account/page';
 
-const mocks = vi.hoisted(() => ({ getUser: vi.fn(), redirect: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  getUser: vi.fn(),
+  redirect: vi.fn(),
+  getSavedSurveyAnswers: vi.fn(),
+}));
 vi.mock('../../lib/auth/server', () => ({
   createAuthServerClient: async () => ({ auth: { getUser: mocks.getUser } }),
 }));
 vi.mock('../../lib/account/actions', () => ({ saveAccountDetails: vi.fn() }));
+vi.mock('../../lib/account/data', () => ({
+  getSavedSurveyAnswers: mocks.getSavedSurveyAnswers,
+}));
 vi.mock('next/navigation', () => ({
   redirect: mocks.redirect,
   useRouter: () => ({ refresh: vi.fn() }),
@@ -18,6 +25,7 @@ describe('account page', () => {
     mocks.redirect.mockImplementation(() => {
       throw new Error('redirect');
     });
+    mocks.getSavedSurveyAnswers.mockResolvedValue(null);
   });
   it('redirects guests to login', async () => {
     mocks.getUser.mockResolvedValue({ data: { user: null } });
@@ -48,7 +56,13 @@ describe('account page', () => {
       screen
         .getAllByRole('heading', { level: 2 })
         .map((heading) => heading.textContent),
-    ).toEqual(['Username', 'Password', 'Contact email', 'Profile photo']);
+    ).toEqual([
+      'Username',
+      'Password',
+      'Contact email',
+      'Profile photo',
+      'Saved survey',
+    ]);
     expect(screen.queryByText('Display name')).toBeNull();
     expect(screen.getByText('contact@example.com')).toBeVisible();
     expect(

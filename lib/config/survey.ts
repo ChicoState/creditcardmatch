@@ -48,6 +48,96 @@ export interface SurveySubmission {
   };
 }
 
+export function isSurveySubmission(value: unknown): value is SurveySubmission {
+  if (!value || typeof value !== 'object') return false;
+
+  const candidate = value as Partial<SurveySubmission>;
+  if (
+    typeof candidate.accepts_annual_fee === 'boolean' &&
+    Array.isArray(candidate.card_filter_preferences) &&
+    Array.isArray(candidate.category_monthly_spend) &&
+    typeof candidate.credit_score_band === 'string' &&
+    Array.isArray(candidate.extra_benefit_slugs) &&
+    typeof candidate.income_range === 'string' &&
+    typeof candidate.primary_goal === 'string' &&
+    Array.isArray(candidate.priority_category_slugs) &&
+    Array.isArray(candidate.user_filter_preferences) &&
+    Boolean(candidate.user_preferences)
+  ) {
+    const priorityCategories = candidate.priority_category_slugs;
+    const extraBenefits = candidate.extra_benefit_slugs;
+    const categorySpend = candidate.category_monthly_spend;
+    const preferences = candidate.user_preferences;
+    if (!preferences) return false;
+
+    return (
+      hasOption(INCOME_RANGE_OPTIONS, candidate.income_range) &&
+      hasOption(CREDIT_SCORE_OPTIONS, candidate.credit_score_band) &&
+      hasOption(PRIMARY_GOAL_OPTIONS, candidate.primary_goal) &&
+      priorityCategories.length <=
+        SURVEY_CONFIG.priorityCategories.maxSelections &&
+      uniqueKnownValues(priorityCategories, SURVEY_CATEGORIES).length ===
+        priorityCategories.length &&
+      new Set(priorityCategories).size === priorityCategories.length &&
+      uniqueKnownValues(extraBenefits, EXTRA_BENEFIT_OPTIONS).length ===
+        extraBenefits.length &&
+      (!extraBenefits.includes('none') || extraBenefits.length === 1) &&
+      categorySpend.length <= priorityCategories.length &&
+      new Set(categorySpend.map((item) => item.category_slug)).size ===
+        categorySpend.length &&
+      categorySpend.every(
+        (item) =>
+          priorityCategories.includes(item.category_slug) &&
+          SURVEY_CATEGORIES.some(
+            (category) =>
+              category.slug === item.category_slug &&
+              category.supportsSavedSpend,
+          ) &&
+          Number.isFinite(item.monthly_amount) &&
+          item.monthly_amount > 0 &&
+          item.monthly_amount <= 100_000_000,
+      ) &&
+      candidate.card_filter_preferences.every(
+        (item) =>
+          SURVEY_FILTER_SLUGS.includes(item.filter_slug) &&
+          (item.preference === 'want' || item.preference === 'avoid'),
+      ) &&
+      candidate.user_filter_preferences.every(
+        (item) =>
+          SURVEY_FILTER_SLUGS.includes(item.filter_slug) &&
+          (item.preference === 'want' || item.preference === 'avoid'),
+      ) &&
+      typeof preferences.accepts_annual_fee === 'boolean' &&
+      typeof preferences.wants_travel_rewards === 'boolean'
+    );
+  }
+
+  return false;
+}
+
+export function surveySubmissionToFormValues(
+  submission: SurveySubmission,
+): SurveyFormValues {
+  return {
+    acceptsAnnualFee: submission.accepts_annual_fee,
+    categorySpend: Object.fromEntries(
+      SURVEY_CATEGORIES.map((category) => [
+        category.slug,
+        String(
+          submission.category_monthly_spend.find(
+            (item) => item.category_slug === category.slug,
+          )?.monthly_amount ?? '',
+        ),
+      ]),
+    ),
+    creditScore: submission.credit_score_band,
+    extraBenefits: submission.extra_benefit_slugs,
+    incomeRange: submission.income_range,
+    primaryGoal: submission.primary_goal,
+    priorityCategories: submission.priority_category_slugs,
+  };
+}
+
 export const SURVEY_CATEGORIES = [
   {
     label: 'Groceries',

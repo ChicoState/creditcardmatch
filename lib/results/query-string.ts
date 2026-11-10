@@ -1,6 +1,6 @@
 const FILTER_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-export type ResultsMode = 'browse' | 'survey';
+export type ResultsMode = 'browse' | 'survey' | 'saved';
 
 function uniqueValidSlugs(slugs: string[]): string[] {
   return [
@@ -22,7 +22,7 @@ export function parseFilterSlugs(
 export function parseResultsMode(
   value: string | null | undefined,
 ): ResultsMode {
-  return value === 'survey' ? 'survey' : 'browse';
+  return value === 'survey' || value === 'saved' ? value : 'browse';
 }
 
 export function buildResultsHref(
@@ -30,7 +30,7 @@ export function buildResultsHref(
   mode: ResultsMode = 'browse',
 ): string {
   const normalizedSlugs = uniqueValidSlugs(filterSlugs);
-  const modeQuery = mode === 'survey' ? 'mode=survey' : '';
+  const modeQuery = mode === 'browse' ? '' : `mode=${mode}`;
   if (normalizedSlugs.length === 0) {
     return modeQuery ? `/results?${modeQuery}` : '/results';
   }

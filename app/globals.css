@@ -626,6 +626,17 @@ h1 {
   gap: 1.25rem;
 }
 
+.survey-saved-choice {
+  display: grid;
+  gap: 1rem;
+}
+
+.survey-submit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
 .survey-step,
 .survey-review {
   display: grid;

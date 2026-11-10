@@ -10,6 +10,9 @@ const mocks = vi.hoisted(() => ({
 vi.mock('../../lib/auth/server', () => ({
   createAuthServerClient: async () => ({ auth: { getUser: mocks.getUser } }),
 }));
+vi.mock('../../lib/account/data', () => ({
+  getOptionalSavedSurveyAnswers: async () => null,
+}));
 vi.mock('next/navigation', () => ({
   redirect: mocks.redirect,
   useRouter: () => ({ push: mocks.push }),
@@ -55,8 +58,8 @@ describe('uncovered app pages', () => {
     ).toBeVisible();
   });
 
-  it('renders the first survey question', () => {
-    render(<SurveyPage />);
+  it('renders the first survey question', async () => {
+    render(await SurveyPage());
 
     expect(
       screen.getByRole('heading', { name: 'Tell us what matters to you' }),

@@ -24,6 +24,7 @@ import { ComparisonCart } from './comparison-cart';
 import { CatalogCardView } from './catalog-card';
 import { ResultsFilterControls } from './results-filter-controls';
 import { SurveyAnswerSummary } from './survey-answer-summary';
+import type { SurveySubmission } from '../lib/config/survey';
 
 interface ResultsExplorerProps {
   activeFilters: string[];
@@ -33,6 +34,8 @@ interface ResultsExplorerProps {
   missingFilterSlugs?: string[];
   bookmarkedCardIds?: number[];
   isAuthenticated?: boolean;
+  savedSurveyAnswers?: SurveySubmission | null;
+  savedNotice?: boolean;
 }
 
 function subscribeToSurveyStorage() {
@@ -59,16 +62,18 @@ export function ResultsExplorer({
   missingFilterSlugs = [],
   bookmarkedCardIds = [],
   isAuthenticated = false,
+  savedSurveyAnswers = null,
+  savedNotice = false,
 }: ResultsExplorerProps) {
   const router = useRouter();
-  const surveyMode = mode === 'survey';
+  const surveyMode = mode === 'survey' || mode === 'saved';
   const [searchTerm, setSearchTerm] = useState('');
   const storedSurveyAnswers = useSyncExternalStore(
     subscribeToSurveyStorage,
     getBrowserSurveyStorageValue,
     getServerSurveyStorageValue,
   );
-  const surveyAnswers = useMemo(
+  const browserSurveyAnswers = useMemo(
     () =>
       surveyMode && storedSurveyAnswers
         ? loadSurveyAnswers({
@@ -79,6 +84,8 @@ export function ResultsExplorer({
         : null,
     [storedSurveyAnswers, surveyMode],
   );
+  const surveyAnswers =
+    mode === 'saved' ? savedSurveyAnswers : browserSurveyAnswers;
   const filterBySlug = useMemo(
     () => new Map(filters.map((filter) => [filter.slug, filter])),
     [filters],
@@ -126,6 +133,12 @@ export function ResultsExplorer({
           Your local database is missing filter(s):{' '}
           {missingFilterSlugs.join(', ')}. Run{' '}
           <code>npm run supabase:reset</code>.
+        </p>
+      )}
+      {savedNotice && (
+        <p className="saved-results-notice" role="status">
+          Your survey answers have been saved. These recommendations use your
+          saved answers and the current card catalog.
         </p>
       )}
       <ComparisonCart cards={cards} />

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 
 import { ResultsExplorer } from '../../components/results-explorer';
 import { selectVisibleCatalogCards } from '../../lib/catalog/visibility';
@@ -7,6 +8,7 @@ import { getCatalogData } from '../../lib/data/catalog';
 import { findMissingFilterSlugs } from '../../lib/results/missing-filters';
 import { getBookmarkedCardIds } from '../../lib/bookmarks/data';
 import { getCurrentHeaderAccount } from '../../lib/auth/server';
+import { getSavedSurveyAnswers } from '../../lib/account/data';
 import {
   parseFilterSlugs,
   parseResultsMode,
@@ -16,6 +18,7 @@ interface ResultsPageProps {
   searchParams: Promise<{
     filters?: string | string[];
     mode?: string;
+    saved?: string;
   }>;
 }
 
@@ -23,7 +26,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function ResultsPage({ searchParams }: ResultsPageProps) {
   const [
-    { filters: filterQuery, mode: modeQuery },
+    { filters: filterQuery, mode: modeQuery, saved: savedQuery },
     catalog,
     bookmarkedCardIds,
     account,
@@ -35,12 +38,19 @@ export default async function ResultsPage({ searchParams }: ResultsPageProps) {
   ]);
   const activeFilters = parseFilterSlugs(filterQuery);
   const mode = parseResultsMode(modeQuery);
+  const savedSurvey = mode === 'saved' ? await getSavedSurveyAnswers() : null;
+  if (mode === 'saved' && !savedSurvey) redirect('/account');
+  const savedFilters = savedSurvey
+    ? savedSurvey.answers.card_filter_preferences.map(
+        ({ filter_slug }) => filter_slug,
+      )
+    : activeFilters;
   const cards = selectVisibleCatalogCards(catalog);
   const missingFilterSlugs =
     process.env.NODE_ENV === 'production'
       ? []
       : findMissingFilterSlugs(
-          [...SURVEY_FILTER_SLUGS, ...activeFilters],
+          [...SURVEY_FILTER_SLUGS, ...savedFilters],
           catalog.filters,
         );
 
@@ -63,13 +73,15 @@ export default async function ResultsPage({ searchParams }: ResultsPageProps) {
         </div>
       </header>
       <ResultsExplorer
-        activeFilters={activeFilters}
+        activeFilters={savedFilters}
         cards={cards}
         filters={catalog.filters}
         mode={mode}
         missingFilterSlugs={missingFilterSlugs}
         bookmarkedCardIds={bookmarkedCardIds}
         isAuthenticated={Boolean(account)}
+        savedSurveyAnswers={savedSurvey?.answers}
+        savedNotice={savedQuery === '1'}
       />
     </main>
   );

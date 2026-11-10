@@ -1,4 +1,4 @@
-import type { SurveySubmission } from '../config/survey';
+import { isSurveySubmission, type SurveySubmission } from '../config/survey';
 
 export const SURVEY_STORAGE_KEY = 'ccm:survey:v2';
 
@@ -14,24 +14,6 @@ function browserStorage(): StorageLike | null {
   } catch {
     return null;
   }
-}
-
-function looksLikeSurveySubmission(value: unknown): value is SurveySubmission {
-  if (!value || typeof value !== 'object') return false;
-
-  const candidate = value as Partial<SurveySubmission>;
-  return (
-    typeof candidate.accepts_annual_fee === 'boolean' &&
-    Array.isArray(candidate.card_filter_preferences) &&
-    Array.isArray(candidate.category_monthly_spend) &&
-    typeof candidate.credit_score_band === 'string' &&
-    Array.isArray(candidate.extra_benefit_slugs) &&
-    typeof candidate.income_range === 'string' &&
-    typeof candidate.primary_goal === 'string' &&
-    Array.isArray(candidate.priority_category_slugs) &&
-    Boolean(candidate.user_preferences) &&
-    Array.isArray(candidate.user_filter_preferences)
-  );
 }
 
 export function saveSurveyAnswers(
@@ -58,7 +40,7 @@ export function loadSurveyAnswers(
     if (!storedValue) return null;
 
     const parsedValue: unknown = JSON.parse(storedValue);
-    return looksLikeSurveySubmission(parsedValue) ? parsedValue : null;
+    return isSurveySubmission(parsedValue) ? parsedValue : null;
   } catch {
     return null;
   }
