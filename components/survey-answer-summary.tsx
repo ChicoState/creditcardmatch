@@ -44,7 +44,7 @@ export function SurveyAnswerSummary({ answers }: SurveyAnswerSummaryProps) {
       <summary>Your answers</summary>
       <div className="survey-answer-content">
         <p className="eyebrow">Reference</p>
-        <h3 id="survey-answers-heading">What we used for matching</h3>
+        <h3 id="survey-answers-heading">Used for current matching</h3>
         <dl>
           <div>
             <dt>Priority categories</dt>
@@ -91,16 +91,19 @@ export function SurveyAnswerSummary({ answers }: SurveyAnswerSummaryProps) {
             <dd>{optionLabel(PRIMARY_GOAL_OPTIONS, answers.primary_goal)}</dd>
           </div>
           <div>
-            <dt>Income range</dt>
-            <dd>{optionLabel(INCOME_RANGE_OPTIONS, answers.income_range)}</dd>
-          </div>
-          <div>
             <dt>Extra benefits</dt>
             <dd>
               {benefitLabels.length > 0
-                ? benefitLabels.join(', ')
+                ? `${benefitLabels.join(', ')} (confirmed benefits may affect ranking)`
                 : 'None selected'}
             </dd>
+          </div>
+        </dl>
+        <h3>Retained for future matching</h3>
+        <dl>
+          <div>
+            <dt>Income range</dt>
+            <dd>{optionLabel(INCOME_RANGE_OPTIONS, answers.income_range)}</dd>
           </div>
         </dl>
       </div>

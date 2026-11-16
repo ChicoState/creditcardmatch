@@ -11,6 +11,7 @@ import {
 } from '../lib/catalog/rank-cards';
 import type { CatalogCard, FilterRow } from '../lib/catalog/types';
 import {
+  clearSurveyAnswers,
   loadSurveyAnswers,
   SURVEY_STORAGE_KEY,
 } from '../lib/storage/survey-storage';
@@ -83,10 +84,27 @@ export function ResultsExplorer({
     () => new Map(filters.map((filter) => [filter.slug, filter])),
     [filters],
   );
-  const searchedCards = useMemo(() => {
+  const { annualFeeFallbackCards, searchedCards } = useMemo(() => {
     const filteredCards = filterCards(cards, activeFilters);
-    return searchCards(filteredCards, searchTerm);
-  }, [activeFilters, cards, searchTerm]);
+    const annualFeeFallback =
+      surveyMode &&
+      activeFilters.includes('no-annual-fee') &&
+      filteredCards.length === 0
+        ? filterCards(
+            cards,
+            activeFilters.filter(
+              (filterSlug) => filterSlug !== 'no-annual-fee',
+            ),
+          )
+        : [];
+    const cardsToSearch =
+      annualFeeFallback.length > 0 ? annualFeeFallback : filteredCards;
+
+    return {
+      annualFeeFallbackCards: annualFeeFallback,
+      searchedCards: searchCards(cardsToSearch, searchTerm),
+    };
+  }, [activeFilters, cards, searchTerm, surveyMode]);
   const categoryMatchedCards = useMemo(
     () =>
       surveyMode && surveyAnswers
@@ -94,15 +112,19 @@ export function ResultsExplorer({
         : searchedCards,
     [searchedCards, surveyAnswers, surveyMode],
   );
-  const showingBroaderOptions =
+  const showingBroaderAnnualFeeOptions =
+    surveyMode && annualFeeFallbackCards.length > 0 && searchedCards.length > 0;
+  const showingBroaderCategoryOptions =
     surveyMode &&
     surveyAnswers !== null &&
     categoryMatchedCards.length === 0 &&
     searchedCards.length > 0;
+  const showingBroaderOptions =
+    showingBroaderAnnualFeeOptions || showingBroaderCategoryOptions;
   const categoryInfluenceMessage = surveyAnswers
     ? surveyAnswers.priority_category_slugs.length === 0
       ? 'No spending categories were selected.'
-      : showingBroaderOptions
+      : showingBroaderCategoryOptions
         ? 'No matching category rewards were found.'
         : 'Selected spending categories influenced this ranking.'
     : null;
@@ -117,6 +139,11 @@ export function ResultsExplorer({
 
   function navigateToFilters(nextFilters: string[]) {
     router.push(buildResultsHref(nextFilters, mode), { scroll: false });
+  }
+
+  function clearSurveyData() {
+    clearSurveyAnswers();
+    router.push('/results');
   }
 
   return (
@@ -162,6 +189,12 @@ export function ResultsExplorer({
                   {categoryInfluenceMessage}
                 </p>
               )}
+              {showingBroaderAnnualFeeOptions && (
+                <p className="category-influence-summary">
+                  No cards matched your annual-fee preference, so broader
+                  options are shown while other filters remain active.
+                </p>
+              )}
               <dl className="match-legend">
                 <div>
                   <dt>
@@ -200,6 +233,13 @@ export function ResultsExplorer({
             </div>
           </details>
           {surveyAnswers && <SurveyAnswerSummary answers={surveyAnswers} />}
+          <button
+            className="secondary-action"
+            onClick={clearSurveyData}
+            type="button"
+          >
+            Clear survey answers
+          </button>
         </section>
       )}
 

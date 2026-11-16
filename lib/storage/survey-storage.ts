@@ -1,4 +1,14 @@
-import type { SurveySubmission } from '../config/survey';
+import {
+  CREDIT_SCORE_OPTIONS,
+  INCOME_RANGE_OPTIONS,
+} from '../config/enumerated-values';
+import {
+  EXTRA_BENEFIT_OPTIONS,
+  PRIMARY_GOAL_OPTIONS,
+  SURVEY_CATEGORIES,
+  SURVEY_FILTER_SLUGS,
+  type SurveySubmission,
+} from '../config/survey';
 
 export const SURVEY_STORAGE_KEY = 'ccm:survey:v2';
 
@@ -16,21 +26,116 @@ function browserStorage(): StorageLike | null {
   }
 }
 
+function isKnownValue(
+  value: unknown,
+  options: readonly { value: string }[],
+): value is string {
+  return (
+    typeof value === 'string' &&
+    options.some((option) => option.value === value)
+  );
+}
+
+function isUniqueStringArray(
+  value: unknown,
+  allowedValues: ReadonlySet<string>,
+  maximum: number,
+): value is string[] {
+  return (
+    Array.isArray(value) &&
+    value.length <= maximum &&
+    value.every(
+      (item): item is string =>
+        typeof item === 'string' && allowedValues.has(item),
+    ) &&
+    new Set(value).size === value.length
+  );
+}
+
+function isFilterPreferenceArray(value: unknown): boolean {
+  if (!Array.isArray(value) || value.length > SURVEY_FILTER_SLUGS.length) {
+    return false;
+  }
+
+  const knownFilters = new Set(SURVEY_FILTER_SLUGS);
+  return (
+    value.every(
+      (item): item is { filter_slug: string; preference: 'avoid' | 'want' } =>
+        Boolean(item) &&
+        typeof item === 'object' &&
+        'filter_slug' in item &&
+        'preference' in item &&
+        typeof item.filter_slug === 'string' &&
+        knownFilters.has(item.filter_slug) &&
+        (item.preference === 'avoid' || item.preference === 'want'),
+    ) && new Set(value.map((item) => item.filter_slug)).size === value.length
+  );
+}
+
+function isCategorySpendArray(
+  value: unknown,
+  priorityCategorySlugs: readonly string[],
+): value is SurveySubmission['category_monthly_spend'] {
+  if (!Array.isArray(value) || value.length !== priorityCategorySlugs.length) {
+    return false;
+  }
+
+  const priorityCategories = new Set(priorityCategorySlugs);
+  return (
+    value.every(
+      (item): item is { category_slug: string; monthly_amount: number } =>
+        Boolean(item) &&
+        typeof item === 'object' &&
+        'category_slug' in item &&
+        'monthly_amount' in item &&
+        typeof item.category_slug === 'string' &&
+        priorityCategories.has(item.category_slug) &&
+        typeof item.monthly_amount === 'number' &&
+        Number.isFinite(item.monthly_amount) &&
+        item.monthly_amount > 0,
+    ) && new Set(value.map((item) => item.category_slug)).size === value.length
+  );
+}
+
 function looksLikeSurveySubmission(value: unknown): value is SurveySubmission {
   if (!value || typeof value !== 'object') return false;
 
   const candidate = value as Partial<SurveySubmission>;
+  const priorityCategorySlugs = new Set(
+    SURVEY_CATEGORIES.map((category) => category.slug),
+  );
+  const benefitSlugs = new Set(
+    EXTRA_BENEFIT_OPTIONS.map((benefit) => benefit.value),
+  );
+  const userPreferences = candidate.user_preferences;
+
+  if (!userPreferences || typeof userPreferences !== 'object') return false;
+
   return (
     typeof candidate.accepts_annual_fee === 'boolean' &&
-    Array.isArray(candidate.card_filter_preferences) &&
-    Array.isArray(candidate.category_monthly_spend) &&
-    typeof candidate.credit_score_band === 'string' &&
-    Array.isArray(candidate.extra_benefit_slugs) &&
-    typeof candidate.income_range === 'string' &&
-    typeof candidate.primary_goal === 'string' &&
-    Array.isArray(candidate.priority_category_slugs) &&
-    Boolean(candidate.user_preferences) &&
-    Array.isArray(candidate.user_filter_preferences)
+    isFilterPreferenceArray(candidate.card_filter_preferences) &&
+    isKnownValue(candidate.credit_score_band, CREDIT_SCORE_OPTIONS) &&
+    isKnownValue(candidate.income_range, INCOME_RANGE_OPTIONS) &&
+    isKnownValue(candidate.primary_goal, PRIMARY_GOAL_OPTIONS) &&
+    isUniqueStringArray(
+      candidate.priority_category_slugs,
+      priorityCategorySlugs,
+      3,
+    ) &&
+    isCategorySpendArray(
+      candidate.category_monthly_spend,
+      candidate.priority_category_slugs,
+    ) &&
+    isUniqueStringArray(candidate.extra_benefit_slugs, benefitSlugs, 6) &&
+    (candidate.extra_benefit_slugs.includes('none')
+      ? candidate.extra_benefit_slugs.length === 1
+      : true) &&
+    isFilterPreferenceArray(candidate.user_filter_preferences) &&
+    JSON.stringify(candidate.user_filter_preferences) ===
+      JSON.stringify(candidate.card_filter_preferences) &&
+    typeof userPreferences.accepts_annual_fee === 'boolean' &&
+    userPreferences.accepts_annual_fee === candidate.accepts_annual_fee &&
+    typeof userPreferences.wants_travel_rewards === 'boolean'
   );
 }
 

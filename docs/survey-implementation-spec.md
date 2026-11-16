@@ -13,11 +13,15 @@ score band; no separate visitor-journey question is added.
 
 ## Current Constraints
 
-- Only `cashback` and `no-credit-history` affect survey-driven results today.
-- The catalog has no ranking policy; results are alphabetically ordered after
-  active-filter intersection.
-- Only `popular-cards`, `cashback`, and `no-credit-history` exist as catalog
-  filters.
+- `cashback`, `no-credit-history`, and `no-annual-fee` can affect the survey
+  result filter set today. Annual-fee filtering has a broader-results fallback
+  when it would otherwise produce no cards.
+- Survey results rank cards using the current category, spending, credit,
+  annual-fee, goal, and confirmed-benefit signals after active-filter
+  intersection.
+- The survey may use the supported catalog filters `cashback`,
+  `no-credit-history`, and `no-annual-fee`; no new filter rows are part of this
+  work.
 - The local catalog currently has `Groceries`, `Dining`, and `Travel` reward
   categories. A migration to add more category rows is explicitly out of scope.
 - Anonymous survey answers are stored locally. Authenticated server-side saving
@@ -25,15 +29,15 @@ score band; no separate visitor-journey question is added.
 
 ## Final Question Flow
 
-| Step | Question and response                                                                                                                                               | Required | Current Phase 2a behavior                                                                                                                            |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | Annual income: `$40,000 or less`, `$40,001–$60,000`, `$60,001–$80,000`, `$80,001–$100,000`, or `More than $100,000`                                                 | Yes      | Save a stable `income_range` value; do not filter results.                                                                                           |
-| 2    | Estimated credit score: `Excellent (740+)`, `Good (670–739)`, `Fair (580–669)`, `Building/no score yet`, or `I'm not sure`                                          | Yes      | Save `credit_score_band`. `Building/no score yet` adds `no-credit-history`; all other answers add no score filter.                                   |
-| 3    | Primary goal: cash back, travel rewards, building credit, low/no annual fee, or introductory 0% APR                                                                 | Yes      | Cash back adds `cashback`; building credit adds `no-credit-history`; retain all other selections without changing results.                           |
-| 4    | Up to three priority spending categories: groceries, dining/food delivery, gas, travel, shopping, transit/rideshare, streaming/entertainment, or everyday purchases | Yes      | Retain the selected priorities locally. No direct filter or ranking behavior yet.                                                                    |
-| 5    | Optional monthly amounts for the selected priority categories                                                                                                       | No       | Retain values locally. Only `groceries`, `dining`, and `travel` enter the compatible `category_monthly_spend` collection without a future migration. |
-| 6    | Comfortable paying an annual fee? Yes or no                                                                                                                         | Yes      | Save `accepts_annual_fee`; do not filter results.                                                                                                    |
-| 7    | Extra interests: no foreign transaction fee, airport/travel benefits, purchase protection, welcome bonus, balance-transfer offer, or none in particular             | No       | Multi-select with exclusive `None in particular`; retain selections locally without changing results.                                                |
+| Step | Question and response                                                                                                                                               | Required | Current Phase 2a behavior                                                                                                                         |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | Annual income: `$40,000 or less`, `$40,001–$60,000`, `$60,001–$80,000`, `$80,001–$100,000`, or `More than $100,000`                                                 | Yes      | Save a stable `income_range` value; do not filter results.                                                                                        |
+| 2    | Estimated credit score: `Excellent (740+)`, `Good (670–739)`, `Fair (580–669)`, `Building/no score yet`, or `I'm not sure`                                          | Yes      | Save `credit_score_band`. `Building/no score yet` adds `no-credit-history`; all other answers add no score filter.                                |
+| 3    | Primary goal: cash back, travel rewards, building credit, low/no annual fee, or introductory 0% APR                                                                 | Yes      | Cash back adds `cashback`; building credit adds `no-credit-history`; retain other selections and use supported goals in survey ranking.           |
+| 4    | Up to three priority spending categories: groceries, dining/food delivery, gas, travel, shopping, transit/rideshare, streaming/entertainment, or everyday purchases | Yes      | Retain the selected priorities locally and use them in survey ranking where catalog reward mappings exist.                                        |
+| 5    | Positive, nonzero monthly amounts for the selected priority categories                                                                                              | Yes      | A selected category requires a positive amount. Retain every selected category and amount locally, including categories not yet used by matching. |
+| 6    | Comfortable paying an annual fee? Yes or no                                                                                                                         | Yes      | Save `accepts_annual_fee`; `No` attempts the `no-annual-fee` filter and falls back to broader cards if needed.                                    |
+| 7    | Extra interests: no foreign transaction fee, airport/travel benefits, purchase protection, welcome bonus, balance-transfer offer, or none in particular             | No       | Multi-select with exclusive `None in particular`; retain selections locally and use confirmed benefits in survey ranking.                         |
 
 ## Submission Contract
 
@@ -51,12 +55,14 @@ recognizes:
 - `credit_score_band` uses a stable score-band slug, with `none` for
   `Building/no score yet` to preserve the current no-credit-history mapping;
 - `accepts_annual_fee` is the selected yes/no value; and
-- `card_filter_preferences` contains only supported live filters.
+- `card_filter_preferences` contains only supported live filters and has no
+  duplicate `filter_slug` entries.
 
 The implementation must not add filter rows, card-filter assignments, ranking
 logic, migrations, or server-side save handlers. The new locally retained fields
 are intentionally not persisted to Supabase until a future Phase 2b schema and
-save-flow decision exists.
+save-flow decision exists. Future account saving must use an explicit “Save
+results” action; it is not part of this implementation.
 
 ## User Experience and Accessibility
 
@@ -70,6 +76,10 @@ save-flow decision exists.
   to mouse, keyboard, and assistive-technology users.
 - The review screen must show every answer, including answers that do not
   currently change results.
+- The results summary must distinguish answers used for current matching from
+  answers retained for future matching.
+- The results page must provide a clear-data action that returns the visitor to
+  blank-slate catalog browsing.
 
 ## Testing Strategy
 
