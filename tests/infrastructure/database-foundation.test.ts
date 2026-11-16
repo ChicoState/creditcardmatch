@@ -5,6 +5,9 @@ import { describe, expect, it } from 'vitest';
 const projectFile = (path: string) => resolve(process.cwd(), path);
 
 describe('database foundation', () => {
+  const migrationFiles = readdirSync(projectFile('supabase/migrations')).filter(
+    (file) => file.endsWith('.sql'),
+  );
   const migration = readdirSync(projectFile('supabase/migrations'))
     .filter((file) => file.endsWith('.sql'))
     .sort()
@@ -16,6 +19,12 @@ describe('database foundation', () => {
   const publicTables = [
     ...migration.matchAll(/create table public\.([a-z_]+)/gi),
   ].map((match) => match[1]);
+
+  it('uses a unique Supabase migration version for every migration', () => {
+    const versions = migrationFiles.map((file) => file.split('_', 1)[0]);
+
+    expect(new Set(versions).size).toBe(versions.length);
+  });
 
   it('links application profiles to Supabase Auth and enables RLS', () => {
     expect(migration).toMatch(

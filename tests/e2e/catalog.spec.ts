@@ -148,9 +148,12 @@ test('issue #3: a cash-back survey path returns a focused shortlist', async ({
   await expect(page).toHaveURL(/\/results\?mode=survey&filters=cashback$/);
   const activeFilters = page.getByLabel('Active filters');
   await expect(activeFilters.getByText('Cashback')).toBeVisible();
+  await expect(
+    page.locator('article.result-card .match-label-broader-option'),
+  ).toHaveCount(0);
   await expectEveryCardToExplain(
     page.locator('article.result-card'),
-    'Cashback: category match',
+    'Category match: Groceries.',
   );
 });
 
@@ -170,9 +173,21 @@ test('issue #9: result chips match filters derived from the survey', async ({
   const activeFilters = page.getByLabel('Active filters');
   await expect(activeFilters.getByText('No Credit History')).toBeVisible();
   await expect(activeFilters.getByText('Cashback')).toBeVisible();
+  const cards = page.locator('article.result-card');
+  await expect(cards.first()).toBeVisible();
+  const cardCount = await cards.count();
+  // With the seeded catalog, no card that matches these filters overlaps the
+  // selected spending categories, so docs/card-ranking.md says every result
+  // falls back to a Broader option.
+  await expect(
+    page.locator('article.result-card .match-label-best-match'),
+  ).toHaveCount(0);
+  await expect(
+    page.locator('article.result-card .match-label-broader-option'),
+  ).toHaveCount(cardCount);
   await expectEveryCardToExplain(
-    page.locator('article.result-card'),
-    'Cashback: category match',
+    cards,
+    'No matching category rewards were found.',
   );
 });
 

@@ -1,16 +1,12 @@
-import { execFile } from 'node:child_process';
 import { mkdtemp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { promisify } from 'node:util';
 
 import { describe, expect, it } from 'vitest';
 
 // The generator is intentionally plain ESM so it can run directly in Node.
 // @ts-expect-error The JavaScript module supplies JSDoc types at runtime.
 import { generateSeed, parseCsv } from '../../scripts/generate-card-seed.mjs';
-
-const execFileAsync = promisify(execFile);
 
 const cardsHeader = [
   'card_slug',
@@ -235,17 +231,10 @@ describe('generateSeed', () => {
 
 describe('generated seed', () => {
   it('is up to date with the team CSV exports', async () => {
-    await expect(
-      execFileAsync(
-        process.execPath,
-        ['scripts/generate-card-seed.mjs', '--check'],
-        {
-          cwd: process.cwd(),
-        },
-      ),
-    ).resolves.toMatchObject({ stdout: expect.stringContaining('up to date') });
-
     const seed = await readFile('supabase/seed.sql', 'utf8');
+    const generated = await generateSeed(process.cwd());
+
+    expect(generated.sql).toBe(seed);
     expect(seed).toMatch(/^-- generated — do not edit/u);
   });
 });
