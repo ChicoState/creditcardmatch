@@ -40,15 +40,15 @@ in forwarded client-IP headers.
 
 ## Data inventory and classification
 
-| Data | Current location | Classification | Current behavior |
-| --- | --- | --- | --- |
-| Username | Supabase Auth user metadata and authentication flow | Pseudonymous account identifier | Collected during signup; not a legal identity by itself |
-| Password | Supabase Auth | Authentication secret | Submitted to Supabase Auth; application does not store it in its own tables |
-| Credit-score range | Browser localStorage; future user preferences table | Sensitive financial attribute, not direct PII | Used for matching; currently not saved server-side |
-| Income range | Browser localStorage; future user preferences table | Sensitive financial attribute, not direct PII | Used for matching; currently not saved server-side |
-| Monthly category spending | Browser localStorage; future category-spend table | Sensitive financial/behavioral attribute, not direct PII | Used for matching; currently not saved server-side |
-| Card and reward preferences | Browser localStorage; future filter-preferences table | Preference/behavioral data | Used for matching; currently not saved server-side |
-| First/last name | Optional `profiles` columns | Direct personal information if populated | Schema supports it, but the current signup form does not collect it |
+| Data                        | Current location                                      | Classification                                           | Current behavior                                                            |
+| --------------------------- | ----------------------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Username                    | Supabase Auth user metadata and authentication flow   | Pseudonymous account identifier                          | Collected during signup; not a legal identity by itself                     |
+| Password                    | Supabase Auth                                         | Authentication secret                                    | Submitted to Supabase Auth; application does not store it in its own tables |
+| Credit-score range          | Browser localStorage; future user preferences table   | Sensitive financial attribute, not direct PII            | Used for matching; currently not saved server-side                          |
+| Income range                | Browser localStorage; future user preferences table   | Sensitive financial attribute, not direct PII            | Used for matching; currently not saved server-side                          |
+| Monthly category spending   | Browser localStorage; future category-spend table     | Sensitive financial/behavioral attribute, not direct PII | Used for matching; currently not saved server-side                          |
+| Card and reward preferences | Browser localStorage; future filter-preferences table | Preference/behavioral data                               | Used for matching; currently not saved server-side                          |
+| First/last name             | Optional `profiles` columns                           | Direct personal information if populated                 | Schema supports it, but the current signup form does not collect it         |
 
 The distinction matters: “not direct PII” does not mean “non-sensitive.” A
 credit-score or income range can affect a person's financial profile, and a
@@ -251,4 +251,3 @@ implemented.
 5. Decide whether recommendations are server-generated and tighten their
    policies accordingly.
 6. Document the account-recovery trade-off for synthetic usernames.
-
