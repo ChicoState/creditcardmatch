@@ -9,7 +9,7 @@ import {
   saveCardRosterAction,
 } from '../lib/account/actions';
 import type { CatalogCard, RewardCategoryRow } from '../lib/catalog/types';
-import { CardRequestForm } from './card-request-form';
+import Link from 'next/link';
 
 interface AccountRosterProps {
   initialRoster: CatalogCard[];
@@ -31,7 +31,6 @@ function cardFormData(cardId: number): FormData {
 export function AccountRoster({
   initialRoster,
   availableCards,
-  rewardCategories,
 }: AccountRosterProps) {
   const router = useRouter();
   const [roster, setRoster] = useState(initialRoster);
@@ -41,7 +40,6 @@ export function AccountRoster({
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [visibleCount, setVisibleCount] = useState(10);
-  const [isRequestFormOpen, setIsRequestFormOpen] = useState(false);
   const [draftCardIds, setDraftCardIds] = useState<Set<number>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -119,7 +117,6 @@ export function AccountRoster({
     setDraftCardIds(new Set(roster.map((card) => card.cardId)));
     setSearchTerm('');
     setVisibleCount(10);
-    setIsRequestFormOpen(false);
     setIsCatalogOpen(true);
   }
 
@@ -264,13 +261,9 @@ export function AccountRoster({
               {matchingCards.length === 0 ? (
                 <div className="card-catalog__empty">
                   <p>No cards found.</p>
-                  <button
-                    className="secondary-action"
-                    onClick={() => setIsRequestFormOpen(true)}
-                    type="button"
-                  >
+                  <Link className="secondary-action" href="/card-requests/new">
                     Can’t Find Your Card? Submit a Request
-                  </button>
+                  </Link>
                 </div>
               ) : null}
               {visibleCount < matchingCards.length ? (
@@ -291,16 +284,6 @@ export function AccountRoster({
                 </button>
               ) : null}
             </div>
-            {isRequestFormOpen ? (
-              <CardRequestForm
-                onCancel={() => setIsRequestFormOpen(false)}
-                onSubmitted={() => {
-                  setIsRequestFormOpen(false);
-                  setError(null);
-                }}
-                rewardCategories={rewardCategories}
-              />
-            ) : null}
             <button
               className="primary-action"
               disabled={isPending}

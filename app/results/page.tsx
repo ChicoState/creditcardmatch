@@ -54,6 +54,9 @@ export default async function ResultsPage({ searchParams }: ResultsPageProps) {
           further.
         </p>
         <div className="results-links">
+          <Link className="text-link" href="/card-requests/new">
+            Request a missing card
+          </Link>
           <Link className="text-link" href="/learn">
             Learn credit card basics
           </Link>

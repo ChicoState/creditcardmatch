@@ -45,7 +45,7 @@ export function CatalogCardView({
     (showingBroaderOptions ? 'Broader option' : 'Review fit');
 
   return (
-    <article className="result-card">
+    <article className="result-card" id={`card-${card.cardId}`}>
       <div
         aria-label={`Illustration of ${card.cardName}`}
         className="card-art"

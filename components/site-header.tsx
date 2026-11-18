@@ -104,6 +104,7 @@ export function SiteHeader({ username, avatarUrl }: SiteHeaderProps) {
                 >
                   Current Cards
                 </Link>
+                <Link href="/account/card-requests">Your card requests</Link>
                 <Link
                   href="/bookmarks"
                   aria-current={pathname === '/bookmarks' ? 'page' : undefined}

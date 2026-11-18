@@ -13,3 +13,23 @@ export interface CardRequest {
   reviewed_by: string | null;
   created_at: string;
 }
+
+export interface RequestSummary extends CardRequest {
+  submission_details: import('./details').CardDetails | null;
+  decision_note: string | null;
+  catalog_card_id: number | null;
+  revision: number;
+}
+export type RequestResult =
+  | { ok: true; requestId?: number }
+  | {
+      ok: false;
+      code:
+        | 'validation'
+        | 'unauthorized'
+        | 'forbidden'
+        | 'conflict'
+        | 'persistence';
+      message: string;
+      fields?: Record<string, string>;
+    };

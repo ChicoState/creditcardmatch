@@ -30,6 +30,26 @@ The account browser flow is `PLAYWRIGHT_BASE_URL=http://localhost:3001 npx
 playwright test tests/e2e/account.spec.ts --workers=1 --project=chromium`.
 See [the account plan](docs/account-details-plan.md) for acceptance criteria.
 
+## Card requests and admin review
+
+Signed-in users can submit missing card products at `/card-requests/new` and
+track decisions at `/account/card-requests`. Admins listed in `app_admins` review
+requests at `/admin/card-requests`, save private drafts, verify source facts, and
+accept/publish, link an existing verified card, or deny with a decision note.
+Catalog writes require the existing server-only `SUPABASE_SERVICE_ROLE_KEY`.
+No notification email delivery or card/account-number collection is included.
+
+The additive `20261116120000_card_request_publication.sql` migration was applied
+to the local stack with explicit authorization, without resetting data. It is
+pending team review and has not been applied remotely. It revokes browser request
+mutation grants; deploy it before the updated application. Existing requests are
+retained, and historical approvals do not publish automatically. See the
+[request specification](docs/card-request-spec.md) for validation and access rules.
+
+The browser/database verification flow is `PLAYWRIGHT_BASE_URL=http://localhost:3001
+npx playwright test tests/e2e/card-requests.spec.ts --workers=1 --project=chromium`.
+Its temporary privileged fixtures require local Supabase; it rejects remote URLs.
+
 ## Repository map
 
 | Location                    | Purpose                                                          |

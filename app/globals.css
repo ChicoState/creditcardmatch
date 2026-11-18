@@ -1445,3 +1445,34 @@ h1 {
   line-height: 1.6;
   margin-bottom: 0.75rem;
 }
+
+.card-request-form fieldset {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  border: 1px solid var(--line);
+  padding: 1rem;
+}
+.card-request-form select {
+  width: 100%;
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: var(--panel);
+  color: inherit;
+}
+.card-request-form details > summary {
+  cursor: pointer;
+  padding-block: 1rem;
+  font-weight: 600;
+}
+.request-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.card-request-form,
+.admin-request {
+  overflow-wrap: anywhere;
+}

@@ -226,7 +226,7 @@ describe('AccountRoster', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('offers a request form when no cards match', async () => {
+  it('links to the dedicated request page when no cards match', async () => {
     const user = userEvent.setup();
     render(
       <AccountRoster
@@ -243,15 +243,10 @@ describe('AccountRoster', () => {
       'missing',
     );
     expect(screen.getByText('No cards found.')).toBeVisible();
-    await user.click(
-      screen.getByRole('button', {
+    expect(
+      screen.getByRole('link', {
         name: 'Can’t Find Your Card? Submit a Request',
       }),
-    );
-    expect(
-      screen.getByRole('heading', { name: 'Request a missing card' }),
-    ).toBeVisible();
-    expect(screen.getByLabelText('Card name')).toBeRequired();
-    expect(screen.getByLabelText('Issuer')).toBeRequired();
+    ).toHaveAttribute('href', '/card-requests/new');
   });
 });
