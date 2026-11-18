@@ -40,9 +40,9 @@ export function CatalogCardView({
   surveyMode = false,
   showingBroaderOptions = false,
 }: CatalogCardProps) {
-  const rating =
-    cardMatch?.rating ??
-    (showingBroaderOptions ? 'Broader option' : 'Review fit');
+  const rating = showingBroaderOptions
+    ? 'Broader option'
+    : (cardMatch?.rating ?? 'Review fit');
 
   return (
     <article className="result-card">

@@ -11,7 +11,7 @@ import {
 const submission: SurveySubmission = {
   accepts_annual_fee: false,
   card_filter_preferences: [{ filter_slug: 'cashback', preference: 'want' }],
-  category_monthly_spend: [],
+  category_monthly_spend: [{ category_slug: 'groceries', monthly_amount: 250 }],
   credit_score_band: 'good',
   extra_benefit_slugs: [],
   income_range: '40001_to_60000',
@@ -56,5 +56,35 @@ describe('survey storage', () => {
     expect(saveSurveyAnswers(submission, storage)).toBe(false);
     expect(loadSurveyAnswers(storage)).toBeNull();
     expect(clearSurveyAnswers(storage)).toBe(false);
+  });
+
+  it('rejects malformed nested survey values', () => {
+    const storage = {
+      getItem: () =>
+        JSON.stringify({
+          ...submission,
+          category_monthly_spend: [{ category_slug: 'groceries' }],
+        }),
+      setItem: () => {},
+      removeItem: () => {},
+    };
+
+    expect(loadSurveyAnswers(storage)).toBeNull();
+  });
+
+  it('rejects unknown filters and category values', () => {
+    const storage = {
+      getItem: () =>
+        JSON.stringify({
+          ...submission,
+          card_filter_preferences: [
+            { filter_slug: 'not-a-real-filter', preference: 'want' },
+          ],
+        }),
+      setItem: () => {},
+      removeItem: () => {},
+    };
+
+    expect(loadSurveyAnswers(storage)).toBeNull();
   });
 });

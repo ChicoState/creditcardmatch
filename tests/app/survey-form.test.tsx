@@ -31,7 +31,10 @@ async function completeRequiredSteps(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe('SurveyForm', () => {
-  afterEach(cleanup);
+  afterEach(() => {
+    cleanup();
+    localStorage.clear();
+  });
 
   beforeEach(() => {
     push.mockReset();
@@ -129,6 +132,14 @@ describe('SurveyForm', () => {
 
     await user.click(screen.getByRole('button', { name: 'SEE MY MATCHES' }));
 
+    const storedSubmission = JSON.parse(
+      localStorage.getItem('ccm:survey:v2') ?? 'null',
+    );
+    expect(storedSubmission.category_monthly_spend).toEqual([
+      { category_slug: 'groceries', monthly_amount: 425.5 },
+      { category_slug: 'gas', monthly_amount: 95 },
+      { category_slug: 'travel', monthly_amount: 120 },
+    ]);
     expect(push).toHaveBeenCalledWith(
       '/results?mode=survey&filters=no-credit-history,cashback,no-annual-fee',
     );

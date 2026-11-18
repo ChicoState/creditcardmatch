@@ -288,7 +288,7 @@ export function SurveyForm({
             (category) =>
               `${category.label}: $${values.categorySpend[category.slug]}`,
           )
-          .join(', ') || 'No monthly estimates provided',
+          .join(', ') || 'No monthly estimates provided.',
     },
     {
       question: SURVEY_CONFIG.annualFee.prompt,
