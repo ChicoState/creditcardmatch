@@ -45,6 +45,12 @@ export async function signupAction(
   formData: FormData,
 ): Promise<AuthActionState> {
   const { username, password } = formValues(formData);
+  const next = safeNextPath(
+    typeof formData.get('next') === 'string'
+      ? String(formData.get('next'))
+      : null,
+    '/',
+  );
   if (!(await consumeAuthRateLimit('signup'))) {
     return {
       username,
@@ -94,7 +100,7 @@ export async function signupAction(
     };
   }
 
-  redirect('/');
+  redirect(next);
 }
 
 export async function loginAction(

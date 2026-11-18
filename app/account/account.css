@@ -15,8 +15,32 @@
   padding: 0 1.5rem;
 }
 
+.saved-survey-section {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-medium);
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+}
+
+.saved-survey-section p {
+  line-height: 1.5;
+}
+
+.saved-survey-section .primary-action,
+.saved-survey-section .secondary-action {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+  text-decoration: none;
+}
+
 .account-section {
   padding: 1.5rem 0;
+}
+
+.saved-survey-section.account-section {
+  padding: 1.5rem;
 }
 
 .account-section + .account-section {

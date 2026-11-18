@@ -8,6 +8,7 @@ import {
 } from '../../lib/config/enumerated-values';
 import {
   deriveSurveySubmission,
+  isSurveySubmission,
   SURVEY_CONFIG,
   SURVEY_FILTER_SLUGS,
 } from '../../lib/config/survey';
@@ -54,6 +55,24 @@ function valuesFromCheckConstraint(constraintName: string): string[] {
 }
 
 describe('deriveSurveySubmission', () => {
+  it('accepts saved spend for every category the survey allows users to select', () => {
+    const submission = deriveSurveySubmission({
+      incomeRange: '40001_to_60000',
+      creditScore: 'good',
+      primaryGoal: 'cash_back',
+      priorityCategories: ['gas', 'shopping', 'transit-rideshare'],
+      categorySpend: {
+        gas: '95',
+        shopping: '180',
+        'transit-rideshare': '75',
+      },
+      acceptsAnnualFee: false,
+      extraBenefits: [],
+    });
+
+    expect(isSurveySubmission(submission)).toBe(true);
+  });
+
   it('maps score bands and primary goals while retaining future preferences', () => {
     const submission = deriveSurveySubmission({
       incomeRange: '40001_to_60000',

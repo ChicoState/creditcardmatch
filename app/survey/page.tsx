@@ -1,6 +1,15 @@
 import { SurveyForm } from '../../components/survey-form';
+import { getOptionalSavedSurveyAnswers } from '../../lib/account/data';
 
-export default function SurveyPage() {
+interface SurveyPageProps {
+  searchParams?: Promise<{ review?: string }>;
+}
+
+export default async function SurveyPage({
+  searchParams,
+}: SurveyPageProps = {}) {
+  const savedSurvey = await getOptionalSavedSurveyAnswers();
+  const params = searchParams ? await searchParams : {};
   return (
     <main className="page-shell survey-page">
       <header className="page-intro">
@@ -11,7 +20,10 @@ export default function SurveyPage() {
           signing in.
         </p>
       </header>
-      <SurveyForm />
+      <SurveyForm
+        savedSubmission={savedSurvey?.answers}
+        startAtReview={params.review === '1'}
+      />
     </main>
   );
 }

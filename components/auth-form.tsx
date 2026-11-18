@@ -18,12 +18,14 @@ export function AuthForm({ mode, next }: AuthFormProps) {
     FormData
   >(action, EMPTY_AUTH_STATE);
   const isSignup = mode === 'signup';
+  const alternatePath = isSignup ? '/login' : '/signup';
+  const alternateHref = next
+    ? `${alternatePath}?next=${encodeURIComponent(next)}`
+    : alternatePath;
 
   return (
     <form action={formAction} className="auth-form">
-      {mode === 'login' && next ? (
-        <input name="next" type="hidden" value={next} />
-      ) : null}
+      {next ? <input name="next" type="hidden" value={next} /> : null}
       <div className="auth-form__field">
         <label htmlFor="username">Username</label>
         <input
@@ -86,10 +88,7 @@ export function AuthForm({ mode, next }: AuthFormProps) {
         {pending ? 'Please wait…' : isSignup ? 'Create account' : 'Login'}
       </button>
 
-      <Link
-        className="text-link auth-form__link"
-        href={isSignup ? '/login' : '/signup'}
-      >
+      <Link className="text-link auth-form__link" href={alternateHref}>
         {isSignup ? 'Already have an account? Login' : 'Sign up'}
       </Link>
     </form>

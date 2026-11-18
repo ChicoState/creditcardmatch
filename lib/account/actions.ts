@@ -14,7 +14,7 @@ import { prepareAvatar } from './avatar';
 import { ownedAvatarPath } from './server';
 import { AVATAR_MAX_BYTES, validateAccountField } from './validation';
 import { selectVisibleCatalogCards } from '../catalog/visibility';
-import type { SurveySubmission } from '../config/survey';
+import { isSurveySubmission, type SurveySubmission } from '../config/survey';
 import { parseCardRequest } from '../card-requests/validation';
 
 export interface AccountSaveResult {
@@ -268,24 +268,49 @@ export async function saveCardRosterAction(formData: FormData): Promise<void> {
   revalidatePath('/account/current-cards');
 }
 
+export interface SurveySaveResult {
+  ok: boolean;
+  requiresAuth?: boolean;
+  error?: string;
+}
+
 export async function saveSurveyAnswersAction(
   submission: SurveySubmission,
-): Promise<void> {
-  if (!isPersistableSurveySubmission(submission)) return;
+): Promise<SurveySaveResult> {
+  if (!isPersistableSurveySubmission(submission)) {
+    return { ok: false, error: 'Those survey answers are invalid.' };
+  }
 
   const user = await currentUser();
-  if (!user) return;
+  if (!user) return { ok: false, requiresAuth: true };
 
   const auth = await createAuthServerClient();
   const { error: profileError } = await auth
     .from('profiles')
     .upsert({ id: user.id }, { onConflict: 'id' });
-  if (profileError) throw new Error('Unable to save your account profile.');
+  if (profileError)
+    return { ok: false, error: 'Unable to save your account profile.' };
+
+  const { error: preferenceError } = await auth.from('user_preferences').upsert(
+    {
+      user_id: user.id,
+      credit_score_range: submission.credit_score_band,
+      income_range: submission.income_range,
+      accepts_annual_fee: submission.accepts_annual_fee,
+      wants_travel_rewards: submission.user_preferences.wants_travel_rewards,
+      survey_answers: submission,
+      survey_saved_at: new Date().toISOString(),
+    },
+    { onConflict: 'user_id' },
+  );
+  if (preferenceError)
+    return { ok: false, error: 'Unable to save your survey answers.' };
 
   const { data: categories, error: categoryError } = await auth
     .from('reward_categories')
     .select('category_id, slug');
-  if (categoryError) throw new Error('Unable to save your spending answers.');
+  if (categoryError)
+    return { ok: false, error: 'Unable to save your spending answers.' };
 
   const categoryIdBySlug = new Map(
     (categories ?? []).map((category) => [category.slug, category.category_id]),
@@ -307,16 +332,85 @@ export async function saveSurveyAnswersAction(
     .from('user_category_spend')
     .delete()
     .eq('user_id', user.id);
-  if (deleteError) throw new Error('Unable to update your spending answers.');
+  if (deleteError)
+    return { ok: false, error: 'Unable to update your spending answers.' };
 
   if (spendRows.length > 0) {
     const { error: insertError } = await auth
       .from('user_category_spend')
       .insert(spendRows);
-    if (insertError) throw new Error('Unable to update your spending answers.');
+    if (insertError)
+      return { ok: false, error: 'Unable to update your spending answers.' };
+  }
+
+  const { data: filters, error: filterError } = await auth
+    .from('filters')
+    .select('filter_id, slug');
+  if (filterError) return { ok: false, error: 'Unable to save your filters.' };
+  const filterIdBySlug = new Map(
+    (filters ?? []).map((filter) => [filter.slug, filter.filter_id]),
+  );
+  const filterRows = submission.user_filter_preferences.flatMap((item) => {
+    const filterId = filterIdBySlug.get(item.filter_slug);
+    return filterId
+      ? [{ user_id: user.id, filter_id: filterId, preference: item.preference }]
+      : [];
+  });
+  const { error: filterDeleteError } = await auth
+    .from('user_filter_preferences')
+    .delete()
+    .eq('user_id', user.id);
+  if (filterDeleteError)
+    return { ok: false, error: 'Unable to update your saved filters.' };
+  if (filterRows.length > 0) {
+    const { error: filterInsertError } = await auth
+      .from('user_filter_preferences')
+      .insert(filterRows);
+    if (filterInsertError)
+      return { ok: false, error: 'Unable to update your saved filters.' };
   }
 
   revalidatePath('/account');
+  revalidatePath('/survey');
+  return { ok: true };
+}
+
+export async function clearSurveyAnswersAction(): Promise<SurveySaveResult> {
+  const user = await currentUser();
+  if (!user) return { ok: false, requiresAuth: true };
+
+  const auth = await createAuthServerClient();
+  const { error: preferenceError } = await auth
+    .from('user_preferences')
+    .update({
+      survey_answers: null,
+      survey_saved_at: null,
+      credit_score_range: null,
+      income_range: null,
+      accepts_annual_fee: null,
+      wants_travel_rewards: null,
+    })
+    .eq('user_id', user.id);
+  if (preferenceError)
+    return { ok: false, error: 'Unable to clear your saved survey.' };
+
+  const { error: spendError } = await auth
+    .from('user_category_spend')
+    .delete()
+    .eq('user_id', user.id);
+  if (spendError)
+    return { ok: false, error: 'Unable to clear your saved survey.' };
+
+  const { error: filterError } = await auth
+    .from('user_filter_preferences')
+    .delete()
+    .eq('user_id', user.id);
+  if (filterError)
+    return { ok: false, error: 'Unable to clear your saved survey.' };
+
+  revalidatePath('/account');
+  revalidatePath('/survey');
+  return { ok: true };
 }
 
 export async function submitCardRequestAction(
@@ -377,23 +471,5 @@ export async function reviewCardRequestAction(
 }
 
 function isPersistableSurveySubmission(submission: SurveySubmission): boolean {
-  if (!submission || !Array.isArray(submission.category_monthly_spend)) {
-    return false;
-  }
-
-  const seenCategories = new Set<string>();
-  return submission.category_monthly_spend.every((item) => {
-    if (
-      !item ||
-      typeof item.category_slug !== 'string' ||
-      seenCategories.has(item.category_slug) ||
-      !Number.isFinite(item.monthly_amount) ||
-      item.monthly_amount <= 0 ||
-      item.monthly_amount > 100_000_000
-    ) {
-      return false;
-    }
-    seenCategories.add(item.category_slug);
-    return true;
-  });
+  return isSurveySubmission(submission);
 }

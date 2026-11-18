@@ -4,6 +4,7 @@ import {
 } from '../config/enumerated-values';
 import {
   EXTRA_BENEFIT_OPTIONS,
+  isSurveySubmission,
   PRIMARY_GOAL_OPTIONS,
   SURVEY_CATEGORIES,
   SURVEY_FILTER_SLUGS,
@@ -163,7 +164,7 @@ export function loadSurveyAnswers(
     if (!storedValue) return null;
 
     const parsedValue: unknown = JSON.parse(storedValue);
-    return looksLikeSurveySubmission(parsedValue) ? parsedValue : null;
+    return isSurveySubmission(parsedValue) ? parsedValue : null;
   } catch {
     return null;
   }
