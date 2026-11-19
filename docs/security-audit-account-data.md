@@ -3,12 +3,13 @@
 ## Status
 
 Current implementation review for the `security_audit` branch. Findings are
-based on repository code and migrations; hosted Supabase, production proxy
-behavior, deployment headers, and remote data were not independently verified.
+based on repository code, migrations, targeted validator probes, and a local
+Supabase RLS probe. Hosted Supabase, production proxy behavior, deployment
+headers, and remote data were not independently verified.
 
 ## Date
 
-2026-11-18
+2026-11-19 (follow-up to the 2026-11-18 review)
 
 ## Scope
 
@@ -32,10 +33,13 @@ email, avatar, card roster, bookmarks, and card-request comments.
 
 The owner-scoped RLS policies are a useful authorization boundary, and no SQL
 injection sink was found in the current application query paths. The most
-important open risks are incomplete privacy/deletion behavior, insufficiently
-strict validation at the live Server Action boundary, a multi-step non-atomic
-survey save, the missing explicit server-only guard for the service-role
-module, and rate limiting that depends on deployment-specific proxy headers.
+important open risks are incomplete privacy/deletion behavior, a multi-step
+non-atomic survey save, caller-controlled card-request review fields, the missing explicit
+server-only guard for the service-role module, and rate limiting that depends
+on deployment-specific proxy headers. The Next.js security upgrade has been
+verified separately but is not yet part of this branch.
+The shared survey runtime validator has now been hardened in the working tree;
+database shape constraints and persistence consistency remain separate work.
 
 ## Data inventory and classification
 
@@ -87,33 +91,87 @@ and [supabase/migrations/20261105120000_card_catalog_requests.sql](../supabase/m
 - Keep optional contact email clearly separate from the internal Auth email
   and do not use it for recovery without verification and consent.
 
-### 2. The live survey Server Action does not have a strict runtime schema
+### 2. Survey runtime validation hardened locally
 
-**Severity: High**
+**Original severity: High. Application-layer fix implemented locally; not deployed.**
 
 `saveSurveyAnswersAction` accepts attacker-controlled serialized input. Its
-validator checks many values, but filter-preference arrays do not enforce all
-expected cardinality and uniqueness rules, and malformed nested values can
-throw during validation instead of producing a controlled rejection. The
+previous validator checked many values, but filter-preference arrays did not
+enforce all expected cardinality and uniqueness rules, and malformed nested
+values could throw instead of producing a controlled rejection. The
 database also stores the complete response in JSONB without equivalent shape
 constraints. RLS proves ownership, not validity.
 
 **Evidence:** [lib/account/actions.ts](../lib/account/actions.ts:277) and
 [lib/config/survey.ts](../lib/config/survey.ts:35).
 
-**Mitigations:**
+**Local reproduction before the fix, 2026-11-19:** Starting with a valid payload produced by
+`deriveSurveySubmission`, three separate probes containing a `null` spending,
+card-filter, or user-filter row threw a `TypeError`. Three other probes were
+accepted: duplicate user filters, no spending rows for a selected category,
+and an unexpected top-level snapshot field. The valid control passed. These
+were direct validator tests, not HTTP exploitation tests.
 
-- Use one strict runtime schema at the Server Action boundary with explicit
-  object checks, array limits, duplicate rejection, enum validation, and
-  numeric bounds.
-- Return a generic validation result for malformed payloads; do not allow
-  attacker-controlled shapes to cause uncaught exceptions.
-- Keep the schema aligned with the catalog vocabulary, or resolve submitted
-  slugs against current database rows and reject unknown values instead of
-  silently dropping them.
-- Add tests for malformed objects, duplicate filters, oversized arrays,
-  non-finite numbers, unknown slugs, and incomplete category spending.
-- Retain database checks for scalar tables as defense in depth.
+Before the fix, the action invoked this validator before its session check and persisted the
+accepted object as `survey_answers` without projecting an allowlist of fields.
+Thus malformed nested values could reject the action with an uncaught exception,
+and an authenticated owner could store additional, unvalidated snapshot fields.
+This does not demonstrate cross-user access or privilege escalation. The same
+validator was used when loading saved answers, so malformed data written
+directly by an owner could also interrupt account and survey rendering.
+
+`lib/storage/survey-storage.ts` previously contained an unused, stricter-looking
+`looksLikeSurveySubmission` helper. It has been removed; the browser loader,
+saved-answer server readers, and save action all use `isSurveySubmission`.
+
+**Implemented controls:**
+
+- The action accepts `unknown` and rejects invalid input before authentication
+  or database access, returning the existing generic validation error.
+- The shared schema requires exact plain-object fields, validates each nested
+  row before reading its fields, bounds array sizes, rejects sparse and
+  duplicate entries, and validates enum values against the survey configuration.
+- Every selected category must have exactly one finite positive spending
+  amount, at most `99_999_999.99` to fit `DECIMAL(10,2)`.
+- Card and user filter copies must agree regardless of ordering, and the two
+  annual-fee flags must agree. Optional empty selections and both existing
+  preference values remain supported.
+- Saved-answer readers reject invalid stored snapshots as unavailable. Valid
+  snapshots retain the existing shape and authenticated save behavior.
+- Regression tests cover malformed objects, unexpected fields, duplicate and
+  oversized arrays, sparse arrays, non-finite amounts, unknown slugs,
+  incomplete spending, and action rejection before database access.
+
+**Remaining boundaries:** No database shape constraints or persistence
+transaction were added. Direct authenticated database clients can still store
+invalid JSON on their own rows, although the application now declines to load
+it. Some valid survey categories lack a relational catalog slug;
+this fix validates the existing survey vocabulary and preserves that behavior.
+Reworking catalog mappings and the multi-step save remains outside this fix.
+
+**Implementation scope, 2026-11-19:** Harden this survey boundary only. Use
+`isSurveySubmission(value: unknown)` as the single runtime schema for the
+Server Action and saved-answer readers. Require exact object fields, bounded
+unique arrays of known values, complete selected-category spending with finite
+positive amounts within the database range, matching card/user filter copies,
+and consistent annual-fee flags. Preserve the existing optional empty category
+and benefit selections and the `want`/`avoid` preference vocabulary. Invalid
+saved data must load as unavailable rather than throw; valid payloads retain
+the existing shape. No new dependency or database migration is needed.
+
+Ordered implementation and acceptance checks:
+
+1. Add failing Vitest tests for the shared schema and malformed Server Action
+   inputs, proving invalid payloads cannot write data.
+2. Harden the shared validator and remove the unused competing browser
+   validator. Reject unknown slugs using the survey's defined vocabulary before
+   any persistence. Preserve valid survey categories that have no relational
+   catalog mapping; changing those mappings or the save transaction is outside
+   this validation fix.
+3. Run formatting, lint, type checks, the full unit/component suite and
+   coverage, a production build, and the saved-survey Playwright flow. Update
+   this finding with the outcome. Keep card-request review, transactionality,
+   and other audit findings documented and unchanged.
 
 ### 3. Saved-survey persistence is multi-step and can become inconsistent
 
@@ -122,6 +180,11 @@ constraints. RLS proves ownership, not validity.
 The action writes `user_preferences`, deletes and reinserts spending rows, then
 deletes and reinserts filter rows. A later database failure can leave a saved
 survey snapshot that does not match its relational spending or filter rows.
+Before the validation fix, duplicate filter slugs passed the validator but
+conflicted with the relational `UNIQUE (user_id, filter_id)` constraint after
+the old filters had been deleted. The hardened validator now rejects this
+particular input before writes. Other later database failures can still cause
+partial saves; the save has not been made transactional.
 
 **Evidence:** [lib/account/actions.ts](../lib/account/actions.ts:289).
 
@@ -253,6 +316,66 @@ notification feature must not treat the unverified address as trusted.
 - Add controlled deletion/redaction and security-event logging for admin
   review actions before the feature handles real production requests.
 
+### 10. Requesters can forge card-request review status during INSERT
+
+**Severity: Medium**
+
+The authenticated INSERT policy checks only that `user_id = auth.uid()`.
+Table-wide INSERT permission also allows the caller to supply `status`,
+`reviewed_at`, and `reviewed_by`. The `pending` default does not prevent a
+direct authenticated database API request from setting these fields.
+
+**Evidence:**
+[supabase/migrations/20261105120000_card_catalog_requests.sql](../supabase/migrations/20261105120000_card_catalog_requests.sql),
+[lib/card-requests/admin-data.ts](../lib/card-requests/admin-data.ts), and
+[components/admin-card-requests.tsx](../components/admin-card-requests.tsx).
+
+**Local reproduction, 2026-11-19:** Inside a rollback transaction against the
+existing local Supabase database, a temporary Auth user with `is_admin() = false`
+switched to the `authenticated` role and successfully inserted an owned request
+with `status = 'approved'`, a non-null `reviewed_at`, and its own UUID as
+`reviewed_by`. The harness supplied a temporary explicit identity value using
+`OVERRIDING SYSTEM VALUE` to avoid advancing the request sequence; the review
+fields are otherwise ordinary insertable columns. The transaction rolled back
+the temporary Auth user and request. No migration was applied.
+
+The admin list reads these fields directly and hides review controls for
+non-pending rows. A forged row can therefore appear already reviewed and skip
+the normal review controls. This does not grant admin membership or create a
+catalog card, but it compromises request workflow and review provenance.
+
+**Mitigations:**
+
+- Require `status = 'pending'`, `reviewed_at IS NULL`, and
+  `reviewed_by IS NULL` in the authenticated INSERT policy, or grant INSERT
+  only on requester-editable columns.
+- Keep admin-only UPDATE authorization for review fields.
+- Add database-level tests proving ordinary users cannot forge review state
+  through direct inserts, while legitimate pending submissions and admin
+  reviews continue to work.
+- Apply any corrective migration only after the required review and explicit
+  authorization; application validation alone cannot close this API path.
+
+### 11. The audited branch still contains an affected Next.js dependency
+
+**Severity: Moderate (npm advisory classification)**
+
+The production lockfile on `security_audit` still resolves Next.js 16.4.1.
+The 2026-11-19 production dependency audit reports one affected package with
+two cache information-disclosure advisories:
+[GHSA-mfr8-8qww-v76h](https://github.com/advisories/GHSA-mfr8-8qww-v76h) and
+[GHSA-vc7v-qv4w-wrv8](https://github.com/advisories/GHSA-vc7v-qv4w-wrv8).
+No `use cache` or `unstable_cache` usage was found in the current application
+source; exploitability in this application was not established.
+
+**Remediation status:** Commit `f31a1f2` on
+`fix/next-16.4.6-security-resumed` upgrades Next.js and its ESLint configuration
+to 16.4.6 and sets `experimental.agentUpgrade: 'security'`. Its clean install,
+host quality checks, production build, 24 Playwright tests, and Docker smoke
+checks passed; its production dependency audit reported zero vulnerabilities.
+The work is local and has not been merged into the audited branch or deployed.
+Integrate the verified change before treating the dependency finding as closed.
+
 ## Controls that are currently reasonable
 
 - Supabase query-builder access is used for current application queries; no
@@ -270,9 +393,10 @@ notification feature must not treat the unverified address as trusted.
 
 ## RLS and injection conclusion
 
-RLS correctly expresses the intended owner relationship, but it does not
-prevent SQL injection, XSS/localStorage theft, invalid values, partial writes,
-privacy failures, service-role misuse, or authentication abuse. Direct
+Owner policies generally express the intended row ownership relationship, but
+the card-request INSERT policy does not protect admin-controlled review fields.
+RLS also does not prevent SQL injection, XSS/localStorage theft, invalid values,
+partial writes, privacy failures, service-role misuse, or authentication abuse. Direct
 authenticated clients can still attempt writes to their own rows, so server
 validation and database constraints must remain defense in depth.
 
@@ -285,16 +409,59 @@ admin workflows are added.
 1. Finalize the privacy/retention policy and implement account deletion,
    including avatar cleanup.
 2. Add strict runtime schemas and malformed-input tests for every Server Action.
-3. Make saved-survey persistence transactional.
-4. Add the server-only guard and security-header policy.
-5. Verify production proxy/IP behavior and add account-based throttling.
-6. Tighten recommendation and admin-data policies before expanding those
+3. Prevent requester-supplied card-request review state at the database boundary.
+4. Make saved-survey persistence transactional.
+5. Add the server-only guard and security-header policy.
+6. Verify production proxy/IP behavior and add account-based throttling.
+7. Tighten recommendation and admin-data policies before expanding those
    features.
-7. Document and design account recovery before accounts become durable.
+8. Document and design account recovery before accounts become durable.
+
+The separately verified dependency patch should be integrated before release;
+its existence on another branch does not remediate this checkout.
 
 ## Verification performed
+
+### Initial review, 2026-11-18
 
 - `npm run typecheck` passed.
 - `npm test` passed: 39 test files and 174 tests.
 - Repository inspection covered current application code, migrations, and
   tests; remote Supabase and production deployment behavior remain unverified.
+
+### Follow-up, 2026-11-19
+
+- The existing legal-page and saved-survey clearing tests passed: two files,
+  five tests. The pre-existing untracked saved-survey test was not modified.
+- Temporary validator rejection probes reproduced all six issues described
+  in finding 2: three exceptions and three accepted malformed payloads. The
+  valid control passed. These deliberately failing probes stayed outside the
+  repository test suite; they are evidence of open findings, not fixed tests.
+- A local Supabase transaction confirmed the non-admin card-request INSERT
+  bypass described in finding 10, then rolled back the probe records.
+- `npm audit --omit=dev --json` reported one moderate affected production
+  package on this branch, Next.js. It exited nonzero because the finding is
+  open; the separate upgrade branch is recorded in finding 11.
+- No application behavior, schema, remote project, or deployment was changed
+  during this follow-up. Other findings retain their prior inspection status;
+  this was not a complete rerun of all application or security checks.
+
+### Survey validation implementation, 2026-11-19
+
+- Added 64 regression and compatibility tests covering the runtime schema,
+  save action, and browser saved-answer reader. Before the fix, 16 schema
+  checks and five action checks failed, including uncaught exceptions and
+  invalid payloads reaching writes. All now pass.
+- `npm run verify` passed: formatting, ESLint, TypeScript, 41 test files with
+  238 tests, coverage thresholds, and Docker smoke checks. Smoke containers,
+  network, and named volumes were removed by the verification script.
+- `CI=1 NODE_ENV=production npm run test:e2e -- tests/e2e/saved-survey.spec.ts
+tests/e2e/catalog.spec.ts` passed its production build and all 12 browser
+  tests against local Supabase. The known Next.js dependency reminder required
+  the framework-supported immediate retry; the separate upgrade was not
+  integrated as part of this validation change.
+- `git diff --check` and the diff/new-test credential-pattern scan passed.
+- No dependencies, migrations, card-request controls, other audit fixes, or
+  remote environments were changed. The pre-existing untracked saved-survey
+  clearing test remains untouched. Database JSON shape enforcement, relational
+  catalog mapping, and transactional save/clear behavior remain separate work.

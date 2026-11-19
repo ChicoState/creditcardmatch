@@ -14,7 +14,7 @@ import { prepareAvatar } from './avatar';
 import { ownedAvatarPath } from './server';
 import { AVATAR_MAX_BYTES, validateAccountField } from './validation';
 import { selectVisibleCatalogCards } from '../catalog/visibility';
-import { isSurveySubmission, type SurveySubmission } from '../config/survey';
+import { isSurveySubmission } from '../config/survey';
 import { parseCardRequest } from '../card-requests/validation';
 
 export interface AccountSaveResult {
@@ -275,9 +275,9 @@ export interface SurveySaveResult {
 }
 
 export async function saveSurveyAnswersAction(
-  submission: SurveySubmission,
+  submission: unknown,
 ): Promise<SurveySaveResult> {
-  if (!isPersistableSurveySubmission(submission)) {
+  if (!isSurveySubmission(submission)) {
     return { ok: false, error: 'Those survey answers are invalid.' };
   }
 
@@ -468,8 +468,4 @@ export async function reviewCardRequestAction(
   if (error) throw new Error('Unable to review the card request.');
 
   revalidatePath('/admin/card-requests');
-}
-
-function isPersistableSurveySubmission(submission: SurveySubmission): boolean {
-  return isSurveySubmission(submission);
 }
