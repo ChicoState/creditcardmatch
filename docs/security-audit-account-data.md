@@ -38,8 +38,10 @@ non-atomic survey save, caller-controlled card-request review fields, the missin
 server-only guard for the service-role module, and rate limiting that depends
 on deployment-specific proxy headers. The Next.js security upgrade has been
 verified separately but is not yet part of this branch.
-The shared survey runtime validator has now been hardened in the working tree;
-database shape constraints and persistence consistency remain separate work.
+The shared survey runtime validator has now been hardened. Transactional
+save/clear passed disposable-database tests, and the user confirmed local
+migration application and manual browser verification. Remote rollout and
+database shape constraints remain unverified or open.
 
 ## Data inventory and classification
 
@@ -142,12 +144,12 @@ saved-answer server readers, and save action all use `isSurveySubmission`.
   oversized arrays, sparse arrays, non-finite amounts, unknown slugs,
   incomplete spending, and action rejection before database access.
 
-**Remaining boundaries:** No database shape constraints or persistence
-transaction were added. Direct authenticated database clients can still store
+**Remaining boundaries:** Database shape constraints were not added. The
+transactional save/clear follow-up is tracked in finding 3. Direct authenticated database clients can still store
 invalid JSON on their own rows, although the application now declines to load
 it. Some valid survey categories lack a relational catalog slug;
 this fix validates the existing survey vocabulary and preserves that behavior.
-Reworking catalog mappings and the multi-step save remains outside this fix.
+Reworking catalog mappings remains outside the validation fix.
 
 **Implementation scope, 2026-11-19:** Harden this survey boundary only. Use
 `isSurveySubmission(value: unknown)` as the single runtime schema for the
@@ -173,18 +175,50 @@ Ordered implementation and acceptance checks:
    this finding with the outcome. Keep card-request review, transactionality,
    and other audit findings documented and unchanged.
 
-### 3. Saved-survey persistence is multi-step and can become inconsistent
+### 3. Transactional survey save/clear verified locally
 
-**Severity: Medium**
+**Original severity: Medium. Remediated locally; remote rollout unverified.**
 
-The action writes `user_preferences`, deletes and reinserts spending rows, then
-deletes and reinserts filter rows. A later database failure can leave a saved
+The previous action wrote `user_preferences`, deleted and reinserted spending rows, then
+deleted and reinserted filter rows. A later database failure could leave a saved
 survey snapshot that does not match its relational spending or filter rows.
 Before the validation fix, duplicate filter slugs passed the validator but
 conflicted with the relational `UNIQUE (user_id, filter_id)` constraint after
 the old filters had been deleted. The hardened validator now rejects this
-particular input before writes. Other later database failures can still cause
-partial saves; the save has not been made transactional.
+particular input before writes.
+
+**Implemented:** Saving and clearing now each call a single
+session-authenticated database function. The migration
+`20261119120000_atomic_saved_survey.sql` moves their writes into PostgreSQL
+transactions. The actions retain strict validation, check the current session,
+return generic errors, and revalidate pages only after successful RPCs. The
+functions use `SECURITY INVOKER`, derive ownership from `auth.uid()`, and retain
+the existing RLS policies. No privileged service-role client is used.
+
+All 13 opt-in integration tests passed against copied schema definitions in a
+disposable local database, including injected failures at every survey write
+stage, a late constraint failure that rolls back initial profile creation,
+owner isolation, permission checks, repeated saves/clears, preservation of
+unrelated fields, and a no-op clear before the first save. The disposable
+database was removed. No existing user records were copied.
+
+The user confirmed applying the migration to local Supabase and manually
+testing save, clear, and save again, including page refresh checks. This
+completes the local manual browser check. The RPC-backed Playwright flow has
+not been rerun following this migration; the user's report is manual evidence,
+separate from the automated action and database test results.
+Remote migration/deployment remains unverified and requires its own reviewed,
+authorized workflow. The migration must precede the updated actions in each
+environment; absent RPCs produce controlled failures rather than partial writes.
+Verification and project rollout are tracked in
+[the implementation plan](survey-transactions-plan.md).
+
+**Scope assumption:** Per the user's updated requirement, only one survey save
+or clear is expected per account at a time. Explicit per-user locks, concurrent
+tab/device handling, conflict detection, and last-completed-operation ordering
+are outside this fix. The all-or-nothing guarantee applies to each individual
+operation; overlapping operations are not guaranteed to leave all survey
+representations consistent. Card-request review remains deferred.
 
 **Evidence:** [lib/account/actions.ts](../lib/account/actions.ts:289).
 
@@ -465,3 +499,25 @@ tests/e2e/catalog.spec.ts` passed its production build and all 12 browser
   remote environments were changed. The pre-existing untracked saved-survey
   clearing test remains untouched. Database JSON shape enforcement, relational
   catalog mapping, and transactional save/clear behavior remain separate work.
+
+### Atomic survey save/clear implementation, 2026-11-19
+
+- Saving and clearing now each use one owner-scoped, invoker-security RPC.
+  Eight action tests failed against the old multi-request implementation; all
+  17 action boundary/error tests now pass.
+- `npm run verify` passed with 247 unit/component tests, coverage thresholds,
+  formatting, lint, type checks, and Docker smoke checks with cleanup.
+- All 13 database integration cases passed against a disposable schema-only
+  copy on local PostgreSQL 17.6. These tests are opt-in and are skipped in the
+  ordinary unit run. The test database was removed.
+- The production build passed. Read-only review found no outstanding issues
+  in the simplified implementation. Diff whitespace and credential-pattern
+  checks passed.
+- The single-operation-per-account assumption is documented in the saved-survey
+  spec and implementation plan. Explicit locks and concurrent-operation tests
+  were removed at the user's request; no simultaneous-tab/device guarantee is
+  claimed.
+- The user subsequently confirmed local migration application and successful
+  manual save → clear → save testing with refresh checks. Local manual browser
+  verification is complete; RPC-backed Playwright was not rerun after migration.
+  Remote rollout remains unverified. Card-request controls were not changed.

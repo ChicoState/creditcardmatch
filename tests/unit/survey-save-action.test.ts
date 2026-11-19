@@ -1,13 +1,15 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { deriveSurveySubmission } from '../../lib/config/survey';
-import { saveSurveyAnswersAction } from '../../lib/account/actions';
+import {
+  clearSurveyAnswersAction,
+  saveSurveyAnswersAction,
+} from '../../lib/account/actions';
 
 const mocks = vi.hoisted(() => ({
   getUser: vi.fn(),
   from: vi.fn(),
-  upsert: vi.fn(),
-  insert: vi.fn(),
+  rpc: vi.fn(),
   revalidatePath: vi.fn(),
 }));
 vi.mock('next/cache', () => ({ revalidatePath: mocks.revalidatePath }));
@@ -16,6 +18,7 @@ vi.mock('../../lib/auth/server', () => ({
   createAuthServerClient: async () => ({
     auth: { getUser: mocks.getUser },
     from: mocks.from,
+    rpc: mocks.rpc,
   }),
 }));
 
@@ -38,23 +41,7 @@ describe('survey save input boundary', () => {
       data: { user: { id: 'session-owner' } },
       error: null,
     });
-    mocks.upsert.mockResolvedValue({ error: null });
-    mocks.insert.mockResolvedValue({ error: null });
-    mocks.from.mockImplementation((table: string) => ({
-      upsert: mocks.upsert,
-      insert: mocks.insert,
-      delete: () => ({ eq: async () => ({ error: null }) }),
-      select: async () => ({
-        error: null,
-        data:
-          table === 'reward_categories'
-            ? [{ category_id: 1, slug: 'groceries' }]
-            : [
-                { filter_id: 2, slug: 'cashback' },
-                { filter_id: 3, slug: 'no-annual-fee' },
-              ],
-      }),
-    }));
+    mocks.rpc.mockResolvedValue({ error: null });
   });
 
   it.each([
@@ -107,24 +94,82 @@ describe('survey save input boundary', () => {
     expect(mocks.from).not.toHaveBeenCalled();
   });
 
-  it('saves a valid snapshot and related rows for the session owner', async () => {
+  it('saves the complete submission through one owner-scoped RPC', async () => {
     const submission = validSubmission();
     await expect(saveSurveyAnswersAction(submission)).resolves.toEqual({
       ok: true,
     });
-    expect(mocks.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        user_id: 'session-owner',
-        survey_answers: submission,
-      }),
-      { onConflict: 'user_id' },
-    );
-    expect(mocks.insert).toHaveBeenCalledWith([
-      { user_id: 'session-owner', category_id: 1, monthly_amount: 250 },
-    ]);
-    expect(mocks.insert).toHaveBeenCalledWith([
-      { user_id: 'session-owner', filter_id: 2, preference: 'want' },
-      { user_id: 'session-owner', filter_id: 3, preference: 'want' },
-    ]);
+    expect(mocks.rpc).toHaveBeenCalledExactlyOnceWith('save_survey_answers', {
+      p_submission: submission,
+    });
+    expect(mocks.from).not.toHaveBeenCalled();
+    expect(mocks.revalidatePath).toHaveBeenCalledWith('/account');
+    expect(mocks.revalidatePath).toHaveBeenCalledWith('/survey');
   });
+
+  it('clears all survey state through one owner-scoped RPC', async () => {
+    await expect(clearSurveyAnswersAction()).resolves.toEqual({ ok: true });
+    expect(mocks.rpc).toHaveBeenCalledExactlyOnceWith('clear_survey_answers');
+    expect(mocks.from).not.toHaveBeenCalled();
+    expect(mocks.revalidatePath).toHaveBeenCalledWith('/account');
+    expect(mocks.revalidatePath).toHaveBeenCalledWith('/survey');
+  });
+
+  it.each(['save', 'clear'] as const)(
+    'rejects an expired session for %s',
+    async (operation) => {
+      mocks.getUser.mockResolvedValue({ data: { user: null }, error: null });
+      const result =
+        operation === 'save'
+          ? await saveSurveyAnswersAction(validSubmission())
+          : await clearSurveyAnswersAction();
+      expect(result).toEqual({ ok: false, requiresAuth: true });
+      expect(mocks.rpc).not.toHaveBeenCalled();
+      expect(mocks.from).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['save', 'clear'] as const)(
+    'rejects an authentication error for %s even if a user is returned',
+    async (operation) => {
+      mocks.getUser.mockResolvedValue({
+        data: { user: { id: 'session-owner' } },
+        error: new Error('untrusted session'),
+      });
+      const result =
+        operation === 'save'
+          ? await saveSurveyAnswersAction(validSubmission())
+          : await clearSurveyAnswersAction();
+      expect(result).toEqual({ ok: false, requiresAuth: true });
+      expect(mocks.rpc).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([
+    ['save', false],
+    ['clear', false],
+    ['save', true],
+    ['clear', true],
+  ] as const)(
+    'returns a controlled error for %s failure (throws: %s)',
+    async (operation, throws) => {
+      const databaseError = new Error('private SQL failure details');
+      if (throws) mocks.rpc.mockRejectedValue(databaseError);
+      else mocks.rpc.mockResolvedValue({ error: databaseError });
+      const result =
+        operation === 'save'
+          ? await saveSurveyAnswersAction(validSubmission())
+          : await clearSurveyAnswersAction();
+      expect(result).toEqual({
+        ok: false,
+        error:
+          operation === 'save'
+            ? 'Unable to save your survey answers.'
+            : 'Unable to clear your saved survey.',
+      });
+      expect(mocks.rpc).toHaveBeenCalledTimes(1);
+      expect(mocks.from).not.toHaveBeenCalled();
+      expect(mocks.revalidatePath).not.toHaveBeenCalled();
+    },
+  );
 });

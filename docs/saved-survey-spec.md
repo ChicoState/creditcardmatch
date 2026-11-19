@@ -28,6 +28,12 @@ filter rows continue to support account summaries and future matching. The
 saved response is not a recommendation snapshot; recommendations are
 recomputed from the saved answer and current catalog.
 
+Saving and clearing each use one database transaction: a failed operation
+leaves previously stored data intact. This implementation assumes one survey
+save or clear at a time per account. Concurrent operations from multiple tabs
+or devices are outside scope; there is no explicit serialization, conflict
+resolution, or last-completed-operation guarantee for those requests.
+
 ## Security and boundaries
 
 - Always authenticate and authorize with the current Supabase session.
