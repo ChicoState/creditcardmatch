@@ -18,6 +18,9 @@ authentication rate limiting and trusted forwarding headers, is also deferred
 at the user's request while development remains local. Revisit it before public
 deployment. Finding 6 now has basic security response headers verified locally;
 broader CSP resource restrictions and HSTS remain future work.
+Finding 7, recommendation-table write permissions, is deferred at the user's
+request. Keep calculating results fresh from survey answers; review the table's
+permissions before using stored recommendation rows.
 
 ## Date
 
@@ -336,10 +339,17 @@ connections, and does not constitute a broader XSS-prevention policy.
 
 **Severity: Medium if recommendations become active**
 
-The `recommendations` table permits owner INSERT, UPDATE, and DELETE. That is
-acceptable for unused storage, but it would let a client forge recommendation
-scores or explanations if the table becomes user-visible without a policy
-change.
+**Status: Deferred at the user's request.** The user wants recommendations
+calculated fresh from survey answers on each visit, which matches the existing
+results flow. The application does not read or write the `recommendations`
+table. Keep this permissions review as future work before activating stored
+recommendations; no matching behavior, permissions, or schema were changed.
+
+The table's existing policies permit owner INSERT, UPDATE, and DELETE through
+the database API when exposed with the current grants. An absent application
+UI does not make it inaccessible. A client could supply its own stored scores
+or explanations, but the current results flow does not consume those rows.
+This remains an open data-integrity concern for future use of the table.
 
 **Evidence:** [supabase/migrations/20260930120000_revise_credit_card_match_schema.sql](../supabase/migrations/20260930120000_revise_credit_card_match_schema.sql:315).
 
@@ -354,6 +364,20 @@ change.
 
 **Severity: Medium product/security risk**
 
+**Decision:** For the current local version, the user accepts creating a new
+account if the password is forgotten. A temporary disclaimer is now displayed
+before the signup form and in account details. It explains that recovery is
+unavailable, a new account does not inherit the old account's saved data, and
+adding a contact email does not enable recovery. No account deletion, data
+transfer, email verification, or authentication behavior was added.
+
+Disclosure is implemented; account recovery itself remains future work.
+
+**Verification:** Formatting, lint, type checks, and 19 existing tests covering
+the authentication forms, signup page, account page, and account editors passed.
+The production build and existing account browser test also passed, including
+signup, account edits, and subsequent login.
+
 Synthetic `.invalid` email identities and automatic confirmation mean users
 have no normal password-reset channel. Username changes also update the
 synthetic identity, so users should understand that the account can be lost if
@@ -364,7 +388,8 @@ the password is forgotten.
 
 **Mitigations:**
 
-- Disclose the recovery limitation during signup and in account settings.
+- Keep the temporary recovery disclaimer visible during signup and in account
+  details until a recovery mechanism is implemented and verified.
 - Offer an optional, explicitly consented and verified recovery email later,
   or evaluate passkeys/recovery codes.
 - Provide a controlled account deletion/recreation path without exposing
@@ -494,8 +519,11 @@ admin workflows are added.
 6. Verify production proxy/IP behavior and add account-based throttling
    (finding 5, deferred at the user's request; revisit before public deployment).
 7. Tighten recommendation and admin-data policies before expanding those
-   features.
-8. Document and design account recovery before accounts become durable.
+   features. Recommendation-table permissions (finding 7) are deferred at the
+   user's request; retain fresh calculation from survey answers.
+8. Temporary account-recovery disclaimers are implemented (finding 8). Recovery
+   functionality remains future work; the user accepts new account creation
+   for the current local version.
 
 Ensure the release includes the locally verified dependency upgrade and confirm
 the deployed version after release.

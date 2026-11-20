@@ -21,6 +21,13 @@ export default async function SignupPage({
         <p className="auth-page__intro">
           Choose a username for your CreditCardMatch account.
         </p>
+        <p className="auth-page__intro">
+          <strong>Temporary limitation: No password recovery.</strong> If you
+          forget your password, you will need to create a new account. Your
+          saved surveys, bookmarks, and other account data will not transfer to
+          the new account. Adding a contact email does not enable password
+          recovery.
+        </p>
         <AuthForm mode="signup" next={params.next} />
       </section>
     </main>
