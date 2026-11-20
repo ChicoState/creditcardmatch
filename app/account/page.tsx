@@ -21,6 +21,12 @@ export default async function AccountPage() {
       <p className="account-intro">
         Manage your password, contact email, and profile photo.
       </p>
+      <p className="account-help">
+        <strong>Temporary limitation: No password recovery.</strong> If you
+        forget your password, you will need to create a new account. Your saved
+        surveys, bookmarks, and other account data will not transfer to the new
+        account. Adding a contact email does not enable password recovery.
+      </p>
       <AccountDetails
         username={
           typeof user.user_metadata.username === 'string'

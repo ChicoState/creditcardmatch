@@ -14,7 +14,7 @@ import { prepareAvatar } from './avatar';
 import { ownedAvatarPath } from './server';
 import { AVATAR_MAX_BYTES, validateAccountField } from './validation';
 import { selectVisibleCatalogCards } from '../catalog/visibility';
-import { isSurveySubmission, type SurveySubmission } from '../config/survey';
+import { isSurveySubmission } from '../config/survey';
 import { parseCardRequest } from '../card-requests/validation';
 
 export interface AccountSaveResult {
@@ -275,99 +275,27 @@ export interface SurveySaveResult {
 }
 
 export async function saveSurveyAnswersAction(
-  submission: SurveySubmission,
+  submission: unknown,
 ): Promise<SurveySaveResult> {
-  if (!isPersistableSurveySubmission(submission)) {
+  if (!isSurveySubmission(submission)) {
     return { ok: false, error: 'Those survey answers are invalid.' };
   }
 
-  const user = await currentUser();
-  if (!user) return { ok: false, requiresAuth: true };
+  try {
+    const auth = await createAuthServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await auth.auth.getUser();
+    if (authError || !user) return { ok: false, requiresAuth: true };
 
-  const auth = await createAuthServerClient();
-  const { error: profileError } = await auth
-    .from('profiles')
-    .upsert({ id: user.id }, { onConflict: 'id' });
-  if (profileError)
-    return { ok: false, error: 'Unable to save your account profile.' };
-
-  const { error: preferenceError } = await auth.from('user_preferences').upsert(
-    {
-      user_id: user.id,
-      credit_score_range: submission.credit_score_band,
-      income_range: submission.income_range,
-      accepts_annual_fee: submission.accepts_annual_fee,
-      wants_travel_rewards: submission.user_preferences.wants_travel_rewards,
-      survey_answers: submission,
-      survey_saved_at: new Date().toISOString(),
-    },
-    { onConflict: 'user_id' },
-  );
-  if (preferenceError)
+    const { error } = await auth.rpc('save_survey_answers', {
+      p_submission: submission,
+    });
+    if (error)
+      return { ok: false, error: 'Unable to save your survey answers.' };
+  } catch {
     return { ok: false, error: 'Unable to save your survey answers.' };
-
-  const { data: categories, error: categoryError } = await auth
-    .from('reward_categories')
-    .select('category_id, slug');
-  if (categoryError)
-    return { ok: false, error: 'Unable to save your spending answers.' };
-
-  const categoryIdBySlug = new Map(
-    (categories ?? []).map((category) => [category.slug, category.category_id]),
-  );
-  const spendRows = submission.category_monthly_spend.flatMap((item) => {
-    const categoryId = categoryIdBySlug.get(item.category_slug);
-    return categoryId
-      ? [
-          {
-            user_id: user.id,
-            category_id: categoryId,
-            monthly_amount: item.monthly_amount,
-          },
-        ]
-      : [];
-  });
-
-  const { error: deleteError } = await auth
-    .from('user_category_spend')
-    .delete()
-    .eq('user_id', user.id);
-  if (deleteError)
-    return { ok: false, error: 'Unable to update your spending answers.' };
-
-  if (spendRows.length > 0) {
-    const { error: insertError } = await auth
-      .from('user_category_spend')
-      .insert(spendRows);
-    if (insertError)
-      return { ok: false, error: 'Unable to update your spending answers.' };
-  }
-
-  const { data: filters, error: filterError } = await auth
-    .from('filters')
-    .select('filter_id, slug');
-  if (filterError) return { ok: false, error: 'Unable to save your filters.' };
-  const filterIdBySlug = new Map(
-    (filters ?? []).map((filter) => [filter.slug, filter.filter_id]),
-  );
-  const filterRows = submission.user_filter_preferences.flatMap((item) => {
-    const filterId = filterIdBySlug.get(item.filter_slug);
-    return filterId
-      ? [{ user_id: user.id, filter_id: filterId, preference: item.preference }]
-      : [];
-  });
-  const { error: filterDeleteError } = await auth
-    .from('user_filter_preferences')
-    .delete()
-    .eq('user_id', user.id);
-  if (filterDeleteError)
-    return { ok: false, error: 'Unable to update your saved filters.' };
-  if (filterRows.length > 0) {
-    const { error: filterInsertError } = await auth
-      .from('user_filter_preferences')
-      .insert(filterRows);
-    if (filterInsertError)
-      return { ok: false, error: 'Unable to update your saved filters.' };
   }
 
   revalidatePath('/account');
@@ -376,37 +304,20 @@ export async function saveSurveyAnswersAction(
 }
 
 export async function clearSurveyAnswersAction(): Promise<SurveySaveResult> {
-  const user = await currentUser();
-  if (!user) return { ok: false, requiresAuth: true };
+  try {
+    const auth = await createAuthServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await auth.auth.getUser();
+    if (authError || !user) return { ok: false, requiresAuth: true };
 
-  const auth = await createAuthServerClient();
-  const { error: preferenceError } = await auth
-    .from('user_preferences')
-    .update({
-      survey_answers: null,
-      survey_saved_at: null,
-      credit_score_range: null,
-      income_range: null,
-      accepts_annual_fee: null,
-      wants_travel_rewards: null,
-    })
-    .eq('user_id', user.id);
-  if (preferenceError)
+    const { error } = await auth.rpc('clear_survey_answers');
+    if (error)
+      return { ok: false, error: 'Unable to clear your saved survey.' };
+  } catch {
     return { ok: false, error: 'Unable to clear your saved survey.' };
-
-  const { error: spendError } = await auth
-    .from('user_category_spend')
-    .delete()
-    .eq('user_id', user.id);
-  if (spendError)
-    return { ok: false, error: 'Unable to clear your saved survey.' };
-
-  const { error: filterError } = await auth
-    .from('user_filter_preferences')
-    .delete()
-    .eq('user_id', user.id);
-  if (filterError)
-    return { ok: false, error: 'Unable to clear your saved survey.' };
+  }
 
   revalidatePath('/account');
   revalidatePath('/survey');
@@ -468,8 +379,4 @@ export async function reviewCardRequestAction(
   if (error) throw new Error('Unable to review the card request.');
 
   revalidatePath('/admin/card-requests');
-}
-
-function isPersistableSurveySubmission(submission: SurveySubmission): boolean {
-  return isSurveySubmission(submission);
 }

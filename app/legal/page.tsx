@@ -58,6 +58,44 @@ export default function LegalPage() {
       </aside>
 
       <section
+        aria-labelledby="account-data-heading"
+        className="disclaimer-section"
+      >
+        <div className="section-heading">
+          <p className="eyebrow">Your account data</p>
+          <h2 id="account-data-heading">How account data works</h2>
+        </div>
+        <div className="disclaimer-copy">
+          <p>
+            If you choose to create an account and save your survey, we store
+            your credit-score range, income range, selected spending amounts,
+            and card preferences so you can return to your recommendations.
+            These answers are used for matching and are not an approval decision
+            by a card issuer.
+          </p>
+          <p>
+            Anonymous survey answers are kept in your browser&apos;s local
+            storage so you can view results without an account. Saved survey
+            answers are stored with your account in Supabase. Do not enter
+            passwords, card numbers, or other financial account credentials in
+            the survey.
+          </p>
+          <p>
+            From your account page, choose <strong>Clear saved survey</strong>{' '}
+            to remove the saved survey answers from your account and clear the
+            anonymous browser copy. This action does not delete your account or
+            other account data. If your browser blocks storage access, clear
+            this site&apos;s storage in your browser settings as well.
+          </p>
+          <p>
+            We retain saved survey answers until you clear them or a future
+            retention policy says otherwise. Account deletion is a separate
+            feature and is not currently available in this version.
+          </p>
+        </div>
+      </section>
+
+      <section
         aria-labelledby="safer-heading"
         className="disclaimer-section disclaimer-close"
       >

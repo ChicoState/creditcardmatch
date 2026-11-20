@@ -87,4 +87,27 @@ describe('survey storage', () => {
 
     expect(loadSurveyAnswers(storage)).toBeNull();
   });
+
+  it.each([
+    ['null spending row', { category_monthly_spend: [null] }],
+    ['incomplete spending', { category_monthly_spend: [] }],
+    [
+      'duplicate filters',
+      {
+        user_filter_preferences: [
+          submission.user_filter_preferences[0],
+          submission.user_filter_preferences[0],
+        ],
+      },
+    ],
+    ['unexpected snapshot fields', { extra: 'not part of the survey' }],
+  ])('treats saved answers with %s as unavailable', (_label, patch) => {
+    const storage = {
+      getItem: () => JSON.stringify({ ...submission, ...patch }),
+      setItem: () => {},
+      removeItem: () => {},
+    };
+
+    expect(loadSurveyAnswers(storage)).toBeNull();
+  });
 });

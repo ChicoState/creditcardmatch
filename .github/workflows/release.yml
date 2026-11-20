@@ -54,7 +54,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Apply reviewed migrations
-        run: npx --no-install supabase db push --db-url "$SUPABASE_DB_URL"
+        run: npx --no-install supabase db push --yes --remote="$SUPABASE_DB_URL"
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
       - run: npx --yes vercel@54.17.3 pull --yes --environment=production --token="$VERCEL_TOKEN"

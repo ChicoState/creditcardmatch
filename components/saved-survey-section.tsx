@@ -5,6 +5,7 @@ import { useState, useTransition } from 'react';
 
 import { clearSurveyAnswersAction } from '../lib/account/actions';
 import type { SavedSurveyData } from '../lib/account/types';
+import { clearSurveyAnswers } from '../lib/storage/survey-storage';
 import { SurveyAnswerSummary } from './survey-answer-summary';
 
 export function SavedSurveySection({
@@ -26,6 +27,11 @@ export function SavedSurveySection({
         return;
       }
       setCleared(true);
+      if (!clearSurveyAnswers()) {
+        setError(
+          'Your account survey was cleared, but we could not clear the browser copy. Clear this site’s storage in your browser settings.',
+        );
+      }
     });
   }
 

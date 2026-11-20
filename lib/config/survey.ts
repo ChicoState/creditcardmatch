@@ -48,69 +48,142 @@ export interface SurveySubmission {
   };
 }
 
+function hasExactFields(
+  value: unknown,
+  fields: readonly string[],
+): value is Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  return (
+    (prototype === Object.prototype || prototype === null) &&
+    Reflect.ownKeys(value).length === fields.length &&
+    fields.every((field) => Object.hasOwn(value, field))
+  );
+}
+
+function isUniqueStringArray(
+  value: unknown,
+  allowed: readonly string[],
+  maximum = allowed.length,
+): value is string[] {
+  if (!Array.isArray(value) || value.length > maximum) return false;
+  const seen = new Set<string>();
+  for (const item of value) {
+    if (typeof item !== 'string' || !allowed.includes(item) || seen.has(item)) {
+      return false;
+    }
+    seen.add(item);
+  }
+  return true;
+}
+
+function isFilterPreferenceArray(
+  value: unknown,
+): value is SurveySubmission['card_filter_preferences'] {
+  if (!Array.isArray(value) || value.length > SURVEY_FILTER_SLUGS.length) {
+    return false;
+  }
+  const seen = new Set<string>();
+  for (const item of value) {
+    if (
+      !hasExactFields(item, ['filter_slug', 'preference']) ||
+      typeof item.filter_slug !== 'string' ||
+      !SURVEY_FILTER_SLUGS.includes(item.filter_slug) ||
+      (item.preference !== 'want' && item.preference !== 'avoid') ||
+      seen.has(item.filter_slug)
+    ) {
+      return false;
+    }
+    seen.add(item.filter_slug);
+  }
+  return true;
+}
+
+function isCategorySpendArray(
+  value: unknown,
+  priorityCategories: readonly string[],
+): value is SurveySubmission['category_monthly_spend'] {
+  if (!Array.isArray(value) || value.length !== priorityCategories.length) {
+    return false;
+  }
+  const seen = new Set<string>();
+  for (const item of value) {
+    if (
+      !hasExactFields(item, ['category_slug', 'monthly_amount']) ||
+      typeof item.category_slug !== 'string' ||
+      !priorityCategories.includes(item.category_slug) ||
+      seen.has(item.category_slug) ||
+      typeof item.monthly_amount !== 'number' ||
+      !Number.isFinite(item.monthly_amount) ||
+      item.monthly_amount <= 0 ||
+      // user_category_spend.monthly_amount is DECIMAL(10,2).
+      item.monthly_amount > 99_999_999.99
+    ) {
+      return false;
+    }
+    seen.add(item.category_slug);
+  }
+  return true;
+}
+
 export function isSurveySubmission(value: unknown): value is SurveySubmission {
-  if (!value || typeof value !== 'object') return false;
-
-  const candidate = value as Partial<SurveySubmission>;
   if (
-    typeof candidate.accepts_annual_fee === 'boolean' &&
-    Array.isArray(candidate.card_filter_preferences) &&
-    Array.isArray(candidate.category_monthly_spend) &&
-    typeof candidate.credit_score_band === 'string' &&
-    Array.isArray(candidate.extra_benefit_slugs) &&
-    typeof candidate.income_range === 'string' &&
-    typeof candidate.primary_goal === 'string' &&
-    Array.isArray(candidate.priority_category_slugs) &&
-    Array.isArray(candidate.user_filter_preferences) &&
-    Boolean(candidate.user_preferences)
+    !hasExactFields(value, [
+      'accepts_annual_fee',
+      'card_filter_preferences',
+      'category_monthly_spend',
+      'credit_score_band',
+      'extra_benefit_slugs',
+      'income_range',
+      'primary_goal',
+      'priority_category_slugs',
+      'user_filter_preferences',
+      'user_preferences',
+    ])
   ) {
-    const priorityCategories = candidate.priority_category_slugs;
-    const extraBenefits = candidate.extra_benefit_slugs;
-    const categorySpend = candidate.category_monthly_spend;
-    const preferences = candidate.user_preferences;
-    if (!preferences) return false;
-
-    return (
-      hasOption(INCOME_RANGE_OPTIONS, candidate.income_range) &&
-      hasOption(CREDIT_SCORE_OPTIONS, candidate.credit_score_band) &&
-      hasOption(PRIMARY_GOAL_OPTIONS, candidate.primary_goal) &&
-      priorityCategories.length <=
-        SURVEY_CONFIG.priorityCategories.maxSelections &&
-      uniqueKnownValues(priorityCategories, SURVEY_CATEGORIES).length ===
-        priorityCategories.length &&
-      new Set(priorityCategories).size === priorityCategories.length &&
-      uniqueKnownValues(extraBenefits, EXTRA_BENEFIT_OPTIONS).length ===
-        extraBenefits.length &&
-      (!extraBenefits.includes('none') || extraBenefits.length === 1) &&
-      categorySpend.length <= priorityCategories.length &&
-      new Set(categorySpend.map((item) => item.category_slug)).size ===
-        categorySpend.length &&
-      categorySpend.every(
-        (item) =>
-          priorityCategories.includes(item.category_slug) &&
-          SURVEY_CATEGORIES.some(
-            (category) => category.slug === item.category_slug,
-          ) &&
-          Number.isFinite(item.monthly_amount) &&
-          item.monthly_amount > 0 &&
-          item.monthly_amount <= 100_000_000,
-      ) &&
-      candidate.card_filter_preferences.every(
-        (item) =>
-          SURVEY_FILTER_SLUGS.includes(item.filter_slug) &&
-          (item.preference === 'want' || item.preference === 'avoid'),
-      ) &&
-      candidate.user_filter_preferences.every(
-        (item) =>
-          SURVEY_FILTER_SLUGS.includes(item.filter_slug) &&
-          (item.preference === 'want' || item.preference === 'avoid'),
-      ) &&
-      typeof preferences.accepts_annual_fee === 'boolean' &&
-      typeof preferences.wants_travel_rewards === 'boolean'
-    );
+    return false;
   }
 
-  return false;
+  const preferences = value.user_preferences;
+  const cardFilters = value.card_filter_preferences;
+  const userFilters = value.user_filter_preferences;
+  return (
+    typeof value.accepts_annual_fee === 'boolean' &&
+    hasOption(INCOME_RANGE_OPTIONS, value.income_range) &&
+    hasOption(CREDIT_SCORE_OPTIONS, value.credit_score_band) &&
+    hasOption(PRIMARY_GOAL_OPTIONS, value.primary_goal) &&
+    isUniqueStringArray(
+      value.priority_category_slugs,
+      SURVEY_CATEGORIES.map((category) => category.slug),
+      SURVEY_CONFIG.priorityCategories.maxSelections,
+    ) &&
+    isCategorySpendArray(
+      value.category_monthly_spend,
+      value.priority_category_slugs,
+    ) &&
+    isUniqueStringArray(
+      value.extra_benefit_slugs,
+      EXTRA_BENEFIT_OPTIONS.map((benefit) => benefit.value),
+    ) &&
+    (!value.extra_benefit_slugs.includes('none') ||
+      value.extra_benefit_slugs.length === 1) &&
+    isFilterPreferenceArray(cardFilters) &&
+    isFilterPreferenceArray(userFilters) &&
+    cardFilters.length === userFilters.length &&
+    cardFilters.every((cardPreference) =>
+      userFilters.some(
+        (userPreference) =>
+          userPreference.filter_slug === cardPreference.filter_slug &&
+          userPreference.preference === cardPreference.preference,
+      ),
+    ) &&
+    hasExactFields(preferences, [
+      'accepts_annual_fee',
+      'wants_travel_rewards',
+    ]) &&
+    preferences.accepts_annual_fee === value.accepts_annual_fee &&
+    typeof preferences.wants_travel_rewards === 'boolean'
+  );
 }
 
 export function surveySubmissionToFormValues(
@@ -247,8 +320,8 @@ export const SURVEY_FILTER_SLUGS = [
 
 function hasOption(
   options: readonly EnumeratedOption[],
-  value: string,
-): boolean {
+  value: unknown,
+): value is string {
   return options.some((option) => option.value === value);
 }
 

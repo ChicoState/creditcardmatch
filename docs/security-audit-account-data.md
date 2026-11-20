@@ -2,252 +2,624 @@
 
 ## Status
 
-Audit report — current implementation review
+Current implementation review for the `security_audit` branch. Findings are
+based on repository code, migrations, targeted validator probes, and a local
+Supabase RLS probe. Hosted Supabase, production proxy behavior, deployment
+headers, and remote data were not independently verified.
+
+The dependency upgrade is complete locally and accepted by the user, including
+user-reported Supabase start/reset coverage. See the
+[compatibility report](dependency-upgrade.md). Card-request review controls
+(finding 10) remain documented and outside the current implementation scope.
+Finding 4, the privileged client's explicit server-only boundary, is deferred
+at the user's request because of perceived implementation complexity. It remains
+an open future hardening item; no implementation was made. Finding 5,
+authentication rate limiting and trusted forwarding headers, is also deferred
+at the user's request while development remains local. Revisit it before public
+deployment. Finding 6 now has basic security response headers verified locally;
+broader CSP resource restrictions and HSTS remain future work.
+Finding 7, recommendation-table write permissions, is deferred at the user's
+request. Keep calculating results fresh from survey answers; review the table's
+permissions before using stored recommendation rows.
+For finding 9, the user reports using test data only in the current local
+environment. Lifecycle controls are deferred; the user requested documenting
+this limitation only in this audit, without an application notice.
+Finding 1, expanded privacy information, retention policy, and full account
+deletion, is also deferred at the user's request for the local test-data phase.
+Revisit these controls before collecting real personal information or inviting
+real users. This completes the current pass through the audit findings;
+deferred findings remain open and card-request review remains outside scope.
 
 ## Date
 
-2026-11-04
+2026-11-19 (follow-up to the 2026-11-18 review)
 
 ## Scope
 
-This review covers account creation and login, browser-side survey storage,
-the planned per-user Supabase tables, row-level security (RLS), and the
-authentication rate limiter. It does not assess Supabase's hosted platform,
-deployment configuration, or remote production data because the repository
-states that the migrations have only been verified against the local stack.
+This review covers authentication, account metadata, saved survey answers,
+browser storage, avatars, bookmarks, card rosters, card requests, privileged
+Supabase clients, server actions, rate limiting, and row-level security (RLS).
+It also checks for SQL injection, XSS/unsafe URL handling, file-upload risks,
+security headers, and data deletion gaps. It does not authorize applying
+migrations or changing a remote Supabase project.
 
 ## Executive summary
 
-The application does not currently save true personal information such as a
-person's legal name, phone number, physical address, or real email address.
-Accounts use a pseudonymous username and a synthetic `.invalid` email address;
-passwords are handled by Supabase Auth rather than stored in application
-tables. The closest information to personal data is the survey's coarse
-credit-score range, income range, spending amounts, and card preferences.
-These attributes are not directly identifying, but they are still sensitive
-in a financial context.
+The application uses Supabase Auth for passwords and stores the internal
+service credential only through `SUPABASE_SERVICE_ROLE_KEY` at runtime. The
+application does not intentionally collect a legal name, phone number, or
+physical address during signup. It does, however, now persist sensitive
+financial and behavioral data when a signed-in user saves survey answers:
+credit-score and income ranges, category spending amounts, card preferences,
+and the complete survey snapshot. Users may also provide an optional contact
+email, avatar, card roster, bookmarks, and card-request comments.
 
-The database RLS design provides a reasonable owner boundary for future saved
-survey data. RLS is an authorization control, not a SQL-injection defense and
-not a substitute for input validation, privacy disclosure, or secure handling
-of privileged credentials.
-
-No current SQL-injection sink was found. Current catalog access uses the
-Supabase query builder, and no application code was found that concatenates
-user input into SQL. The largest risks are deferred to the Phase 2b save
-workflow, localStorage exposure, privacy documentation, and operational trust
-in forwarded client-IP headers.
+The owner-scoped RLS policies are a useful authorization boundary, and no SQL
+injection sink was found in the current application query paths. The most
+important open risks are incomplete privacy/deletion behavior,
+caller-controlled card-request review fields, the missing explicit
+server-only guard for the service-role module, and rate limiting that depends
+on deployment-specific proxy headers. The Next.js security upgrade is included in the locally verified dependency
+upgrade; deployment remains unverified.
+The shared survey runtime validator has now been hardened. Transactional
+save/clear passed disposable-database tests, and the user confirmed local
+migration application and manual browser verification. Remote rollout and
+database shape constraints remain unverified or open.
 
 ## Data inventory and classification
 
-| Data                        | Current location                                      | Classification                                           | Current behavior                                                            |
-| --------------------------- | ----------------------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------- |
-| Username                    | Supabase Auth user metadata and authentication flow   | Pseudonymous account identifier                          | Collected during signup; not a legal identity by itself                     |
-| Password                    | Supabase Auth                                         | Authentication secret                                    | Submitted to Supabase Auth; application does not store it in its own tables |
-| Credit-score range          | Browser localStorage; future user preferences table   | Sensitive financial attribute, not direct PII            | Used for matching; currently not saved server-side                          |
-| Income range                | Browser localStorage; future user preferences table   | Sensitive financial attribute, not direct PII            | Used for matching; currently not saved server-side                          |
-| Monthly category spending   | Browser localStorage; future category-spend table     | Sensitive financial/behavioral attribute, not direct PII | Used for matching; currently not saved server-side                          |
-| Card and reward preferences | Browser localStorage; future filter-preferences table | Preference/behavioral data                               | Used for matching; currently not saved server-side                          |
-| First/last name             | Optional `profiles` columns                           | Direct personal information if populated                 | Schema supports it, but the current signup form does not collect it         |
+| Data                              | Current location                                                             | Classification                                   | Current behavior                                                                                |
+| --------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| Username and synthetic Auth email | Supabase Auth user metadata and Auth identity                                | Pseudonymous account identifier                  | Collected at signup; the synthetic email is not a recovery address                              |
+| Password                          | Supabase Auth                                                                | Authentication secret                            | Submitted to Auth; not stored in application tables                                             |
+| Contact email                     | Supabase Auth user metadata                                                  | Direct personal/contact information, unverified  | Optional account field; no verification or recovery workflow                                    |
+| Credit-score and income ranges    | `user_preferences.survey_answers` and scalar columns; anonymous localStorage | Sensitive financial attributes                   | Saved server-side only after explicit signed-in save; also persisted anonymously in the browser |
+| Monthly category spending         | `user_category_spend` and survey snapshot; anonymous localStorage            | Sensitive financial/behavioral data              | Owner-scoped when saved; coarse amounts are accepted                                            |
+| Card and reward preferences       | `user_filter_preferences` and survey snapshot; anonymous localStorage        | Behavioral preference data                       | Owner-scoped when saved                                                                         |
+| Avatar                            | Private Supabase Storage bucket plus Auth metadata path                      | Personal image data                              | Re-encoded to bounded WebP; signed URLs expire after one hour                                   |
+| Bookmarks and card roster         | `bookmarks` and `user_card_roster`                                           | Account preference data                          | Owner-scoped through RLS                                                                        |
+| Card requests                     | `card_requests`                                                              | User-submitted content and optional contact data | Authenticated users submit; admins can review                                                   |
+| Profiles and recommendations      | `profiles` and reserved `recommendations` tables                             | User-owned account data                          | Profiles are used by current flows; recommendations remain unused                               |
 
-The distinction matters: “not direct PII” does not mean “non-sensitive.” A
-credit-score or income range can affect a person's financial profile, and a
-combination of attributes can become identifying in a broader data set. The
-current product should therefore describe these as sensitive survey or
-financial-preference data, not as collected identity information.
+“Not directly identifying” does not mean “non-sensitive.” A combination of
+financial ranges, spending, preferences, contact email, and account metadata
+can become identifying and should be handled as sensitive user data.
 
 ## Findings and mitigations
 
-### 1. Privacy notice and lifecycle policy are incomplete
+### 1. Privacy notice, retention, and account deletion are incomplete
 
-**Severity: High before enabling saved accounts**
+**Severity: High before broad account use**
 
-The `/legal` page is a credit-card disclaimer, not a data-use notice. It does
-not explain the survey attributes collected, where they are stored, retention,
-account deletion, or how a user can request removal. The current application
-does not save survey answers to the database yet, but the schema is prepared
-for that workflow.
+**Status: Deferred at the user's request.** Expanded privacy information,
+retention decisions, and full account deletion remain future work for the
+current local, test-data-only phase. Revisit before real-user use or collecting
+real personal information. No privacy-page, deletion, or database changes were
+made for this decision. Existing survey clearing remains available and does
+not delete the full account. This finding is open, not remediated.
+
+The `/legal` page now describes saved survey data, its purpose, browser
+storage, and the current survey-clearing behavior. The remaining gap is that it
+does not yet describe all other account data (optional contact email, avatars,
+bookmarks, card rosters, and card requests), establish a finalized retention
+schedule, or provide account deletion. `clearSurveyAnswersAction` now clears
+the saved survey fields, related rows, and the anonymous browser survey key;
+it intentionally does not delete the Auth account or other account data.
 
 **Evidence:** [app/legal/page.tsx](../app/legal/page.tsx),
-[README.md](../README.md:3), and the user-owned tables in
-[the database migration](../supabase/migrations/20260930120000_revise_credit_card_match_schema.sql:271).
+[lib/account/actions.ts](../lib/account/actions.ts:378),
+[supabase/migrations/20261104120000_account_avatars.sql](../supabase/migrations/20261104120000_account_avatars.sql),
+and [supabase/migrations/20261105120000_card_catalog_requests.sql](../supabase/migrations/20261105120000_card_catalog_requests.sql).
 
-**Possible mitigations:**
+**Mitigations:**
 
-- Add a plain-language privacy notice before enabling server-side saving.
-- State explicitly that credit-score range, income range, spending ranges, and
-  preferences are collected for matching and are not used as an approval
-  decision.
-- Document storage location, retention period, deletion behavior, and whether
-  anonymous localStorage data is retained until cleared.
-- Add account deletion and survey-data deletion paths before launch.
-- Keep the data model minimal; do not collect real names or contact details
-  unless a future feature requires them.
+- Expand the privacy notice to cover optional contact email, avatars,
+  bookmarks, card rosters, and card requests.
+- Replace the provisional retention wording with an approved retention
+  schedule and document how users request removal.
+- Add an account-deletion workflow that removes Auth metadata, private avatar
+  objects, and all user-owned rows, with an explicit confirmation step.
+- Keep the server and browser survey-clearing paths covered by regression tests.
+- Keep optional contact email clearly separate from the internal Auth email
+  and do not use it for recovery without verification and consent.
 
-### 2. RLS does not replace input validation or SQL-injection defenses
+### 2. Survey runtime validation hardened locally
 
-**Severity: High for the future save workflow**
+**Original severity: High. Application-layer fix implemented locally; not deployed.**
 
-RLS checks whether the authenticated user may access a row. It does not check
-whether values are valid, safe, complete, or semantically allowed, and it does
-not sanitize raw SQL. A future save action could still accept forged filter
-slugs, invalid ranges, excessive values, or unsafe raw query fragments while
-passing ownership checks.
+`saveSurveyAnswersAction` accepts attacker-controlled serialized input. Its
+previous validator checked many values, but filter-preference arrays did not
+enforce all expected cardinality and uniqueness rules, and malformed nested
+values could throw instead of producing a controlled rejection. The
+database also stores the complete response in JSONB without equivalent shape
+constraints. RLS proves ownership, not validity.
 
-**Evidence:** Owner predicates use `auth.uid()` in
-[the database migration](../supabase/migrations/20260930120000_revise_credit_card_match_schema.sql:273).
-Current catalog reads use the Supabase client in
-[lib/data/catalog.ts](../lib/data/catalog.ts:81).
+**Evidence:** [lib/account/actions.ts](../lib/account/actions.ts:277) and
+[lib/config/survey.ts](../lib/config/survey.ts:35).
 
-**Possible mitigations:**
+**Local reproduction before the fix, 2026-11-19:** Starting with a valid payload produced by
+`deriveSurveySubmission`, three separate probes containing a `null` spending,
+card-filter, or user-filter row threw a `TypeError`. Three other probes were
+accepted: duplicate user filters, no spending rows for a selected category,
+and an unexpected top-level snapshot field. The valid control passed. These
+were direct validator tests, not HTTP exploitation tests.
 
-- Validate every server-action or route payload with an explicit schema.
-- Enforce allowed enum values, numeric bounds, maximum array lengths, and
-  maximum string lengths in both application code and database constraints.
-- Resolve filter and category slugs against database rows rather than trusting
-  client-provided IDs or labels.
-- Use the Supabase query builder or parameterized SQL exclusively; never build
-  SQL by concatenating form values.
-- Add integration tests proving that one authenticated user cannot read or
-  mutate another user's rows and that malformed payloads are rejected.
+Before the fix, the action invoked this validator before its session check and persisted the
+accepted object as `survey_answers` without projecting an allowlist of fields.
+Thus malformed nested values could reject the action with an uncaught exception,
+and an authenticated owner could store additional, unvalidated snapshot fields.
+This does not demonstrate cross-user access or privilege escalation. The same
+validator was used when loading saved answers, so malformed data written
+directly by an owner could also interrupt account and survey rendering.
 
-### 3. Survey data in localStorage is readable by JavaScript on the origin
+`lib/storage/survey-storage.ts` previously contained an unused, stricter-looking
+`looksLikeSurveySubmission` helper. It has been removed; the browser loader,
+saved-answer server readers, and save action all use `isSurveySubmission`.
 
-**Severity: Medium**
+**Implemented controls:**
 
-Anonymous survey responses are serialized into browser localStorage. This is
-not a server breach and does not contain direct identity, but any successful
-XSS or compromised script running in the origin could read the credit-score,
-income, spending, and preference values.
+- The action accepts `unknown` and rejects invalid input before authentication
+  or database access, returning the existing generic validation error.
+- The shared schema requires exact plain-object fields, validates each nested
+  row before reading its fields, bounds array sizes, rejects sparse and
+  duplicate entries, and validates enum values against the survey configuration.
+- Every selected category must have exactly one finite positive spending
+  amount, at most `99_999_999.99` to fit `DECIMAL(10,2)`.
+- Card and user filter copies must agree regardless of ordering, and the two
+  annual-fee flags must agree. Optional empty selections and both existing
+  preference values remain supported.
+- Saved-answer readers reject invalid stored snapshots as unavailable. Valid
+  snapshots retain the existing shape and authenticated save behavior.
+- Regression tests cover malformed objects, unexpected fields, duplicate and
+  oversized arrays, sparse arrays, non-finite amounts, unknown slugs,
+  incomplete spending, and action rejection before database access.
 
-**Evidence:** [lib/storage/survey-storage.ts](../lib/storage/survey-storage.ts:37).
+**Remaining boundaries:** Database shape constraints were not added. The
+transactional save/clear follow-up is tracked in finding 3. Direct authenticated database clients can still store
+invalid JSON on their own rows, although the application now declines to load
+it. Some valid survey categories lack a relational catalog slug;
+this fix validates the existing survey vocabulary and preserves that behavior.
+Reworking catalog mappings remains outside the validation fix.
 
-**Possible mitigations:**
+**Implementation scope, 2026-11-19:** Harden this survey boundary only. Use
+`isSurveySubmission(value: unknown)` as the single runtime schema for the
+Server Action and saved-answer readers. Require exact object fields, bounded
+unique arrays of known values, complete selected-category spending with finite
+positive amounts within the database range, matching card/user filter copies,
+and consistent annual-fee flags. Preserve the existing optional empty category
+and benefit selections and the `want`/`avoid` preference vocabulary. Invalid
+saved data must load as unavailable rather than throw; valid payloads retain
+the existing shape. No new dependency or database migration is needed.
 
-- Continue collecting only coarse ranges rather than exact income or exact
-  financial-account data.
-- Do not store passwords, tokens, or direct identifiers in localStorage.
-- Add a Content Security Policy and maintain dependency/script controls.
-- Provide a visible “clear survey data” action and clear anonymous data after a
-  defined period if persistent cross-session matching is not required.
-- If stronger confidentiality is required later, move persistence to an
-  authenticated server-side store protected by RLS rather than treating
-  client-side storage as a security boundary.
+Ordered implementation and acceptance checks:
+
+1. Add failing Vitest tests for the shared schema and malformed Server Action
+   inputs, proving invalid payloads cannot write data.
+2. Harden the shared validator and remove the unused competing browser
+   validator. Reject unknown slugs using the survey's defined vocabulary before
+   any persistence. Preserve valid survey categories that have no relational
+   catalog mapping; changing those mappings or the save transaction is outside
+   this validation fix.
+3. Run formatting, lint, type checks, the full unit/component suite and
+   coverage, a production build, and the saved-survey Playwright flow. Update
+   this finding with the outcome. Keep card-request review, transactionality,
+   and other audit findings documented and unchanged.
+
+### 3. Transactional survey save/clear verified locally
+
+**Original severity: Medium. Remediated locally; remote rollout unverified.**
+
+The previous action wrote `user_preferences`, deleted and reinserted spending rows, then
+deleted and reinserted filter rows. A later database failure could leave a saved
+survey snapshot that does not match its relational spending or filter rows.
+Before the validation fix, duplicate filter slugs passed the validator but
+conflicted with the relational `UNIQUE (user_id, filter_id)` constraint after
+the old filters had been deleted. The hardened validator now rejects this
+particular input before writes.
+
+**Implemented:** Saving and clearing now each call a single
+session-authenticated database function. The migration
+`20261119120000_atomic_saved_survey.sql` moves their writes into PostgreSQL
+transactions. The actions retain strict validation, check the current session,
+return generic errors, and revalidate pages only after successful RPCs. The
+functions use `SECURITY INVOKER`, derive ownership from `auth.uid()`, and retain
+the existing RLS policies. No privileged service-role client is used.
+
+All 13 opt-in integration tests passed against copied schema definitions in a
+disposable local database, including injected failures at every survey write
+stage, a late constraint failure that rolls back initial profile creation,
+owner isolation, permission checks, repeated saves/clears, preservation of
+unrelated fields, and a no-op clear before the first save. The disposable
+database was removed. No existing user records were copied.
+
+The user confirmed applying the migration to local Supabase and manually
+testing save, clear, and save again, including page refresh checks. This
+completes the local manual browser check. Subsequently, the dependency upgrade's
+production build and all 24 Playwright tests passed against local Supabase,
+including the saved-survey flow. The user's manual report remains separate
+evidence from those automated results.
+Remote migration/deployment remains unverified and requires its own reviewed,
+authorized workflow. The migration must precede the updated actions in each
+environment; absent RPCs produce controlled failures rather than partial writes.
+Verification and project rollout are tracked in
+[the implementation plan](survey-transactions-plan.md).
+
+**Scope assumption:** Per the user's updated requirement, only one survey save
+or clear is expected per account at a time. Explicit per-user locks, concurrent
+tab/device handling, conflict detection, and last-completed-operation ordering
+are outside this fix. The all-or-nothing guarantee applies to each individual
+operation; overlapping operations are not guaranteed to leave all survey
+representations consistent. Card-request review remains deferred.
+
+**Evidence:** [lib/account/actions.ts](../lib/account/actions.ts:289).
+
+**Mitigations:**
+
+- Move the complete save into a transactional PostgreSQL function/RPC, or use
+  another transactionally safe server-side boundary.
+- Validate all rows before beginning the write.
+- Add failure-injection/integration tests proving that a failed save leaves the
+  previous complete version intact.
 
 ### 4. Privileged service-role client lacks an explicit server-only guard
 
 **Severity: Medium**
 
-The signup flow and rate limiter use a Supabase service-role client. It is
-currently reached from server actions, and the key is read from an environment
-variable. However, the module does not explicitly declare a server-only
-boundary. A future client-side import could expose a privileged credential or
-create an unsafe bundle.
+**Status: Deferred at the user's request.** Keep this as a potential future
+fix. The user chose to move on because of perceived complexity; this is not
+a remediation or a finding that the risk is absent. No application changes
+were made for this item.
+
+`createAuthAdminClient` is currently reached from server actions, but the
+module itself does not declare a framework server-only boundary. A future
+client import could create an unsafe bundle or expose privileged behavior.
 
 **Evidence:** [lib/auth/server.ts](../lib/auth/server.ts:41) and
 [lib/auth/actions.ts](../lib/auth/actions.ts:62).
 
-**Possible mitigations:**
+**Mitigations:**
 
-- Mark the privileged module as server-only using the framework-supported
-  server-only guard.
-- Keep the service-role key out of all `NEXT_PUBLIC_*` variables and browser
-  bundles.
-- Add a build or static check that fails if the service-role module is imported
-  by client components.
-- Prefer the anonymous/server-session client whenever an operation does not
-  require administrative privileges.
+- Add the framework-supported server-only guard to the privileged module.
+- Keep the service-role key out of every `NEXT_PUBLIC_*` variable.
+- Add a build/static check that rejects imports of the privileged module from
+  client components.
+- Use the session/anonymous client wherever administrative privileges are not
+  required.
 
-### 5. Rate limiting depends on trusted proxy headers
+### 5. Authentication rate limiting trusts forwarding headers
 
 **Severity: Medium, deployment-dependent**
 
+**Status: Deferred at the user's request.** The user confirmed that the app is
+currently run locally and chose to retain this as a potential future fix.
+Revisit trusted proxy/IP handling and account-based throttling before public
+deployment. Local use does not establish that the app is bound exclusively to
+loopback; network exposure depends on bindings and firewall configuration.
+The finding remains open. No rate-limit or network configuration was changed.
+
 The rate limiter uses the first `x-forwarded-for` value or `x-real-ip` value.
-If the production edge does not overwrite or sanitize those headers, a caller
-may spoof a new IP for each request and evade the ten-attempt bucket.
+If the production edge does not overwrite and sanitize these headers, a caller
+can spoof a new address for each request and evade the ten-attempt bucket. The
+limiter also has no username/account-based bucket.
 
-**Evidence:** [lib/auth/rate-limit.ts](../lib/auth/rate-limit.ts:7).
+**Evidence:** [lib/auth/rate-limit.ts](../lib/auth/rate-limit.ts:7) and
+[supabase/migrations/20261019120000_auth_rate_limits.sql](../supabase/migrations/20261019120000_auth_rate_limits.sql).
 
-**Possible mitigations:**
+**Mitigations:**
 
-- Confirm the production hosting provider's trusted client-IP behavior.
-- Use only a platform-provided request IP after the trusted proxy boundary.
-- Ignore client-supplied forwarding headers when the request did not come from
-  a configured trusted proxy.
-- Add account- and username-based throttling in addition to IP throttling,
-  while preserving generic authentication errors.
-- Consider CAPTCHA or progressive delays for repeated signup/login abuse.
+- Confirm the production hosting provider's trusted client-IP behavior before
+  deployment.
+- Use only a platform-provided client IP after the trusted proxy boundary.
+- Add username/account-based throttling and progressive delays while keeping
+  authentication errors generic.
+- Add abuse tests for spoofed headers and repeated attempts.
 
-### 6. Recommendation rows are writable by their owner
+### 6. Basic security headers implemented locally
+
+**Original severity: Medium. Approved basic protections verified locally;
+broader policy and remote rollout remain unverified or open.**
+
+**Approved scope:** Keep the fix small. Block all embedding, including
+same-origin frames, with CSP `frame-ancestors 'none'` and the legacy
+`X-Frame-Options: DENY` header. Add `X-Content-Type-Options: nosniff` and
+`Referrer-Policy: strict-origin-when-cross-origin` across application routes.
+Retain existing Next.js options. Broader CSP resource restrictions and HSTS
+remain future work; local HTTP development must continue to work.
+
+**Verification:** The new Playwright response test first failed because the CSP
+header was absent. After adding the headers, the production build and all 26
+browser tests passed. The two new tests check headers on home, login, and legal
+pages, and confirm Chromium rejects even a same-origin embedded login page
+while direct navigation works. Formatting, lint, type checks, and all 247
+unit/component tests passed; the 13 opt-in database tests were skipped in the
+ordinary unit run and were not rerun for this configuration-only change.
+No database or authentication changes were made.
+
+The initial audit found no explicit security-header policy in the Next.js
+configuration. The approved headers now apply across application routes.
+The CSP only restricts embedding; it does not restrict scripts, images, or
+connections, and does not constitute a broader XSS-prevention policy.
+
+**Evidence:** [next.config.ts](../next.config.ts) and
+[browser regression tests](../tests/e2e/security-headers.spec.ts).
+
+**Future work:**
+
+- Design and test broader CSP resource restrictions against Next.js, Supabase,
+  and avatar loading before enforcing them.
+- Review HSTS when production HTTPS and domain requirements are established.
+- Independently verify response headers after deployment.
+
+### 7. Recommendation rows are writable by their owner
 
 **Severity: Medium if recommendations become active**
 
-The current policies allow a user to insert, update, and delete their own
-recommendation rows. This is consistent with ownership, but it does not ensure
-that recommendation scores and explanations were generated by trusted server
-logic. The table is currently documented as unused by the MVP.
+**Status: Deferred at the user's request.** The user wants recommendations
+calculated fresh from survey answers on each visit, which matches the existing
+results flow. The application does not read or write the `recommendations`
+table. Keep this permissions review as future work before activating stored
+recommendations; no matching behavior, permissions, or schema were changed.
 
-**Evidence:** [database migration](../supabase/migrations/20260930120000_revise_credit_card_match_schema.sql:315).
+The table's existing policies permit owner INSERT, UPDATE, and DELETE through
+the database API when exposed with the current grants. An absent application
+UI does not make it inaccessible. A client could supply its own stored scores
+or explanations, but the current results flow does not consume those rows.
+This remains an open data-integrity concern for future use of the table.
 
-**Possible mitigations:**
+**Evidence:** [supabase/migrations/20260930120000_revise_credit_card_match_schema.sql](../supabase/migrations/20260930120000_revise_credit_card_match_schema.sql:315).
 
-- Keep recommendation creation in a trusted server action or service-role
-  operation after validating the user's saved preferences.
-- Remove client INSERT/UPDATE policies if recommendations are generated only
-  by the server.
-- Make generated recommendation snapshots immutable, or permit only deletion
-  by the owner.
-- Test that users cannot alter scores, explanations, or another user's
-  recommendation rows.
+**Mitigations:**
 
-### 7. Account recovery is not available for synthetic username accounts
+- Generate recommendation snapshots only in trusted server logic.
+- Remove client INSERT/UPDATE policies if recommendations are derived data.
+- Prefer immutable snapshots with owner deletion only, and test tamper
+  resistance before activating the feature.
+
+### 8. Account recovery is unavailable for synthetic username accounts
 
 **Severity: Medium product/security risk**
 
-Usernames are encoded as synthetic `.invalid` email addresses and accounts are
-automatically confirmed. This avoids collecting real email addresses, but it
-also means users have no normal password-reset channel.
+**Decision:** For the current local version, the user accepts creating a new
+account if the password is forgotten. A temporary disclaimer is now displayed
+before the signup form and in account details. It explains that recovery is
+unavailable, a new account does not inherit the old account's saved data, and
+adding a contact email does not enable recovery. No account deletion, data
+transfer, email verification, or authentication behavior was added.
 
-**Evidence:** [lib/auth/actions.ts](../lib/auth/actions.ts:62) sets
-`email_confirm: true`; the authentication configuration disables confirmation
-requirements in [supabase/config.toml](../supabase/config.toml:218).
+Disclosure is implemented; account recovery itself remains future work.
 
-**Possible mitigations:**
+**Verification:** Formatting, lint, type checks, and 19 existing tests covering
+the authentication forms, signup page, account page, and account editors passed.
+The production build and existing account browser test also passed, including
+signup, account edits, and subsequent login.
 
-- Tell users clearly that the account has no email-based recovery.
-- Offer an optional recovery email only with explicit consent, if the product
-  later needs account recovery.
-- Consider passkeys or another recovery mechanism before accounts become
-  important to users.
-- Add a controlled account deletion/recreation process that does not expose
+Synthetic `.invalid` email identities and automatic confirmation mean users
+have no normal password-reset channel. Username changes also update the
+synthetic identity, so users should understand that the account can be lost if
+the password is forgotten.
+
+**Evidence:** [lib/auth/actions.ts](../lib/auth/actions.ts:62) and
+[supabase/config.toml](../supabase/config.toml:218).
+
+**Mitigations:**
+
+- Keep the temporary recovery disclaimer visible during signup and in account
+  details until a recovery mechanism is implemented and verified.
+- Offer an optional, explicitly consented and verified recovery email later,
+  or evaluate passkeys/recovery codes.
+- Provide a controlled account deletion/recreation path without exposing
   whether a username exists.
+
+### 9. User-supplied contact email and card-request content need lifecycle controls
+
+**Severity: Medium**
+
+**Status: Deferred for the current local, test-data-only phase.** The user
+confirmed that the data is currently test data and requested documentation in
+this audit only. Do not enter real personal information during this phase.
+Before inviting real users or collecting real personal information, define
+retention periods, document access, and implement and verify appropriate
+deletion/redaction controls and administrative audit logging. No retention
+period or automated cleanup is currently established by this decision.
+No application notice, data deletion, permissions, or review-workflow changes
+were made. This finding remains open; card-request review controls (finding 10)
+remain outside scope.
+
+The optional contact email and card-request comments are accepted as
+user-provided data and visible to administrators. Validation limits size and
+format, and React output escaping is currently used, but there is no documented
+retention period, redaction process, or admin audit trail. A future email
+notification feature must not treat the unverified address as trusted.
+
+**Evidence:** [lib/card-requests/validation.ts](../lib/card-requests/validation.ts),
+[lib/account/actions.ts](../lib/account/actions.ts:420), and
+[components/admin-card-requests.tsx](../components/admin-card-requests.tsx).
+
+**Mitigations:**
+
+- Document who can see these fields and how long they are retained.
+- Treat contact email as unverified until an explicit verification flow exists.
+- Add controlled deletion/redaction and security-event logging for admin
+  review actions before the feature handles real production requests.
+
+### 10. Requesters can forge card-request review status during INSERT
+
+**Severity: Medium**
+
+The authenticated INSERT policy checks only that `user_id = auth.uid()`.
+Table-wide INSERT permission also allows the caller to supply `status`,
+`reviewed_at`, and `reviewed_by`. The `pending` default does not prevent a
+direct authenticated database API request from setting these fields.
+
+**Evidence:**
+[supabase/migrations/20261105120000_card_catalog_requests.sql](../supabase/migrations/20261105120000_card_catalog_requests.sql),
+[lib/card-requests/admin-data.ts](../lib/card-requests/admin-data.ts), and
+[components/admin-card-requests.tsx](../components/admin-card-requests.tsx).
+
+**Local reproduction, 2026-11-19:** Inside a rollback transaction against the
+existing local Supabase database, a temporary Auth user with `is_admin() = false`
+switched to the `authenticated` role and successfully inserted an owned request
+with `status = 'approved'`, a non-null `reviewed_at`, and its own UUID as
+`reviewed_by`. The harness supplied a temporary explicit identity value using
+`OVERRIDING SYSTEM VALUE` to avoid advancing the request sequence; the review
+fields are otherwise ordinary insertable columns. The transaction rolled back
+the temporary Auth user and request. No migration was applied.
+
+The admin list reads these fields directly and hides review controls for
+non-pending rows. A forged row can therefore appear already reviewed and skip
+the normal review controls. This does not grant admin membership or create a
+catalog card, but it compromises request workflow and review provenance.
+
+**Mitigations:**
+
+- Require `status = 'pending'`, `reviewed_at IS NULL`, and
+  `reviewed_by IS NULL` in the authenticated INSERT policy, or grant INSERT
+  only on requester-editable columns.
+- Keep admin-only UPDATE authorization for review fields.
+- Add database-level tests proving ordinary users cannot forge review state
+  through direct inserts, while legitimate pending submissions and admin
+  reviews continue to work.
+- Apply any corrective migration only after the required review and explicit
+  authorization; application validation alone cannot close this API path.
+
+### 11. Next.js dependency upgraded locally
+
+**Original severity: Moderate (npm advisory classification). Complete locally and accepted by the user; remote rollout unverified.**
+
+The initial audit found Next.js 16.4.1 affected by two cache information-disclosure
+advisories: [GHSA-mfr8-8qww-v76h](https://github.com/advisories/GHSA-mfr8-8qww-v76h)
+and [GHSA-vc7v-qv4w-wrv8](https://github.com/advisories/GHSA-vc7v-qv4w-wrv8).
+No `use cache` or `unstable_cache` usage was found in the application source;
+exploitability in this application was not established.
+
+The full dependency upgrade now installs Next.js and its ESLint configuration
+at 16.4.6 and sets `experimental.agentUpgrade: 'security'`. Its clean install,
+quality checks, production build, Docker smoke checks, 13 database tests, and
+24 browser tests passed. The full dependency audit reports zero vulnerabilities.
+See [the dependency compatibility report](dependency-upgrade.md) for the version
+changes, TypeScript compatibility setup, and remaining toolchain constraints.
+
+The earlier Next-only branch `fix/next-16.4.6-security-resumed` remains historical
+local work. The full upgrade includes its version/configuration changes without
+merging that branch. No remote migration, release, or deployment was performed;
+the deployed dependency version has not been independently verified.
+
+## Controls that are currently reasonable
+
+- Supabase query-builder access is used for current application queries; no
+  current SQL-concatenation injection path was found.
+- User-owned table policies compare `auth.uid()` with the row owner and use
+  `WITH CHECK` on writes.
+- Avatar uploads are size/type checked, decoded with Sharp, pixel-limited,
+  re-encoded to WebP, stored under the authenticated user's UUID folder, and
+  served through expiring signed URLs.
+- Card roster and bookmark actions derive the user ID from the session and
+  validate catalog card IDs before writing.
+- Authentication cookies are configured as `httpOnly`, `sameSite=lax`, and
+  secure in production.
+- No password, Auth token, or service-role key is written to localStorage.
 
 ## RLS and injection conclusion
 
-The current RLS policies correctly express the intended owner relationship:
-`auth.uid()` must match the row owner. They are valuable defense-in-depth for
-the future saved-data workflow.
+Owner policies generally express the intended row ownership relationship, but
+the card-request INSERT policy does not protect admin-controlled review fields.
+RLS also does not prevent SQL injection, XSS/localStorage theft, invalid values,
+partial writes, privacy failures, service-role misuse, or authentication abuse. Direct
+authenticated clients can still attempt writes to their own rows, so server
+validation and database constraints must remain defense in depth.
 
-They do not prevent:
-
-- SQL injection in raw SQL or unsafe query construction;
-- XSS or localStorage theft;
-- accidental exposure through a service-role client;
-- invalid or overbroad user-submitted values;
-- privacy, retention, or deletion failures;
-- abuse of authentication endpoints.
-
-No current application SQL-injection path was identified during this review.
-That conclusion should be revalidated when save handlers and server routes are
-implemented.
+No current application SQL-injection path was identified. This conclusion
+should be revalidated whenever new Server Actions, route handlers, RPCs, or
+admin workflows are added.
 
 ## Recommended implementation order
 
-1. Add the privacy notice, retention decision, and deletion requirements.
-2. Add server-only enforcement and strict schemas before implementing saves.
-3. Implement and integration-test owner isolation with real authenticated
-   sessions.
-4. Verify production proxy/IP behavior and strengthen rate limiting.
-5. Decide whether recommendations are server-generated and tighten their
-   policies accordingly.
-6. Document the account-recovery trade-off for synthetic usernames.
+1. Finalize the privacy/retention policy and implement account deletion,
+   including avatar cleanup (finding 1, deferred at the user's request for the
+   local test-data phase; revisit before real-user use).
+2. Add strict runtime schemas and malformed-input tests for every Server Action.
+3. Prevent requester-supplied card-request review state at the database boundary.
+4. Make saved-survey persistence transactional.
+5. Basic security headers are verified locally (finding 6). Broader CSP and
+   production HSTS remain future work. The server-only guard (finding 4) remains
+   deferred at the user's request.
+6. Verify production proxy/IP behavior and add account-based throttling
+   (finding 5, deferred at the user's request; revisit before public deployment).
+7. Tighten recommendation and admin-data policies before expanding those
+   features. Recommendation-table permissions (finding 7) are deferred at the
+   user's request; retain fresh calculation from survey answers.
+8. Temporary account-recovery disclaimers are implemented (finding 8). Recovery
+   functionality remains future work; the user accepts new account creation
+   for the current local version.
+
+Ensure the release includes the locally verified dependency upgrade and confirm
+the deployed version after release.
+
+## Verification performed
+
+### Initial review, 2026-11-18
+
+- `npm run typecheck` passed.
+- `npm test` passed: 39 test files and 174 tests.
+- Repository inspection covered current application code, migrations, and
+  tests; remote Supabase and production deployment behavior remain unverified.
+
+### Follow-up, 2026-11-19
+
+- The existing legal-page and saved-survey clearing tests passed: two files,
+  five tests. The pre-existing untracked saved-survey test was not modified.
+- Temporary validator rejection probes reproduced all six issues described
+  in finding 2: three exceptions and three accepted malformed payloads. The
+  valid control passed. These deliberately failing probes stayed outside the
+  repository test suite; they are evidence of open findings, not fixed tests.
+- A local Supabase transaction confirmed the non-admin card-request INSERT
+  bypass described in finding 10, then rolled back the probe records.
+- `npm audit --omit=dev --json` reported one moderate affected production
+  package on this branch, Next.js. It exited nonzero because the finding is
+  open; the separate upgrade branch is recorded in finding 11.
+- No application behavior, schema, remote project, or deployment was changed
+  during this follow-up. Other findings retain their prior inspection status;
+  this was not a complete rerun of all application or security checks.
+
+### Survey validation implementation, 2026-11-19
+
+- Added 64 regression and compatibility tests covering the runtime schema,
+  save action, and browser saved-answer reader. Before the fix, 16 schema
+  checks and five action checks failed, including uncaught exceptions and
+  invalid payloads reaching writes. All now pass.
+- `npm run verify` passed: formatting, ESLint, TypeScript, 41 test files with
+  238 tests, coverage thresholds, and Docker smoke checks. Smoke containers,
+  network, and named volumes were removed by the verification script.
+- `CI=1 NODE_ENV=production npm run test:e2e -- tests/e2e/saved-survey.spec.ts
+tests/e2e/catalog.spec.ts` passed its production build and all 12 browser
+  tests against local Supabase. The known Next.js dependency reminder required
+  the framework-supported immediate retry; the separate upgrade was not
+  integrated as part of this validation change.
+- `git diff --check` and the diff/new-test credential-pattern scan passed.
+- No dependencies, migrations, card-request controls, other audit fixes, or
+  remote environments were changed. The pre-existing untracked saved-survey
+  clearing test remains untouched. Database JSON shape enforcement, relational
+  catalog mapping, and transactional save/clear behavior remain separate work.
+
+### Atomic survey save/clear implementation, 2026-11-19
+
+- Saving and clearing now each use one owner-scoped, invoker-security RPC.
+  Eight action tests failed against the old multi-request implementation; all
+  17 action boundary/error tests now pass.
+- `npm run verify` passed with 247 unit/component tests, coverage thresholds,
+  formatting, lint, type checks, and Docker smoke checks with cleanup.
+- All 13 database integration cases passed against a disposable schema-only
+  copy on local PostgreSQL 17.6. These tests are opt-in and are skipped in the
+  ordinary unit run. The test database was removed.
+- The production build passed. Read-only review found no outstanding issues
+  in the simplified implementation. Diff whitespace and credential-pattern
+  checks passed.
+- The single-operation-per-account assumption is documented in the saved-survey
+  spec and implementation plan. Explicit locks and concurrent-operation tests
+  were removed at the user's request; no simultaneous-tab/device guarantee is
+  claimed.
+- The user subsequently confirmed local migration application and successful
+  manual save → clear → save testing with refresh checks. Local manual browser
+  verification is complete. At that stage RPC-backed Playwright had not been
+  rerun; the later dependency upgrade passed all 24 browser tests.
+  Remote rollout remains unverified. Card-request controls were not changed.

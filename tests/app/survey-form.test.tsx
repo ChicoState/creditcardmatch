@@ -127,7 +127,7 @@ describe('SurveyForm', () => {
       screen.getByRole('heading', { name: 'Review your answers' }),
     ).toBeVisible();
     expect(
-      screen.getByText('Groceries: $425.5, Gas: $95, Travel: $120'),
+      screen.getByText('Groceries: $425.50, Gas: $95, Travel: $120'),
     ).toBeVisible();
 
     await user.click(screen.getByRole('button', { name: 'SEE MY MATCHES' }));

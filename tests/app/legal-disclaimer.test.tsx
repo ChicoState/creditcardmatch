@@ -64,6 +64,18 @@ describe('legal page', () => {
     ).toHaveAttribute('href', expect.stringContaining('consumer.ftc.gov'));
   });
 
+  it('explains account survey data and how browser data is cleared', () => {
+    render(<LegalPage />);
+
+    expect(
+      screen.getByRole('heading', { name: 'How account data works' }),
+    ).toBeVisible();
+    expect(screen.getByText(/credit-score range, income range/i)).toBeVisible();
+    expect(screen.getByText(/saved survey answers are stored/i)).toBeVisible();
+    expect(screen.getByText(/Clear saved survey/i)).toBeVisible();
+    expect(screen.getByText(/does not delete your account/i)).toBeVisible();
+  });
+
   it('is linked from home, results, and global navigation without requiring an acknowledgment', async () => {
     const { unmount: unmountHome } = render(await HomePage());
     expect(screen.getByRole('link', { name: 'Legal' })).toHaveAttribute(

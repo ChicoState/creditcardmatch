@@ -89,7 +89,7 @@ docker compose version
    npx supabase status
    ```
 
-   The first start pulls the local service images. The npm script runs the pinned `supabase@2.117.0` CLI through `npx`; do not add a helper container, mount `docker.sock`, or run this CLI inside Compose.
+   The first start pulls the local service images. The npm script runs the pinned `supabase@3.2.0` CLI through `npx`; do not add a helper container, mount `docker.sock`, or run this CLI inside Compose.
 
 3. Create an ignored `.env.local` file and copy the local URL and keys printed by `npx supabase status` into it. On macOS:
 
