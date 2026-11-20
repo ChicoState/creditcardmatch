@@ -42,6 +42,8 @@ async function state(user: string) {
 // It never installs the draft migration in the shared local or remote project.
 describe.runIf(process.env.RUN_DATABASE_TESTS === '1')(
   'saved-survey database transactions',
+  // Each case runs several Docker/psql processes; keep unit-test timeouts unchanged.
+  { timeout: 30_000 },
   () => {
     let user: string;
     let other: string;

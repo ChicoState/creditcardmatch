@@ -7,6 +7,13 @@ based on repository code, migrations, targeted validator probes, and a local
 Supabase RLS probe. Hosted Supabase, production proxy behavior, deployment
 headers, and remote data were not independently verified.
 
+The dependency upgrade is complete locally and accepted by the user, including
+user-reported Supabase start/reset coverage. See the
+[compatibility report](dependency-upgrade.md). Card-request review controls
+(finding 10) remain documented and outside the current implementation scope.
+The next proposed review is finding 4, the privileged client's explicit
+server-only boundary; no implementation for that finding has started.
+
 ## Date
 
 2026-11-19 (follow-up to the 2026-11-18 review)
@@ -33,11 +40,11 @@ email, avatar, card roster, bookmarks, and card-request comments.
 
 The owner-scoped RLS policies are a useful authorization boundary, and no SQL
 injection sink was found in the current application query paths. The most
-important open risks are incomplete privacy/deletion behavior, a multi-step
-non-atomic survey save, caller-controlled card-request review fields, the missing explicit
+important open risks are incomplete privacy/deletion behavior,
+caller-controlled card-request review fields, the missing explicit
 server-only guard for the service-role module, and rate limiting that depends
-on deployment-specific proxy headers. The Next.js security upgrade has been
-verified separately but is not yet part of this branch.
+on deployment-specific proxy headers. The Next.js security upgrade is included in the locally verified dependency
+upgrade; deployment remains unverified.
 The shared survey runtime validator has now been hardened. Transactional
 save/clear passed disposable-database tests, and the user confirmed local
 migration application and manual browser verification. Remote rollout and
@@ -204,9 +211,10 @@ database was removed. No existing user records were copied.
 
 The user confirmed applying the migration to local Supabase and manually
 testing save, clear, and save again, including page refresh checks. This
-completes the local manual browser check. The RPC-backed Playwright flow has
-not been rerun following this migration; the user's report is manual evidence,
-separate from the automated action and database test results.
+completes the local manual browser check. Subsequently, the dependency upgrade's
+production build and all 24 Playwright tests passed against local Supabase,
+including the saved-survey flow. The user's manual report remains separate
+evidence from those automated results.
 Remote migration/deployment remains unverified and requires its own reviewed,
 authorized workflow. The migration must precede the updated actions in each
 environment; absent RPCs produce controlled failures rather than partial writes.
@@ -390,25 +398,27 @@ catalog card, but it compromises request workflow and review provenance.
 - Apply any corrective migration only after the required review and explicit
   authorization; application validation alone cannot close this API path.
 
-### 11. The audited branch still contains an affected Next.js dependency
+### 11. Next.js dependency upgraded locally
 
-**Severity: Moderate (npm advisory classification)**
+**Original severity: Moderate (npm advisory classification). Complete locally and accepted by the user; remote rollout unverified.**
 
-The production lockfile on `security_audit` still resolves Next.js 16.4.1.
-The 2026-11-19 production dependency audit reports one affected package with
-two cache information-disclosure advisories:
-[GHSA-mfr8-8qww-v76h](https://github.com/advisories/GHSA-mfr8-8qww-v76h) and
-[GHSA-vc7v-qv4w-wrv8](https://github.com/advisories/GHSA-vc7v-qv4w-wrv8).
-No `use cache` or `unstable_cache` usage was found in the current application
-source; exploitability in this application was not established.
+The initial audit found Next.js 16.4.1 affected by two cache information-disclosure
+advisories: [GHSA-mfr8-8qww-v76h](https://github.com/advisories/GHSA-mfr8-8qww-v76h)
+and [GHSA-vc7v-qv4w-wrv8](https://github.com/advisories/GHSA-vc7v-qv4w-wrv8).
+No `use cache` or `unstable_cache` usage was found in the application source;
+exploitability in this application was not established.
 
-**Remediation status:** Commit `f31a1f2` on
-`fix/next-16.4.6-security-resumed` upgrades Next.js and its ESLint configuration
-to 16.4.6 and sets `experimental.agentUpgrade: 'security'`. Its clean install,
-host quality checks, production build, 24 Playwright tests, and Docker smoke
-checks passed; its production dependency audit reported zero vulnerabilities.
-The work is local and has not been merged into the audited branch or deployed.
-Integrate the verified change before treating the dependency finding as closed.
+The full dependency upgrade now installs Next.js and its ESLint configuration
+at 16.4.6 and sets `experimental.agentUpgrade: 'security'`. Its clean install,
+quality checks, production build, Docker smoke checks, 13 database tests, and
+24 browser tests passed. The full dependency audit reports zero vulnerabilities.
+See [the dependency compatibility report](dependency-upgrade.md) for the version
+changes, TypeScript compatibility setup, and remaining toolchain constraints.
+
+The earlier Next-only branch `fix/next-16.4.6-security-resumed` remains historical
+local work. The full upgrade includes its version/configuration changes without
+merging that branch. No remote migration, release, or deployment was performed;
+the deployed dependency version has not been independently verified.
 
 ## Controls that are currently reasonable
 
@@ -451,8 +461,8 @@ admin workflows are added.
    features.
 8. Document and design account recovery before accounts become durable.
 
-The separately verified dependency patch should be integrated before release;
-its existence on another branch does not remediate this checkout.
+Ensure the release includes the locally verified dependency upgrade and confirm
+the deployed version after release.
 
 ## Verification performed
 
@@ -519,5 +529,6 @@ tests/e2e/catalog.spec.ts` passed its production build and all 12 browser
   claimed.
 - The user subsequently confirmed local migration application and successful
   manual save → clear → save testing with refresh checks. Local manual browser
-  verification is complete; RPC-backed Playwright was not rerun after migration.
+  verification is complete. At that stage RPC-backed Playwright had not been
+  rerun; the later dependency upgrade passed all 24 browser tests.
   Remote rollout remains unverified. Card-request controls were not changed.
