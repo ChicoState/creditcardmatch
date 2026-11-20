@@ -21,6 +21,14 @@ broader CSP resource restrictions and HSTS remain future work.
 Finding 7, recommendation-table write permissions, is deferred at the user's
 request. Keep calculating results fresh from survey answers; review the table's
 permissions before using stored recommendation rows.
+For finding 9, the user reports using test data only in the current local
+environment. Lifecycle controls are deferred; the user requested documenting
+this limitation only in this audit, without an application notice.
+Finding 1, expanded privacy information, retention policy, and full account
+deletion, is also deferred at the user's request for the local test-data phase.
+Revisit these controls before collecting real personal information or inviting
+real users. This completes the current pass through the audit findings;
+deferred findings remain open and card-request review remains outside scope.
 
 ## Date
 
@@ -82,6 +90,13 @@ can become identifying and should be handled as sensitive user data.
 ### 1. Privacy notice, retention, and account deletion are incomplete
 
 **Severity: High before broad account use**
+
+**Status: Deferred at the user's request.** Expanded privacy information,
+retention decisions, and full account deletion remain future work for the
+current local, test-data-only phase. Revisit before real-user use or collecting
+real personal information. No privacy-page, deletion, or database changes were
+made for this decision. Existing survey clearing remains available and does
+not delete the full account. This finding is open, not remediated.
 
 The `/legal` page now describes saved survey data, its purpose, browser
 storage, and the current survey-clearing behavior. The remaining gap is that it
@@ -399,6 +414,17 @@ the password is forgotten.
 
 **Severity: Medium**
 
+**Status: Deferred for the current local, test-data-only phase.** The user
+confirmed that the data is currently test data and requested documentation in
+this audit only. Do not enter real personal information during this phase.
+Before inviting real users or collecting real personal information, define
+retention periods, document access, and implement and verify appropriate
+deletion/redaction controls and administrative audit logging. No retention
+period or automated cleanup is currently established by this decision.
+No application notice, data deletion, permissions, or review-workflow changes
+were made. This finding remains open; card-request review controls (finding 10)
+remain outside scope.
+
 The optional contact email and card-request comments are accepted as
 user-provided data and visible to administrators. Validation limits size and
 format, and React output escaping is currently used, but there is no documented
@@ -509,7 +535,8 @@ admin workflows are added.
 ## Recommended implementation order
 
 1. Finalize the privacy/retention policy and implement account deletion,
-   including avatar cleanup.
+   including avatar cleanup (finding 1, deferred at the user's request for the
+   local test-data phase; revisit before real-user use).
 2. Add strict runtime schemas and malformed-input tests for every Server Action.
 3. Prevent requester-supplied card-request review state at the database boundary.
 4. Make saved-survey persistence transactional.
