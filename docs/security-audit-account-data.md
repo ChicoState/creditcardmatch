@@ -11,8 +11,13 @@ The dependency upgrade is complete locally and accepted by the user, including
 user-reported Supabase start/reset coverage. See the
 [compatibility report](dependency-upgrade.md). Card-request review controls
 (finding 10) remain documented and outside the current implementation scope.
-The next proposed review is finding 4, the privileged client's explicit
-server-only boundary; no implementation for that finding has started.
+Finding 4, the privileged client's explicit server-only boundary, is deferred
+at the user's request because of perceived implementation complexity. It remains
+an open future hardening item; no implementation was made. Finding 5,
+authentication rate limiting and trusted forwarding headers, is also deferred
+at the user's request while development remains local. Revisit it before public
+deployment. Finding 6 now has basic security response headers verified locally;
+broader CSP resource restrictions and HSTS remain future work.
 
 ## Date
 
@@ -242,6 +247,11 @@ representations consistent. Card-request review remains deferred.
 
 **Severity: Medium**
 
+**Status: Deferred at the user's request.** Keep this as a potential future
+fix. The user chose to move on because of perceived complexity; this is not
+a remediation or a finding that the risk is absent. No application changes
+were made for this item.
+
 `createAuthAdminClient` is currently reached from server actions, but the
 module itself does not declare a framework server-only boundary. A future
 client import could create an unsafe bundle or expose privileged behavior.
@@ -262,6 +272,13 @@ client import could create an unsafe bundle or expose privileged behavior.
 
 **Severity: Medium, deployment-dependent**
 
+**Status: Deferred at the user's request.** The user confirmed that the app is
+currently run locally and chose to retain this as a potential future fix.
+Revisit trusted proxy/IP handling and account-based throttling before public
+deployment. Local use does not establish that the app is bound exclusively to
+loopback; network exposure depends on bindings and firewall configuration.
+The finding remains open. No rate-limit or network configuration was changed.
+
 The rate limiter uses the first `x-forwarded-for` value or `x-real-ip` value.
 If the production edge does not overwrite and sanitize these headers, a caller
 can spoof a new address for each request and evade the ten-attempt bucket. The
@@ -279,25 +296,41 @@ limiter also has no username/account-based bucket.
   authentication errors generic.
 - Add abuse tests for spoofed headers and repeated attempts.
 
-### 6. Security headers are not explicitly configured
+### 6. Basic security headers implemented locally
 
-**Severity: Medium**
+**Original severity: Medium. Approved basic protections verified locally;
+broader policy and remote rollout remain unverified or open.**
 
-No Content Security Policy, HSTS, frame-ancestors/X-Frame-Options,
-X-Content-Type-Options, or related response-header policy was found in the
-Next.js configuration. React escaping and the current lack of raw HTML reduce
-XSS exposure, but they do not provide defense in depth against a future XSS,
-unsafe third-party asset, or clickjacking scenario.
+**Approved scope:** Keep the fix small. Block all embedding, including
+same-origin frames, with CSP `frame-ancestors 'none'` and the legacy
+`X-Frame-Options: DENY` header. Add `X-Content-Type-Options: nosniff` and
+`Referrer-Policy: strict-origin-when-cross-origin` across application routes.
+Retain existing Next.js options. Broader CSP resource restrictions and HSTS
+remain future work; local HTTP development must continue to work.
 
-**Evidence:** [next.config.ts](../next.config.ts).
+**Verification:** The new Playwright response test first failed because the CSP
+header was absent. After adding the headers, the production build and all 26
+browser tests passed. The two new tests check headers on home, login, and legal
+pages, and confirm Chromium rejects even a same-origin embedded login page
+while direct navigation works. Formatting, lint, type checks, and all 247
+unit/component tests passed; the 13 opt-in database tests were skipped in the
+ordinary unit run and were not rerun for this configuration-only change.
+No database or authentication changes were made.
 
-**Mitigations:**
+The initial audit found no explicit security-header policy in the Next.js
+configuration. The approved headers now apply across application routes.
+The CSP only restricts embedding; it does not restrict scripts, images, or
+connections, and does not constitute a broader XSS-prevention policy.
 
-- Add a tested header policy appropriate for local HTTP and production HTTPS.
-- Start with `Content-Security-Policy`, `X-Content-Type-Options: nosniff`,
-  frame protection, and production HSTS.
-- Keep external image and connection sources narrowly allowlisted; review the
-  policy whenever a new external asset or integration is added.
+**Evidence:** [next.config.ts](../next.config.ts) and
+[browser regression tests](../tests/e2e/security-headers.spec.ts).
+
+**Future work:**
+
+- Design and test broader CSP resource restrictions against Next.js, Supabase,
+  and avatar loading before enforcing them.
+- Review HSTS when production HTTPS and domain requirements are established.
+- Independently verify response headers after deployment.
 
 ### 7. Recommendation rows are writable by their owner
 
@@ -455,8 +488,11 @@ admin workflows are added.
 2. Add strict runtime schemas and malformed-input tests for every Server Action.
 3. Prevent requester-supplied card-request review state at the database boundary.
 4. Make saved-survey persistence transactional.
-5. Add the server-only guard and security-header policy.
-6. Verify production proxy/IP behavior and add account-based throttling.
+5. Basic security headers are verified locally (finding 6). Broader CSP and
+   production HSTS remain future work. The server-only guard (finding 4) remains
+   deferred at the user's request.
+6. Verify production proxy/IP behavior and add account-based throttling
+   (finding 5, deferred at the user's request; revisit before public deployment).
 7. Tighten recommendation and admin-data policies before expanding those
    features.
 8. Document and design account recovery before accounts become durable.
